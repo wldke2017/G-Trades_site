@@ -484,8 +484,8 @@ function startOAuthLogin() {
     const state = crypto.randomUUID();
     sessionStorage.setItem('oauth_state', state);
 
-    // Build the authorization URL without forcing a specific account type
-    const authUrl = `${OAUTH_CONFIG.authorization_url}?app_id=${OAUTH_CONFIG.app_id}&l=${OAUTH_CONFIG.language}&brand=${OAUTH_CONFIG.brand}&state=${state}&response_type=token`;
+    // Build the authorization URL with all required parameters
+    const authUrl = `${OAUTH_CONFIG.authorization_url}?app_id=${OAUTH_CONFIG.app_id}&l=${OAUTH_CONFIG.language}&brand=${OAUTH_CONFIG.brand}&state=${state}&response_type=token&redirect_uri=${encodeURIComponent(OAUTH_CONFIG.redirect_uri)}`;
 
     console.log('🚀 Redirecting to Deriv for unified login...');
     console.log('Auth URL:', authUrl);

@@ -4,7 +4,7 @@
 // ===================================
 
 // --- Constants ---
-const APP_ID = 111038;
+const APP_ID = 119056;
 const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
@@ -17,7 +17,7 @@ const ACCOUNT_TYPES = {
 
 // --- Deriv OAuth Configuration ---
 const OAUTH_CONFIG = {
-    app_id: '111038',
+    app_id: '119056',
     authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
     token_url: 'https://oauth.deriv.com/oauth2/token',
     // Dynamic redirect URI to support Localhost, Render, and Custom Domain automatically
