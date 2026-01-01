@@ -2174,8 +2174,14 @@ h4 {
     box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
 }
 
-.bot-status {
+.bot-status-container {
     grid-area: status;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.bot-status {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);

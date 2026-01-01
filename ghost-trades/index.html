@@ -777,27 +777,28 @@
                     </div>
                 </div>
 
-                <div class="bot-status">
-                    <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
-                        <span>Activity Log</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24"
-                            fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </h4>
-                    <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: block;">
-                        <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
-                    </div>
-                    <div class="collapsible-content collapsed" id="activity-log-ghost-ai">
-                        <div id="bot-log-container" class="bot-log">
-                            <div class="log-info">[--:--:--] Waiting for initialization...</div>
+                <div class="bot-status-container">
+                    <div class="bot-status">
+                        <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
+                            <span>Activity Log</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h4>
+                        <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: block;">
+                            <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
+                        </div>
+                        <div class="collapsible-content collapsed" id="activity-log-ghost-ai">
+                            <div id="bot-log-container" class="bot-log">
+                                <div class="log-info">[--:--:--] Waiting for initialization...</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Live Contract Monitor - NEW -->
-                <div class="bot-status" style="margin-top: 16px;">
+                    <!-- Live Contract Monitor - NEW -->
+                    <div class="bot-status">
                     <h4 class="collapsible-header" onclick="toggleSection('live-contract-monitor')">
                         <span>🔴 Live Contract Monitor</span>
                         <svg class="collapse-arrow collapsed" id="arrow-live-contract-monitor" viewBox="0 0 24 24"
