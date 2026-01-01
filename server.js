@@ -17,16 +17,8 @@ app.get('/health', (req, res) => res.status(200).send('Ghost Trades OK'));
 const aiStrategyRouter = require('./api/ai_strategy');
 app.use('/api/ai', aiStrategyRouter);
 
-// Serve Landing Page as root
-app.use('/', express.static(path.join(__dirname, 'landing')));
-
-// Serve Ghost Trades app
-app.use('/ghost-trades', express.static(path.join(__dirname, 'ghost-trades')));
-
-// Handle direct access to ghost-trades index
-app.get('/ghost-trades', (req, res) => {
-    res.sendFile(path.join(__dirname, 'ghost-trades', 'index.html'));
-});
+// Serve Ghost Trades app at root
+app.use('/', express.static(path.join(__dirname, 'ghost-trades')));
 
 const server = http.createServer(app);
 server.listen(PORT, () => {
