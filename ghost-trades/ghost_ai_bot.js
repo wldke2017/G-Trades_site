@@ -543,21 +543,24 @@ function addLiveContract(contractId, symbol, entryTick, barrier, contractType) {
 }
 
 function removeLiveContract(contractId) {
+    // MODIFIED: Do NOT remove from monitor immediately.
+    // Just mark as complete and update UI one last time to show final status.
+    // Data will persist until "Clear History" is clicked.
+
     if (liveContractMonitor[contractId]) {
         const contract = liveContractMonitor[contractId];
-        // Don't remove immediately if we want to mimic a log, 
-        // BUT the UI space is limited. 
-        // User asked to "act like tick history", but usually these disappear when the trade closes.
-        // Let's keep the standard behavior of removing it from the *Live* section when it closes,
-        // because the result goes to the Trade History table.
-        // The "Stop" refers to stopping the *recording* of ticks (which we handled directly in updateLiveContractMonitor).
+        contract.postEntryCount = 5; // Ensure it shows as complete
 
         addBotLog(`⚪ Live Monitor: Finished ${contract.symbol}`, 'info');
-        delete liveContractMonitor[contractId];
 
-        // Update UI
+        // Force a final UI update to reflect "Complete" status
         const container = document.getElementById('live-contracts-container');
-        container.innerHTML = '<div class="log-info">No active contracts</div>';
+        if (container) {
+            // We reuse the drawing logic from updateLiveContractMonitor by triggering a dummy update,
+            // or we could refactor the drawing logic. 
+            // For simplicity, let's just trigger one last update with the current state.
+            updateLiveContractMonitor(contractId, contract.symbol, 'COMPLETE'); // 'COMPLETE' is ignored by price parser but triggers redraw
+        }
     }
 }
 
@@ -1094,7 +1097,15 @@ function clearGhostAIHistory() {
         if (botHistoryTableBody) {
             botHistoryTableBody.innerHTML = '';
         }
-        addBotLog('📋 Trade history cleared by user', 'info');
+
+        // ADDED: Also clear the Live Contract Monitor
+        liveContractMonitor = {}; // Reset object
+        const container = document.getElementById('live-contracts-container');
+        if (container) {
+            container.innerHTML = '<div class="log-info">No active contracts</div>';
+        }
+
+        addBotLog('📋 Trade history and Live Monitor cleared by user', 'info');
         showToast('Trade history cleared', 'success');
     }
 }
