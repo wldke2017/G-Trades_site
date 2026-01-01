@@ -523,12 +523,7 @@
 
         <!-- Ghost AI Bot Interface -->
         <section class="ghostai-interface" id="ghostai-interface" style="display: none;">
-            <div class="bot-header-controls">
-                <h3 class="ghost-ai-heading">GHOST AI</h3>
-                <button id="ghost-ai-toggle-button" class="action-button primary-button">
-                    Start Bot
-                </button>
-            </div>
+            <!-- Header Controls Removed for Mobile Optimization -->
             <div class="bot-grid">
                 <div class="bot-controls">
                     <h4 class="collapsible-header" onclick="toggleSection('bot-config-ghost-ai')">
@@ -787,7 +782,8 @@
                                     stroke-linejoin="round" />
                             </svg>
                         </h4>
-                        <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: block;">
+                        <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai"
+                            style="display: block;">
                             <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
                         </div>
                         <div class="collapsible-content collapsed" id="activity-log-ghost-ai">
@@ -799,98 +795,99 @@
 
                     <!-- Live Contract Monitor - NEW -->
                     <div class="bot-status">
-                    <h4 class="collapsible-header" onclick="toggleSection('live-contract-monitor')">
-                        <span>🔴 Live Contract Monitor</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-live-contract-monitor" viewBox="0 0 24 24"
-                            fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </h4>
-                    <div class="collapsed-placeholder" id="placeholder-live-contract-monitor" style="display: block;">
-                        <img src="images/back.jpg" alt="Live Monitor Collapsed" class="collapsed-image">
-                    </div>
-                    <div class="collapsible-content collapsed" id="live-contract-monitor">
-                        <div id="live-contracts-container" class="bot-log" style="max-height: 300px;">
-                            <div class="log-info">No active contracts</div>
+                        <h4 class="collapsible-header" onclick="toggleSection('live-contract-monitor')">
+                            <span>🔴 Live Contract Monitor</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-live-contract-monitor" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h4>
+                        <div class="collapsed-placeholder" id="placeholder-live-contract-monitor"
+                            style="display: block;">
+                            <img src="images/back.jpg" alt="Live Monitor Collapsed" class="collapsed-image">
+                        </div>
+                        <div class="collapsible-content collapsed" id="live-contract-monitor">
+                            <div id="live-contracts-container" class="bot-log" style="max-height: 300px;">
+                                <div class="log-info">No active contracts</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="bot-history">
-                    <div class="bot-stats-header">
-                        <div class="history-header-top">
-                            <h4>Trade History</h4>
-                            <button id="clear-ghost-ai-history" class="btn-secondary"
-                                style="padding: 6px 12px; font-size: 12px; margin-right: 8px;"
-                                title="Clear trade history">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                    style="width: 14px; height: 14px;">
-                                    <path
-                                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                            </button>
-                            <button id="ghost-ai-toggle-button-history" class="btn-bot btn-start">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <span>Start Bot</span>
-                            </button>
+                    <div class="bot-history">
+                        <div class="bot-stats-header">
+                            <div class="history-header-top">
+                                <h4>Trade History</h4>
+                                <button id="clear-ghost-ai-history" class="btn-secondary"
+                                    style="padding: 6px 12px; font-size: 12px; margin-right: 8px;"
+                                    title="Clear trade history">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                        style="width: 14px; height: 14px;">
+                                        <path
+                                            d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                                <button id="ghost-ai-toggle-button-history" class="btn-bot btn-start">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <span>Start Bot</span>
+                                </button>
+                            </div>
+                            <div class="bot-header-section">
+                                <div class="bot-title-info">
+                                    <h2>Ghost AI Bot</h2>
+                                    <span class="bot-strategy-badge">Rammy Auto Strategy</span>
+                                </div>
+                                <div class="bot-profit-display">
+                                    <span class="profit-label">Total P/L</span>
+                                    <span id="botProfitLossDisplay" class="profit-value">$0.00</span>
+                                </div>
+                            </div>
+                            <div class="bot-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Timer</div>
+                                    <div class="stat-value" id="botTimerDisplay">00:00:00</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Win Rate</div>
+                                    <div class="stat-value" id="botWinRateDisplay">0.0%</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Trades</div>
+                                    <div class="stat-value" id="botTradesCountDisplay">0W/0L</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Total Stake</div>
+                                    <div class="stat-value" id="botTotalStakeDisplay">$0.00</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Total Payout</div>
+                                    <div class="stat-value" id="botTotalPayoutDisplay">$0.00</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">No. of Runs</div>
+                                    <div class="stat-value" id="botRunsCountDisplay">0</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bot-header-section">
-                            <div class="bot-title-info">
-                                <h2>Ghost AI Bot</h2>
-                                <span class="bot-strategy-badge">Rammy Auto Strategy</span>
-                            </div>
-                            <div class="bot-profit-display">
-                                <span class="profit-label">Total P/L</span>
-                                <span id="botProfitLossDisplay" class="profit-value">$0.00</span>
-                            </div>
+                        <div class="market-watch-container">
+                            <table id="bot-history-table" class="ticker-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Contract</th>
+                                        <th>P/L</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
-                        <div class="bot-stats">
-                            <div class="stat-item">
-                                <div class="stat-label">Timer</div>
-                                <div class="stat-value" id="botTimerDisplay">00:00:00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Win Rate</div>
-                                <div class="stat-value" id="botWinRateDisplay">0.0%</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Trades</div>
-                                <div class="stat-value" id="botTradesCountDisplay">0W/0L</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Stake</div>
-                                <div class="stat-value" id="botTotalStakeDisplay">$0.00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Payout</div>
-                                <div class="stat-value" id="botTotalPayoutDisplay">$0.00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">No. of Runs</div>
-                                <div class="stat-value" id="botRunsCountDisplay">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="market-watch-container">
-                        <table id="bot-history-table" class="ticker-table">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Contract</th>
-                                    <th>P/L</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- GHOST E/ODD Bot Interface -->
