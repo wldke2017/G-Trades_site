@@ -706,9 +706,10 @@ function isLookbackContract(contractId) {
  */
 function updateLookbackContractPL(contractId, currentPL) {
     // Validate PL
-    if (currentPL === undefined || currentPL === null || isNaN(currentPL)) {
-        return;
-    }
+    // if (currentPL === undefined || currentPL === null || isNaN(currentPL)) {
+    //     console.warn(`⚠️ Invalid PL for ${contractId}: ${currentPL}`);
+    //     return;
+    // }
 
     for (const runId in hedgingState.activeLookbackHedges) {
         const hedge = hedgingState.activeLookbackHedges[runId];
