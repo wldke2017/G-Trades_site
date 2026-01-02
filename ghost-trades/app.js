@@ -1016,13 +1016,47 @@ function handleIncomingMessage(msg) {
                 else if ((passthrough && passthrough.purpose === 'lookback_hedge') ||
                     (typeof isLookbackContract === 'function' && isLookbackContract(contract.contract_id))) {
                     const contractId = contract.contract_id;
-                    const profitVal = parseFloat(contract.profit);
+                    let profitVal = parseFloat(contract.profit);
 
                     // Debug Log
                     if (passthrough && passthrough.purpose === 'lookback_hedge') {
-                        console.log(`🔍 DEBUG: Lookback Update (via passthrough) - ID: ${contractId}, Profit: ${profitVal}`);
+                        console.log(`🔍 DEBUG: Lookback Update (via passthrough) - ID: ${contractId}, Profit: ${profitVal}, Spot: ${contract.current_spot}`);
                     } else {
-                        console.log(`🔍 DEBUG: Lookback Update (via ID match) - ID: ${contractId}, Profit: ${profitVal}`);
+                        console.log(`🔍 DEBUG: Lookback Update (via ID match) - ID: ${contractId}, Profit: ${profitVal}, Spot: ${contract.current_spot}`);
+                    }
+
+                    // MANUAL FALLBACK CALCULATION
+                    if ((isNaN(profitVal) || profitVal === 0) && contract.buy_price) {
+                        const stake = parseFloat(contract.buy_price);
+
+                        // 1. Try Bid Price (Best accuracy if available)
+                        if (contract.bid_price) {
+                            profitVal = parseFloat(contract.bid_price) - stake;
+                            console.log(`💡 Calc via Bid: ${contract.bid_price} - ${stake} = ${profitVal}`);
+                        }
+                        // 2. Try Manual Formula (Approximation)
+                        else if (contract.current_spot && (contract.barrier || contract.entry_spot)) {
+                            const spot = parseFloat(contract.current_spot);
+                            const barrier = parseFloat(contract.barrier || contract.entry_spot);
+
+                            // Iterate active hedges to find type
+                            if (typeof hedgingState !== 'undefined') {
+                                for (const runId in hedgingState.activeLookbackHedges) {
+                                    const h = hedgingState.activeLookbackHedges[runId];
+                                    if (h.hlContractId == contractId) {
+                                        // HL = Call (LBFLOATCALL in our map)
+                                        profitVal = (spot - barrier) - stake;
+                                        console.log(`💡 Calc via Formula (HL/Call): ${spot} - ${barrier} - ${stake} = ${profitVal}`);
+                                        break;
+                                    } else if (h.clContractId == contractId) {
+                                        // CL = Put (LBFLOATPUT in our map)
+                                        profitVal = (barrier - spot) - stake;
+                                        console.log(`💡 Calc via Formula (CL/Put): ${barrier} - ${spot} - ${stake} = ${profitVal}`);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // Update real-time P/L
