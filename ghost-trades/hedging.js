@@ -14,6 +14,9 @@ const hedgingState = {
     lookbackHistory: [] // Store completed Lookback trades
 };
 
+// Make state globally accessible
+window.hedgingState = hedgingState;
+
 /**
  * Executes a dual hedge by placing simultaneous CALL and PUT contracts
  * @param {string} symbol - The market symbol to hedge

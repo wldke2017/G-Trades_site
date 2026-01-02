@@ -1037,19 +1037,24 @@ function handleIncomingMessage(msg) {
                         // 2. Try Manual Formula (Approximation)
                         else if (contract.current_spot && (contract.barrier || contract.entry_spot)) {
                             const spot = parseFloat(contract.current_spot);
+                            // Use barrier if available, otherwise entry_spot
                             const barrier = parseFloat(contract.barrier || contract.entry_spot);
 
-                            // Iterate active hedges to find type
-                            if (typeof hedgingState !== 'undefined') {
-                                for (const runId in hedgingState.activeLookbackHedges) {
-                                    const h = hedgingState.activeLookbackHedges[runId];
+                            // Iterate active hedges to find type (safe access via window or global)
+                            const state = (typeof window !== 'undefined' && window.hedgingState) ? window.hedgingState : (typeof hedgingState !== 'undefined' ? hedgingState : null);
+
+                            if (state && state.activeLookbackHedges) {
+                                for (const runId in state.activeLookbackHedges) {
+                                    const h = state.activeLookbackHedges[runId];
                                     if (h.hlContractId == contractId) {
-                                        // HL = Call (LBFLOATCALL in our map)
+                                        // HL = Call (LBFLOATCALL) -> Payoff ~ Spot - Low
+                                        // Assuming barrier tracks Low (or Entry is proxy)
                                         profitVal = (spot - barrier) - stake;
                                         console.log(`💡 Calc via Formula (HL/Call): ${spot} - ${barrier} - ${stake} = ${profitVal}`);
                                         break;
                                     } else if (h.clContractId == contractId) {
-                                        // CL = Put (LBFLOATPUT in our map)
+                                        // CL = Put (LBFLOATPUT) -> Payoff ~ High - Spot
+                                        // Assuming barrier tracks High (or Entry is proxy)
                                         profitVal = (barrier - spot) - stake;
                                         console.log(`💡 Calc via Formula (CL/Put): ${barrier} - ${spot} - ${stake} = ${profitVal}`);
                                         break;
