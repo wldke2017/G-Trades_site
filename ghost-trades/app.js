@@ -1066,7 +1066,7 @@ function handleIncomingMessage(msg) {
 
                     // Handle completed contract
                     if (contract.is_expired || contract.is_sold) {
-                        console.log(`📊 Lookback contract ${passthrough.contract_type} completed: ${contractId}, P/L: $${profit.toFixed(2)}`);
+                        console.log(`📊 Lookback contract ${passthrough.contract_type} completed: ${contractId}, P/L: $${profitVal.toFixed(2)}`);
 
                         // Check if both contracts in the pair are complete
                         const runId = passthrough.run_id;
