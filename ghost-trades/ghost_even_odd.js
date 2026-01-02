@@ -16,11 +16,69 @@ let evenOddBotState = {
     lossCount: 0,
     // Track patterns per symbol to avoid duplicate trades on same pattern
     symbolPatterns: {}, // { symbol: { pattern: number, lastTradeTime: timestamp } }
-    // Track active contracts with individual martingale states
-    activeContracts: {}, // { contractId: { symbol, stake, martingaleStep, recoverySymbol } }
     // Track martingale state per symbol
-    symbolMartingale: {} // { symbol: { step: 0, size: 1, accumulatedLoss: 0 } }
+    symbolMartingale: {}, // { symbol: { step: 0, size: 1, accumulatedLoss: 0 } },
+    // Virtual Hook State
+    virtualHook: {
+        enabled: false,
+        triggerType: 'LOSS', // 'LOSS' or 'WIN'
+        triggerCount: 1,
+        fixedStake: null, // Override stake if set
+        currentStreak: {}, // { symbol: count }
+        isRealTradeTriggered: {} // { symbol: boolean }
+    }
 };
+
+// ... (skipping unchanged code) ...
+
+function initializeMoneyManagement() {
+    // Read values from UI inputs
+    const initialStakeInput = document.getElementById('eoddInitialStake');
+    const targetProfitInput = document.getElementById('eoddTargetProfit');
+    const stopLossInput = document.getElementById('eoddStopLoss');
+    const martingaleFactorInput = document.getElementById('eoddMartingaleFactor');
+    const martingaleLevelInput = document.getElementById('eoddMartingaleLevel');
+
+    // Virtual Hook Inputs
+    const vHookEnabledInput = document.getElementById('eoddVirtualHookEnabled');
+    const vHookStartWhenInput = document.getElementById('eoddVirtualHookStartWhen');
+    const vHookTriggerInput = document.getElementById('eoddVirtualHookTrigger');
+    const vHookFixedStakeInput = document.getElementById('eoddVirtualHookFixedStake');
+
+    mm.initStake = initialStakeInput ? parseFloat(initialStakeInput.value) : 0.35;
+    mm.winStake = mm.initStake;
+    mm.totalProfit = 0.0;
+    mm.targetProfit = targetProfitInput ? parseFloat(targetProfitInput.value) : 1.0;
+    mm.stopLoss = stopLossInput ? parseFloat(stopLossInput.value) : 999.0;
+    mm.martingaleFactor = martingaleFactorInput ? parseFloat(martingaleFactorInput.value) : 2.12;
+    mm.martingaleLevel = martingaleLevelInput ? parseInt(martingaleLevelInput.value) : 7;
+    mm.winCount = 0;
+    mm.lossCount = 0;
+    mm.lossLevel = 0;
+    mm.martingaleSize = 1;
+    mm.tradeAgain = false;
+    mm.consecutiveLosses = 0;
+    mm.isInRecovery = false;
+    mm.recoveryStartLoss = 0;
+
+    // Initialize Virtual Hook State
+    evenOddBotState.virtualHook.enabled = vHookEnabledInput ? vHookEnabledInput.checked : false;
+    evenOddBotState.virtualHook.triggerType = vHookStartWhenInput ? vHookStartWhenInput.value : 'LOSS';
+    evenOddBotState.virtualHook.triggerCount = vHookTriggerInput ? parseInt(vHookTriggerInput.value) : 1;
+    evenOddBotState.virtualHook.fixedStake = vHookFixedStakeInput && vHookFixedStakeInput.value ? parseFloat(vHookFixedStakeInput.value) : null;
+    evenOddBotState.virtualHook.currentStreak = {};
+    evenOddBotState.virtualHook.isRealTradeTriggered = {};
+
+    // Log the configuration being used
+    addEvenOddBotLog(`⚙️ Configuration loaded: Stake=$${mm.initStake.toFixed(2)}, Target=$${mm.targetProfit.toFixed(2)}`, 'info');
+
+    if (evenOddBotState.virtualHook.enabled) {
+        addEvenOddBotLog(`🪝 Virtual Hook ENABLED: Wait for ${evenOddBotState.virtualHook.triggerCount} Virtual ${evenOddBotState.virtualHook.triggerType}(s)`, 'warning');
+        if (evenOddBotState.virtualHook.fixedStake) {
+            addEvenOddBotLog(`💰 Fixed Stake Override: $${evenOddBotState.virtualHook.fixedStake.toFixed(2)}`, 'info');
+        }
+    }
+}
 
 // Global Money Management System (for overall P/L tracking)
 let mm = {
@@ -58,13 +116,28 @@ function addEvenOddBotTradeHistory(contract, profit) {
     if (!eoddBotHistoryTableBody) return;
 
     const row = eoddBotHistoryTableBody.insertRow(0);
-    const profitClass = profit >= 0 ? 'price-up' : 'price-down';
 
+    // Virtual Trade Handling
+    if (contract.isVirtual) {
+        const isWin = profit > 0;
+        const profitClass = isWin ? 'price-up' : 'price-down';
+        const displayResult = isWin ? 'V-WIN' : 'V-LOSS';
+
+        row.style.background = 'rgba(255, 255, 255, 0.05)'; // Slight dim for virtual
+
+        row.insertCell(0).textContent = new Date().toLocaleTimeString();
+        row.insertCell(1).innerHTML = `${contract.symbol} - ${contract.prediction_type} <span style="color: var(--text-muted); font-size: 0.9em;">(Virtual)</span><br><small>Entry: ${contract.entry_tick_display_value}</small>`;
+        row.insertCell(2).innerHTML = `<span class="${profitClass}" style="font-weight: bold; letter-spacing: 1px;">${displayResult}</span>`;
+        return;
+    }
+
+    // Real Trade Handling
+    const profitClass = profit >= 0 ? 'price-up' : 'price-down';
     const lastDigit = contract.entry_tick_display_value ? parseInt(contract.entry_tick_display_value.slice(-1)) : '?';
     const prediction = contract.prediction_type || 'EVEN/ODD';
 
     row.insertCell(0).textContent = new Date().toLocaleTimeString();
-    row.insertCell(1).innerHTML = `${contract.symbol} - ${prediction} (Pattern: ${evenOddBotState.pattern})<br><small>Price: ${contract.entry_tick_display_value} (Last digit: ${lastDigit})</small>`;
+    row.insertCell(1).innerHTML = `${contract.symbol} - ${prediction} (Pattern: ${evenOddBotState.pattern || '?'})<br><small>Price: ${contract.entry_tick_display_value} (Last digit: ${lastDigit})</small>`;
     row.cells[1].style.fontWeight = 'bold';
     row.insertCell(2).innerHTML = `<span class="${profitClass}">${profit.toFixed(2)}</span>`;
 }
@@ -670,6 +743,55 @@ function handleEvenOddTick(tick) {
     const now = Date.now();
     const timeSinceLastTrade = now - lastPattern.lastTradeTime;
 
+    // CHECK VIRTUAL ORDERS RESULT (From previous tick)
+    if (evenOddBotState.virtualOrders && evenOddBotState.virtualOrders[symbol]) {
+        const vOrder = evenOddBotState.virtualOrders[symbol];
+        // Evaluate result against CURRENT last digit (since we waited 1 tick)
+        // Digit is already parsed in 'lastDigit' at line 722
+
+        const isEven = lastDigit % 2 === 0;
+        const isWin = (vOrder.action === 'DIGITEVEN' && isEven) || (vOrder.action === 'DIGITODD' && !isEven);
+        const resultType = isWin ? 'WIN' : 'LOSS';
+
+        // Log to History Table as Virtual
+        const virtualContract = {
+            symbol: symbol,
+            entry_tick_display_value: `Virtual (${lastDigit})`,
+            prediction_type: vOrder.action === 'DIGITEVEN' ? 'EVEN' : 'ODD',
+            isVirtual: true // Flag for table styling
+        };
+        addEvenOddBotTradeHistory(virtualContract, isWin ? 1 : -1);
+
+        // Update Streak
+        const triggerType = evenOddBotState.virtualHook.triggerType; // 'LOSS' or 'WIN'
+
+        // Initialize if new
+        if (!evenOddBotState.virtualHook.currentStreak[symbol]) evenOddBotState.virtualHook.currentStreak[symbol] = 0;
+
+        if (resultType === triggerType) {
+            evenOddBotState.virtualHook.currentStreak[symbol]++;
+            addEvenOddBotLog(`👻 Virtual ${resultType} (${evenOddBotState.virtualHook.currentStreak[symbol]}/${evenOddBotState.virtualHook.triggerCount}) on ${symbol}`, isWin ? 'success' : 'error'); // Use standard log types
+
+            // Check Trigger
+            if (evenOddBotState.virtualHook.currentStreak[symbol] >= evenOddBotState.virtualHook.triggerCount) {
+                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true;
+                addEvenOddBotLog(`🪝 HOOK ACTIVATED on ${symbol}! Next trade will be REAL.`, 'warning');
+                showToast(`🪝 Hook Triggered on ${symbol}!`, 'warning');
+            }
+        } else {
+            if (evenOddBotState.virtualHook.currentStreak[symbol] > 0) {
+                addEvenOddBotLog(`🔄 Virtual Streak BROKEN on ${symbol} (Got ${resultType}). Resetting...`, 'info');
+            } else {
+                addEvenOddBotLog(`👻 Virtual ${resultType} on ${symbol}`, isWin ? 'success' : 'error');
+            }
+            evenOddBotState.virtualHook.currentStreak[symbol] = 0;
+        }
+
+        // Clear the processed virtual order
+        delete evenOddBotState.virtualOrders[symbol];
+    }
+
+
     // Check if we should trade based on pattern (pass symbol to check all pattern lengths)
     const tradeDecision = determineTradeFromPattern(symbol);
 
@@ -685,14 +807,47 @@ function handleEvenOddTick(tick) {
         const enoughTimePassed = timeSinceLastTrade > 1000; // Reduced from 3000ms to 1000ms
 
         if (isNewPattern || enoughTimePassed) {
+
             // CRITICAL: Acquire lock BEFORE any trade execution
             if (!acquireTradeLock(symbol, 'ghost_eodd')) {
                 // Symbol is locked by another bot, skip this trade
                 return;
             }
 
+            // CHECK VIRTUAL HOOK ENTRY
+            if (evenOddBotState.virtualHook.enabled && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
+                // Register a "Virtual Order" to be checked on the next tick
+                if (!evenOddBotState.virtualOrders) evenOddBotState.virtualOrders = {};
+
+                // Only place one virtual order per tick per symbol
+                // We use the 'action' and 'pattern' to verify later
+                evenOddBotState.virtualOrders[symbol] = {
+                    action: tradeDecision.action,
+                    pattern: tradeDecision.pattern,
+                    time: Date.now()
+                };
+
+                const digitSequence = getDigitSequence(symbol, tradeDecision.pattern.toString().length);
+                addEvenOddBotLog(`📝 Virtual Signal (${digitSequence}) recorded on ${symbol}... waiting for result`, 'info');
+
+                releaseTradeLock(symbol, 'ghost_eodd'); // Release lock immediately
+
+                // Update pattern tracking to prevent duplicate virtual orders on same pattern
+                evenOddBotState.symbolPatterns[symbol] = {
+                    pattern: tradeDecision.pattern,
+                    lastTradeTime: now
+                };
+                return;
+            }
+
             // Get current GLOBAL stake (can recover on ANY volatility)
-            const stake = getCurrentStake();
+            let stake = getCurrentStake();
+
+            // Apply Fixed Stake Override if applicable and Triggered
+            if (evenOddBotState.virtualHook.enabled && evenOddBotState.virtualHook.isRealTradeTriggered[symbol] && evenOddBotState.virtualHook.fixedStake) {
+                stake = evenOddBotState.virtualHook.fixedStake;
+                addEvenOddBotLog(`💰 Using Fixed Stake Override: $${stake.toFixed(2)}`, 'info');
+            }
 
             // Get the actual digit sequence that triggered this pattern
             const patternLength = tradeDecision.pattern.toString().length;
@@ -713,6 +868,13 @@ function handleEvenOddTick(tick) {
 
             // Execute trade for this symbol
             executePatternTrade(tradeDecision.action, symbol, tradeDecision.pattern, stake, digitSequence);
+
+            // RESET VIRTUAL HOOK AFTER REAL TRADE
+            if (evenOddBotState.virtualHook.enabled) {
+                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = false;
+                evenOddBotState.virtualHook.currentStreak[symbol] = 0;
+                addEvenOddBotLog(`🔄 Hook Reset on ${symbol} after real trade execution.`, 'info');
+            }
         }
     }
 }
