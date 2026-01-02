@@ -1013,13 +1013,21 @@ function handleIncomingMessage(msg) {
                     updateEvenOddProfitLossDisplay();
                 }
                 // Check if this is a Lookback Hedge contract
-                else if (passthrough && passthrough.purpose === 'lookback_hedge') {
+                else if ((passthrough && passthrough.purpose === 'lookback_hedge') ||
+                    (typeof isLookbackContract === 'function' && isLookbackContract(contract.contract_id))) {
                     const contractId = contract.contract_id;
-                    const profit = parseFloat(contract.profit);
+                    const profitVal = parseFloat(contract.profit);
+
+                    // Debug Log
+                    if (passthrough && passthrough.purpose === 'lookback_hedge') {
+                        console.log(`🔍 DEBUG: Lookback Update (via passthrough) - ID: ${contractId}, Profit: ${profitVal}`);
+                    } else {
+                        console.log(`🔍 DEBUG: Lookback Update (via ID match) - ID: ${contractId}, Profit: ${profitVal}`);
+                    }
 
                     // Update real-time P/L
                     if (typeof updateLookbackContractPL === 'function') {
-                        updateLookbackContractPL(contractId, profit);
+                        updateLookbackContractPL(contractId, profitVal);
                     }
 
                     // Handle completed contract

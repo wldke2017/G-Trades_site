@@ -685,6 +685,23 @@ function updateLookbackHedgeContract(runId, contractType, contractId, buyPrice) 
 }
 
 /**
+ * Check if a contract ID belongs to an active Lookback hedge
+ * @param {string|number} contractId 
+ * @returns {boolean}
+ */
+function isLookbackContract(contractId) {
+    if (!contractId) return false;
+    for (const runId in hedgingState.activeLookbackHedges) {
+        const hedge = hedgingState.activeLookbackHedges[runId];
+        // Loose equality matching
+        if (hedge.hlContractId == contractId || hedge.clContractId == contractId) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Update Lookback contract P/L in real-time
  */
 function updateLookbackContractPL(contractId, currentPL) {
@@ -698,16 +715,20 @@ function updateLookbackContractPL(contractId, currentPL) {
 
         // Use loose equality (==) to handle potential String/Number mismatch from API
         if (hedge.hlContractId == contractId) {
+            console.log(`✅ MATCH HL: ${contractId} -> P/L: ${currentPL}`);
             hedge.hlPL = currentPL;
             updateLookbackContractsDisplay();
             return; // Found and updated
         } else if (hedge.clContractId == contractId) {
+            console.log(`✅ MATCH CL: ${contractId} -> P/L: ${currentPL}`);
             hedge.clPL = currentPL;
             updateLookbackContractsDisplay();
             return; // Found and updated
         }
     }
-    // console.log(`⚠️ Contract ${contractId} not found in active Lookback hedges for P/L update`);
+    console.warn(`⚠️ Contract ${contractId} NOT MATCHED in active hedges. Available:`,
+        Object.values(hedgingState.activeLookbackHedges).map(h => ({ runId: h.runId, hl: h.hlContractId, cl: h.clContractId }))
+    );
 }
 
 /**
