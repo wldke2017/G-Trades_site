@@ -669,6 +669,7 @@ function executeLookbackHedgeWithMode() {
  * Update Lookback hedge state with contract IDs
  */
 function updateLookbackHedgeContract(runId, contractType, contractId, buyPrice) {
+    console.log(`🔗 Linking ${contractType} (${contractId}) to Run ID: ${runId}`);
     if (hedgingState.activeLookbackHedges[runId]) {
         if (contractType === 'LBFLOATCALL') {
             hedgingState.activeLookbackHedges[runId].hlContractId = contractId;
@@ -678,6 +679,8 @@ function updateLookbackHedgeContract(runId, contractType, contractId, buyPrice) 
             hedgingState.activeLookbackHedges[runId].clBuyPrice = buyPrice;
         }
         updateLookbackContractsDisplay();
+    } else {
+        console.warn(`⚠️ Run ID ${runId} not found in active hedges during contract update!`);
     }
 }
 
@@ -685,18 +688,26 @@ function updateLookbackHedgeContract(runId, contractType, contractId, buyPrice) 
  * Update Lookback contract P/L in real-time
  */
 function updateLookbackContractPL(contractId, currentPL) {
+    // Validate PL
+    if (currentPL === undefined || currentPL === null || isNaN(currentPL)) {
+        return;
+    }
+
     for (const runId in hedgingState.activeLookbackHedges) {
         const hedge = hedgingState.activeLookbackHedges[runId];
-        if (hedge.hlContractId === contractId) {
+
+        // Use loose equality (==) to handle potential String/Number mismatch from API
+        if (hedge.hlContractId == contractId) {
             hedge.hlPL = currentPL;
             updateLookbackContractsDisplay();
-            break;
-        } else if (hedge.clContractId === contractId) {
+            return; // Found and updated
+        } else if (hedge.clContractId == contractId) {
             hedge.clPL = currentPL;
             updateLookbackContractsDisplay();
-            break;
+            return; // Found and updated
         }
     }
+    // console.log(`⚠️ Contract ${contractId} not found in active Lookback hedges for P/L update`);
 }
 
 /**
