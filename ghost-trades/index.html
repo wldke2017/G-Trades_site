@@ -1282,37 +1282,7 @@
                     </h4>
                     <div class="collapsible-content collapsed" id="other-hedges">
                         <div class="hedge-grid">
-                            <!-- Dual Side Hedge -->
-                            <div class="hedge-card">
-                                <h3>Dual Side (High/Low)</h3>
-                                <p class="card-description">Simultaneous CALL + PUT contracts</p>
-                                <div class="control-group">
-                                    <label for="dual-market">Market</label>
-                                    <select id="dual-market" class="control-select">
-                                        <option value="R_10">Volatility 10 Index</option>
-                                        <option value="R_25">Volatility 25 Index</option>
-                                        <option value="R_50">Volatility 50 Index</option>
-                                        <option value="R_75">Volatility 75 Index</option>
-                                        <option value="R_100" selected>Volatility 100 Index</option>
-                                    </select>
-                                </div>
-                                <div class="control-group">
-                                    <label for="dual-stake">Stake (per contract)</label>
-                                    <div class="input-with-unit">
-                                        <input type="number" id="dual-stake" value="0.35" min="0.35" step="0.01">
-                                        <span class="unit">USD</span>
-                                    </div>
-                                </div>
-                                <button
-                                    onclick="executeDualHedge(document.getElementById('dual-market').value, parseFloat(document.getElementById('dual-stake').value))"
-                                    class="btn-secondary">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor"
-                                            stroke-width="2" />
-                                    </svg>
-                                    <span>Open Dual</span>
-                                </button>
-                            </div>
+
 
                             <!-- Multi-Entry -->
                             <div class="hedge-card">
