@@ -421,7 +421,61 @@ window.handleAIStrategyResult = function (contract) {
             window.aiStrategyRunner.log(`LOSS: $${profit.toFixed(2)}. Martingale x${martingaleMultiplier} -> Next Stake: $${nextStake}`, 'warning');
         }
     }
+    // Update History Table
+    updateAIHistoryTable(contract, profit);
 };
+
+// Helper: Update AI History Table
+function updateAIHistoryTable(contract, profit) {
+    const tableBody = document.querySelector('#ai-history-table tbody');
+    if (!tableBody) return;
+
+    const row = document.createElement('tr');
+
+    // Time
+    const timeCell = document.createElement('td');
+    const date = new Date();
+    timeCell.textContent = date.toLocaleTimeString();
+    timeCell.style.padding = '8px';
+    timeCell.style.borderBottom = '1px solid var(--glass-border)';
+
+    // Symbol
+    const symbolCell = document.createElement('td');
+    symbolCell.textContent = contract.symbol;
+    symbolCell.style.padding = '8px';
+    symbolCell.style.borderBottom = '1px solid var(--glass-border)';
+
+    // Result
+    const resultCell = document.createElement('td');
+    const isWin = profit > 0;
+    resultCell.textContent = isWin ? 'WIN' : 'LOSS';
+    resultCell.style.padding = '8px';
+    resultCell.style.textAlign = 'center';
+    resultCell.style.color = isWin ? '#2ecc71' : '#e74c3c';
+    resultCell.style.fontWeight = 'bold';
+    resultCell.style.borderBottom = '1px solid var(--glass-border)';
+
+    // Profit
+    const profitCell = document.createElement('td');
+    profitCell.textContent = (profit > 0 ? '+' : '') + profit.toFixed(2);
+    profitCell.style.padding = '8px';
+    profitCell.style.textAlign = 'right';
+    profitCell.style.color = isWin ? '#2ecc71' : '#e74c3c';
+    profitCell.style.borderBottom = '1px solid var(--glass-border)';
+
+    row.appendChild(timeCell);
+    row.appendChild(symbolCell);
+    row.appendChild(resultCell);
+    row.appendChild(profitCell);
+
+    // Prepend to show newest first
+    tableBody.insertBefore(row, tableBody.firstChild);
+
+    // Keep max 50 rows
+    if (tableBody.children.length > 50) {
+        tableBody.removeChild(tableBody.lastChild);
+    }
+}
 
 // Reset state when strategy starts
 const originalStart = window.AIStrategyRunner ? window.AIStrategyRunner.prototype.start : null;

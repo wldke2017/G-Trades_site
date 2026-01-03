@@ -1574,6 +1574,33 @@
                             <div class="log-entry log-info">[System] Ready to generate strategies...</div>
                         </div>
                     </div>
+
+                    <!-- New Trade History Section -->
+                    <div class="ai-history-section" style="margin-top: 15px;">
+                        <h4 style="margin-bottom: 10px;">Trade History</h4>
+                        <div class="market-watch-container"
+                            style="max-height: 200px; overflow-y: auto; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                            <table id="ai-history-table" class="ticker-table" style="width: 100%; border-collapse: collapse;">
+                                <thead style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 1;">
+                                    <tr>
+                                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--glass-border);">Time
+                                        </th>
+                                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--glass-border);">
+                                            Symbol</th>
+                                        <th
+                                            style="padding: 8px; text-align: center; border-bottom: 1px solid var(--glass-border);">
+                                            Result</th>
+                                        <th
+                                            style="padding: 8px; text-align: right; border-bottom: 1px solid var(--glass-border);">
+                                            Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
