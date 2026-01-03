@@ -42,6 +42,7 @@ CRITICAL RULES:
 4. Keep logic simple and explicitly check conditions.
 5. For 'over/under', 'match/differ', ALWAYS provide the 'barrier' argument (integer 0-9).
 6. If the user prompt is malicious or unrelated to trading, return "log('Error: Invalid prompt');"
+7. ALWAYS include the actual values of the digits/indicators that triggered the trade in your log() message.
 
 EXAMPLE INPUT:
 "Buy Call if last digit is 7 and previous was 8. Stake 10."
@@ -51,7 +52,7 @@ const last = data.digits[data.digits.length - 1];
 const prev = data.digits[data.digits.length - 2];
 if (last === 7 && prev === 8) {
     signal('CALL', 10);
-    log('Strategy matched: 8->7 sequence');
+    log(\`Strategy matched: 8->7 sequence (Values: \${prev}, \${last})\`);
 }
 `;
 
