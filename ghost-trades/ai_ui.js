@@ -3,10 +3,10 @@
 // ===================================
 
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const isWrongPort = window.location.port === '5500' || window.location.port === '5501';
-const AI_API_ENDPOINT = (isLocalDev && isWrongPort)
-    ? 'http://localhost:3000/api/ai/generate'
-    : '/api/ai/generate';
+const isProduction = window.location.hostname === 'ghost-trades.site';
+const AI_API_ENDPOINT = isProduction
+    ? 'https://ghost-trades.site/api/ai/generate'
+    : (isLocalDev ? 'http://localhost:4000/api/ai/generate' : '/api/ai/generate');
 
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator;
@@ -86,9 +86,9 @@ function initializeAIUI() {
 
 // Global function to populate markets (Called from app.js when activeSymbols are ready)
 window.updateAIMarketSelector = function (activeSymbols) {
-    console.log('🔄 AI UI: updateAIMarketSelector called', { 
-        hasContainer: !!aiMarketCheckboxes, 
-        symbolCount: activeSymbols ? activeSymbols.length : 0 
+    console.log('🔄 AI UI: updateAIMarketSelector called', {
+        hasContainer: !!aiMarketCheckboxes,
+        symbolCount: activeSymbols ? activeSymbols.length : 0
     });
 
     if (!aiMarketCheckboxes) {
@@ -115,11 +115,11 @@ window.updateAIMarketSelector = function (activeSymbols) {
     // Filter for synthetic indices FIRST, then sort
     const syntheticSymbols = activeSymbols.filter(symbol => {
         // Check if it's a synthetic index
-        const isSynthetic = symbol.market === 'synthetic_index' || 
-                           symbol.submarket === 'random_index' ||
-                           symbol.submarket === 'random_daily' ||
-                           symbol.market_display_name?.includes('Synthetics');
-        
+        const isSynthetic = symbol.market === 'synthetic_index' ||
+            symbol.submarket === 'random_index' ||
+            symbol.submarket === 'random_daily' ||
+            symbol.market_display_name?.includes('Synthetics');
+
         if (isSynthetic) {
             console.log(`✅ Including ${symbol.symbol} (${symbol.display_name || symbol.symbol})`);
         }
@@ -132,7 +132,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
     const sortedSymbols = syntheticSymbols.sort((a, b) => {
         const aName = a.display_name || a.symbol;
         const bName = b.display_name || b.symbol;
-        
+
         if (aName.includes('Crash') || aName.includes('Boom')) return -1;
         if (bName.includes('Crash') || bName.includes('Boom')) return 1;
         return aName.localeCompare(bName);
@@ -222,7 +222,7 @@ async function handleGenerateStrategy() {
     try {
         // Get token from storage similar to auth.js/app.js
         const token = localStorage.getItem('deriv_token');
-        
+
         console.log('🔗 AI: Sending request to:', AI_API_ENDPOINT);
 
         const response = await fetch(AI_API_ENDPOINT, {
@@ -374,84 +374,9 @@ window.updateAILogs = function (logEntry) {
     }
 };
 
-// Global hook for Trade Execution (Interfaces with trading.js)
-window.executeAIStratTrade = function (type, stake, symbol, barrier = null) {
-    // Validate inputs
-    if (!type || !symbol) {
-        console.error('Invalid trade parameters', { type, symbol });
-        return;
-    }
+// Global hook for Trade Execution
+// NOTE: window.executeAIStratTrade is now defined in trading.js for proper separation of concerns
 
-    // --- MANUAL STAKE & MARTINGALE LOGIC ---
-    // Ignore the 'stake' from the AI prompt strategy and use manual configuration
-    const stakeInput = document.getElementById('ai-stake-input');
-    const martingaleInput = document.getElementById('ai-martingale-input');
-
-    let actualStake = 0.35; // Fallback default
-
-    if (stakeInput && martingaleInput) {
-        const baseStake = parseFloat(stakeInput.value) || 0.35;
-        // Use the tracked current stake from state
-        actualStake = window.aiTradingState.currentStake || baseStake;
-
-        // Ensure strictly no less than base stake (safety)
-        if (actualStake < baseStake) actualStake = baseStake;
-    } else {
-        actualStake = parseFloat(stake) || 0.35; // Fallback to prompt stake if inputs missing
-    }
-
-    // Round to 2 decimals
-    actualStake = Math.round(actualStake * 100) / 100;
-    // ---------------------------------------
-
-    // Default parameters for AI trades
-    const duration = 1;
-    const duration_unit = 't';
-
-    const purchaseRequest = {
-        "buy": 1,
-        "price": actualStake,
-        "parameters": {
-            "amount": actualStake,
-            "basis": "stake",
-            "contract_type": type, // 'CALL', 'PUT', 'DIGITOVER', etc.
-            "currency": "USD",
-            "duration": duration,
-            "duration_unit": duration_unit,
-            "symbol": symbol,
-        },
-        "passthrough": {
-            "purpose": "ai_strategy_trade",
-            "timestamp": Date.now()
-        }
-    };
-
-    // Add barrier if present (for Digit strategies)
-    if (barrier !== null && barrier !== undefined) {
-        purchaseRequest.parameters.barrier = String(barrier);
-    }
-
-    if (typeof sendAPIRequest === 'function') {
-        // Log intent
-        if (window.aiStrategyRunner) {
-            let logMsg = `Placing trade: ${type} ${symbol} $${actualStake} (${duration}${duration_unit})`;
-            if (barrier !== null) logMsg += ` [Barrier: ${barrier}]`;
-            window.aiStrategyRunner.log(logMsg, 'info');
-        }
-
-        sendAPIRequest(purchaseRequest).catch(error => {
-            console.error('AI Trade Error:', error);
-            if (window.aiStrategyRunner) {
-                window.aiStrategyRunner.log(`Trade API Error: ${error.message || error}`, 'error');
-            }
-        });
-    } else {
-        console.error('sendAPIRequest not found! Cannot execute trade.');
-        if (window.aiStrategyRunner) {
-            window.aiStrategyRunner.log('System Error: sendAPIRequest function missing', 'error');
-        }
-    }
-};
 
 // --- MARTINGALE STATE MANAGEMENT ---
 window.aiTradingState = {

@@ -46,6 +46,10 @@ let marketDigitPercentages = {};
 // Stores the last 100 digits for distribution analysis
 let marketFullTickDigits = {};
 
+// --- GLOBAL DIGIT HISTORY (for AI Strategies) ---
+// Provides a unified interface to digit history for all AI trading strategies
+window.digitHistory = marketFullTickDigits; // Reference to the same object
+
 // --- GLOBAL TRADE LOCK MECHANISM ---
 // Prevents duplicate trades on the same symbol from different bots
 let globalTradeLocks = {}; // { symbol: { timestamp, botType } }

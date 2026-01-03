@@ -85,12 +85,16 @@ class AIStrategyRunner {
             return;
         }
 
-        // Rate limit execution to prevent blocking UI (max once per 100ms PER MARKET is hard to track, so we just limit global run loop slightly if needed, but per-tick is better for precision)
-        // actually, we should remove the global rate limit if we want to trade multiple markets simultaneously, 
-        // OR make it per-symbol.
-
-        // Let's remove the global 100ms throttle because it might skip ticks if multiple markets tick same time.
-        // Instead, rely on the fact that JS is single threaded and ticks come sequentially.
+        // SAFETY: Ensure digit history exists and has data
+        if (!tickContext.digits || tickContext.digits.length === 0) {
+            // Fallback: Try to get from global digitHistory
+            if (window.digitHistory && window.digitHistory[tickContext.symbol]) {
+                tickContext.digits = window.digitHistory[tickContext.symbol];
+            } else {
+                // Not enough data yet, skip execution
+                return;
+            }
+        }
 
         // Prepare safe API functions
         const signal = (type, stake, barrier) => this.handleSignal(type, stake, tickContext.symbol, barrier);

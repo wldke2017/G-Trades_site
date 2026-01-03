@@ -40,19 +40,42 @@ function connectAndAuthorize(token) {
         return;
     }
 
-    // Create connection if it doesn't exist
-    if (!connection || connection.readyState !== WebSocket.OPEN) {
-        connection = new WebSocket(WS_URL);
+    // STRENGTHENED SINGLETON: Prevent duplicate connections (CONNECTING or OPEN)
+    if (connection && (connection.readyState === WebSocket.CONNECTING || connection.readyState === WebSocket.OPEN)) {
+        console.log('🔄 WebSocket already connecting or connected, reusing existing connection');
 
-        connection.onopen = () => {
-            console.log("🚀 WebSocket Open. Sending Authorization...");
-            updateConnectionStatus('connected');
-            connection.send(JSON.stringify({ authorize: token }));
-        };
-    } else {
         // If already open, just authorize
-        connection.send(JSON.stringify({ authorize: token }));
+        if (connection.readyState === WebSocket.OPEN) {
+            console.log("🚀 WebSocket already open. Sending Authorization...");
+            connection.send(JSON.stringify({ authorize: token }));
+        }
+        // If CONNECTING, wait for it to open before authorizing
+        else {
+            console.log("⏳ WebSocket still connecting, will authorize when ready...");
+            const originalOnOpen = connection.onopen;
+            connection.onopen = (event) => {
+                if (originalOnOpen) originalOnOpen(event);
+                console.log("🚀 WebSocket now open. Sending Authorization...");
+                updateConnectionStatus('connected');
+                connection.send(JSON.stringify({ authorize: token }));
+            };
+        }
+
+        // Ensure handlers are set
+        connection.onmessage = handleIncomingMessage;
+        connection.onerror = handleConnectionError;
+        connection.onclose = handleConnectionClose;
+        return;
     }
+
+    // Create new connection
+    connection = new WebSocket(WS_URL);
+
+    connection.onopen = () => {
+        console.log("🚀 WebSocket Open. Sending Authorization...");
+        updateConnectionStatus('connected');
+        connection.send(JSON.stringify({ authorize: token }));
+    };
 
     // Standard handlers
     connection.onmessage = handleIncomingMessage;

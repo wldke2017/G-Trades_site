@@ -537,3 +537,101 @@ function updateDigitAnalysisDisplay(symbol) {
         }
     }
 }
+
+// ===================================
+// AI STRATEGY EXECUTION BRIDGE
+// ===================================
+
+/**
+ * Global AI Strategy Trade Execution Bridge
+ * Called by AIStrategyRunner to execute trades from generated strategies
+ * @param {string} type - Contract type (CALL, PUT, DIGITOVER, DIGITUNDER, etc.)
+ * @param {number} stake - Suggested stake from strategy (overridden by manual settings)
+ * @param {string} symbol - Market symbol
+ * @param {number} barrier - Optional barrier for digit predictions
+ */
+window.executeAIStratTrade = function (type, stake, symbol, barrier = null) {
+    // Validate inputs
+    if (!type || !symbol) {
+        console.error('❌ Invalid trade parameters', { type, symbol });
+        if (window.aiStrategyRunner) {
+            window.aiStrategyRunner.log('Error: Invalid trade parameters', 'error');
+        }
+        return;
+    }
+
+    // --- MANUAL STAKE & MARTINGALE LOGIC ---
+    // Ignore the 'stake' from the AI strategy and use manual configuration
+    const stakeInput = document.getElementById('ai-stake-input');
+    const martingaleInput = document.getElementById('ai-martingale-input');
+
+    let actualStake = 0.35; // Fallback default
+
+    if (stakeInput && martingaleInput) {
+        const baseStake = parseFloat(stakeInput.value) || 0.35;
+        // Use the tracked current stake from state
+        actualStake = window.aiTradingState.currentStake || baseStake;
+
+        // Ensure strictly no less than base stake (safety)
+        if (actualStake < baseStake) actualStake = baseStake;
+    } else {
+        actualStake = parseFloat(stake) || 0.35; // Fallback to strategy stake if inputs missing
+    }
+
+    // Round to 2 decimals
+    actualStake = Math.round(actualStake * 100) / 100;
+    // ---------------------------------------
+
+    // Default parameters for AI trades
+    const duration = 1;
+    const duration_unit = 't';
+
+    const purchaseRequest = {
+        "buy": 1,
+        "price": actualStake,
+        "parameters": {
+            "amount": actualStake,
+            "basis": "stake",
+            "contract_type": type, // 'CALL', 'PUT', 'DIGITOVER', etc.
+            "currency": "USD",
+            "duration": duration,
+            "duration_unit": duration_unit,
+            "symbol": symbol,
+        },
+        "passthrough": {
+            "purpose": "ai_strategy_trade",
+            "timestamp": Date.now()
+        }
+    };
+
+    // Add barrier if present (for Digit strategies)
+    if (barrier !== null && barrier !== undefined) {
+        purchaseRequest.parameters.barrier = String(barrier);
+    }
+
+    if (typeof sendAPIRequest === 'function') {
+        // Log intent
+        if (window.aiStrategyRunner) {
+            let logMsg = `Placing trade: ${type} ${symbol} $${actualStake} (${duration}${duration_unit})`;
+            if (barrier !== null) logMsg += ` [Barrier: ${barrier}]`;
+            window.aiStrategyRunner.log(logMsg, 'info');
+        }
+
+        sendAPIRequest(purchaseRequest).catch(error => {
+            console.error('❌ AI Trade Error:', error);
+            // Add error logging to UI
+            if (window.aiStrategyRunner) {
+                window.aiStrategyRunner.log(`Trade API Error: ${error.message || error}`, 'error');
+            }
+            // Also show toast to user
+            if (typeof showToast === 'function') {
+                showToast(`AI Trade Failed: ${error.message || 'Unknown error'}`, 'error');
+            }
+        });
+    } else {
+        console.error('❌ sendAPIRequest not found! Cannot execute trade.');
+        if (window.aiStrategyRunner) {
+            window.aiStrategyRunner.log('System Error: sendAPIRequest function missing', 'error');
+        }
+    }
+};

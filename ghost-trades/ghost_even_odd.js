@@ -61,6 +61,7 @@ function initializeMoneyManagement() {
     mm.isInRecovery = false;
     mm.recoveryStartLoss = 0;
 
+
     // Initialize Virtual Hook State
     evenOddBotState.virtualHook.enabled = vHookEnabledInput ? vHookEnabledInput.checked : false;
     evenOddBotState.virtualHook.triggerType = vHookStartWhenInput ? vHookStartWhenInput.value : 'LOSS';
@@ -70,7 +71,7 @@ function initializeMoneyManagement() {
     evenOddBotState.virtualHook.isRealTradeTriggered = {};
 
     // Log the configuration being used
-    addEvenOddBotLog(`⚙️ Configuration loaded: Stake=$${mm.initStake.toFixed(2)}, Target=$${mm.targetProfit.toFixed(2)}`, 'info');
+    addEvenOddBotLog(`⚙️ Configuration loaded: Stake=$${mm.initStake.toFixed(2)}, Target=$${mm.targetProfit.toFixed(2)}, StopLoss=$${mm.stopLoss.toFixed(2)}, Martingale=${mm.martingaleFactor}x (Max Level: ${mm.martingaleLevel})`, 'info');
 
     if (evenOddBotState.virtualHook.enabled) {
         addEvenOddBotLog(`🪝 Virtual Hook ENABLED: Wait for ${evenOddBotState.virtualHook.triggerCount} Virtual ${evenOddBotState.virtualHook.triggerType}(s)`, 'warning');
@@ -400,33 +401,7 @@ function addCustomPatternToConfig() {
     patternInput.value = '';
 }
 
-function initializeMoneyManagement() {
-    // Read values from UI inputs
-    const initialStakeInput = document.getElementById('eoddInitialStake');
-    const targetProfitInput = document.getElementById('eoddTargetProfit');
-    const stopLossInput = document.getElementById('eoddStopLoss');
-    const martingaleFactorInput = document.getElementById('eoddMartingaleFactor');
-    const martingaleLevelInput = document.getElementById('eoddMartingaleLevel');
 
-    mm.initStake = initialStakeInput ? parseFloat(initialStakeInput.value) : 0.35;
-    mm.winStake = mm.initStake;
-    mm.totalProfit = 0.0;
-    mm.targetProfit = targetProfitInput ? parseFloat(targetProfitInput.value) : 1.0;
-    mm.stopLoss = stopLossInput ? parseFloat(stopLossInput.value) : 999.0;
-    mm.martingaleFactor = martingaleFactorInput ? parseFloat(martingaleFactorInput.value) : 2.12;
-    mm.martingaleLevel = martingaleLevelInput ? parseInt(martingaleLevelInput.value) : 7;
-    mm.winCount = 0;
-    mm.lossCount = 0;
-    mm.lossLevel = 0;
-    mm.martingaleSize = 1;
-    mm.tradeAgain = false;
-    mm.consecutiveLosses = 0;
-    mm.isInRecovery = false;
-    mm.recoveryStartLoss = 0;
-
-    // Log the configuration being used
-    addEvenOddBotLog(`⚙️ Configuration loaded: Stake=$${mm.initStake.toFixed(2)}, Target=$${mm.targetProfit.toFixed(2)}, StopLoss=$${mm.stopLoss.toFixed(2)}, Martingale=${mm.martingaleFactor}x (Max Level: ${mm.martingaleLevel})`, 'info');
-}
 
 function updateSymbolMartingale(symbol, isWin, profit) {
     // Initialize if not exists
@@ -625,6 +600,7 @@ async function startEvenOddBot() {
     evenOddBotState.martingaleStep = 0;
     evenOddBotState.martingaleSize = 1;
     evenOddBotState.accumulatedLoss = 0;
+    evenOddBotState.virtualOrders = {}; // Initialize virtual orders for Virtual Hook
     symbolDigitHistory = {};
 }
 
