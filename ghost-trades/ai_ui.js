@@ -112,29 +112,27 @@ window.updateAIMarketSelector = function (activeSymbols) {
         return;
     }
 
-    // Filter for synthetic indices FIRST, then sort
-    const syntheticSymbols = activeSymbols.filter(symbol => {
-        // Check if it's a synthetic index
-        const isSynthetic = symbol.market === 'synthetic_index' ||
-            symbol.submarket === 'random_index' ||
-            symbol.submarket === 'random_daily' ||
-            symbol.market_display_name?.includes('Synthetics');
+    // ALLOWED MARKETS (Whitelist from user request)
+    const ALLOWED_MARKETS = [
+        'Bear Market Index', 'Bull Market Index',
+        'Jump 10 Index', 'Jump 100 Index', 'Jump 25 Index', 'Jump 50 Index', 'Jump 75 Index',
+        'Volatility 10 (1s) Index', 'Volatility 10 Index', 'Volatility 100 (1s) Index', 'Volatility 100 Index',
+        'Volatility 15 (1s) Index', 'Volatility 25 (1s) Index', 'Volatility 25 Index', 'Volatility 30 (1s) Index',
+        'Volatility 50 (1s) Index', 'Volatility 50 Index', 'Volatility 75 (1s) Index', 'Volatility 75 Index', 'Volatility 90 (1s) Index'
+    ];
 
-        if (isSynthetic) {
-            console.log(`✅ Including ${symbol.symbol} (${symbol.display_name || symbol.symbol})`);
-        }
-        return isSynthetic;
+    // Filter active symbols against whitelist
+    const supportedSymbols = activeSymbols.filter(symbol => {
+        const name = symbol.display_name || symbol.symbol;
+        return ALLOWED_MARKETS.includes(name);
     });
 
-    console.log(`🔍 AI UI: Filtered ${syntheticSymbols.length} synthetic symbols from ${activeSymbols.length} total`);
+    console.log(`🔍 AI UI: Filtered ${supportedSymbols.length} supported symbols from ${activeSymbols.length} total`);
 
-    // Sort: Crash/Boom first, then Volatility
-    const sortedSymbols = syntheticSymbols.sort((a, b) => {
+    // Sort alphabetically for clean display
+    const sortedSymbols = supportedSymbols.sort((a, b) => {
         const aName = a.display_name || a.symbol;
         const bName = b.display_name || b.symbol;
-
-        if (aName.includes('Crash') || aName.includes('Boom')) return -1;
-        if (bName.includes('Crash') || bName.includes('Boom')) return 1;
         return aName.localeCompare(bName);
     });
 
@@ -151,7 +149,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
         checkbox.type = 'checkbox';
         checkbox.value = symbol.symbol;
         checkbox.id = `ai-chk-${symbol.symbol}`;
-        checkbox.checked = false; // Default unchecked
+        checkbox.checked = true; // Default checked as per user request (Auto-select all supported)
 
         const label = document.createElement('label');
         label.htmlFor = `ai-chk-${symbol.symbol}`;

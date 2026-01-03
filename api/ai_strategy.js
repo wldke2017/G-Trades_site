@@ -6,7 +6,7 @@ const { apiLimiter } = require('../middleware/rateLimiter');
 
 // Configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
 // System prompt to enforce safety and API constraints
 const SYSTEM_PROMPT = `
@@ -65,9 +65,9 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         console.log('🤖 AI Strategy API: Received prompt request');
 
+        // Check API Key
         if (!GEMINI_API_KEY) {
-            // Mock response for testing/development if no key
-            console.warn('⚠️ No GEMINI_API_KEY found. Returning mock response.');
+            console.warn('⚠️ No GEMINI_API_KEY found (in variable). Returning mock response.');
             return res.json({
                 code: `// MOCK MODE: API Key missing
 // Prompt: "${prompt}"
@@ -96,10 +96,12 @@ if (data.lastDigit % 2 === 0) {
 
         if (!response.ok) {
             const errorText = await response.text();
+            console.error(`❌ Gemini API Error: ${response.status} - ${errorText}`);
             throw new Error(`Gemini API Error: ${errorText} `);
         }
 
         const data = await response.json();
+
 
         // Extract text from Gemini response structure
         let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
