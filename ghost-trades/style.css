@@ -3122,3 +3122,64 @@ h4 {
         grid-template-columns: 1fr;
     }
 }
+
+/* --- Mobile Responsiveness for AI Strategy --- */
+@media (max-width: 640px) {
+    .ai-container {
+        padding: var(--spacing-md);
+    }
+
+    .ai-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .ai-input-group {
+        padding: var(--spacing-md);
+    }
+
+    /* Stack the main controls (Generate, etc.) */
+    .ai-input-group>div[style*="display: flex"] {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 15px !important;
+    }
+
+    .ai-input-group button {
+        width: 100%;
+    }
+
+    /* Stack Strategy Management Controls */
+    .ai-strategy-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ai-strategy-controls select {
+        width: 100%;
+    }
+
+    .ai-strategy-controls button {
+        width: 100%;
+    }
+
+    /* Stack Smart Recovery / Stake inputs if needed */
+    /* Targeting the specific flex container for inputs */
+    .ai-input-group>div:has(label) {
+        /* This logical selection might be tricky without specific classes. 
+           Let's target the known structure based on index.html: 
+           It is the div with background rgba(255, 255, 255, 0.05) */
+    }
+
+    /* Better targeting for the input row at the bottom of ai-input-group */
+    .ai-input-group>div[style*="background"] {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .ai-editor-section,
+    .ai-logs-section {
+        height: 400px;
+        /* Reduces height on mobile */
+        padding: var(--spacing-md);
+    }
+}
