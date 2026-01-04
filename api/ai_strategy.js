@@ -5,8 +5,15 @@ const fetch = require('node-fetch');
 const { apiLimiter } = require('../middleware/rateLimiter');
 
 // Configuration
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+// Key Management
+let keyIndex = 0;
+const getKeys = () => {
+    const multiKeys = process.env.GEMINI_API_KEYS;
+    if (multiKeys) return multiKeys.split(',').map(k => k.trim()).filter(k => k);
+    return [process.env.GEMINI_API_KEY].filter(k => k);
+};
 
 // System prompt for CODE GENERATION
 const SYSTEM_PROMPT_CODE = `
@@ -89,66 +96,84 @@ EXAMPLE OUTPUT:
 router.post('/generate', apiLimiter, async (req, res) => {
     try {
         const { prompt, mode } = req.body;
+        const keys = getKeys();
 
-        if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
-            return res.status(400).json({ error: 'Invalid prompt (max 2000 chars)' });
-        }
-
-        console.log(`🤖 AI Strategy API: Received ${mode || 'generate'} request`);
-
-        // Check API Key
-        if (!GEMINI_API_KEY) {
-            console.warn('⚠️ No GEMINI_API_KEY found (in variable). Returning mock response.');
+        if (keys.length === 0) {
+            console.warn('⚠️ No Gemini API keys found. Returning mock response.');
             return res.json({
                 code: mode === 'analyze' ? null : `// MOCK MODE: API Key missing\nlog('Mock Strategy Active');`,
                 summary: mode === 'analyze' ? "MOCK SUMMARY: This strategy will trade based on even digits." : null
             });
         }
 
+        if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
+            return res.status(400).json({ error: 'Invalid prompt (max 2000 chars)' });
+        }
+
         const isAnalyze = mode === 'analyze';
         const systemPrompt = isAnalyze ? SYSTEM_PROMPT_ANALYZE : SYSTEM_PROMPT_CODE;
 
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.2,
-                    maxOutputTokens: 1024,
+        let lastError = null;
+        // Try each key in the pool if one fails with 429
+        for (let attempt = 0; attempt < keys.length; attempt++) {
+            const currentKey = keys[keyIndex % keys.length];
+            console.log(`🤖 AI API: Attempt ${attempt + 1} using Key Index ${keyIndex % keys.length}`);
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${currentKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.2,
+                            maxOutputTokens: 1024,
+                        }
+                    })
+                });
+
+                if (response.status === 429) {
+                    console.warn(`⚠️ Key ${keyIndex % keys.length} hit rate limit (429). Rotating...`);
+                    keyIndex++; // Move to next key for next attempt
+                    lastError = "Rate limit exceeded on all available keys.";
+                    continue; // Try next iteration
                 }
-            })
-        });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`❌ Gemini API Error: ${response.status} - ${errorText}`);
-            throw new Error(`Gemini API Error: ${errorText} `);
-        }
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`❌ Gemini API Error (${response.status}): ${errorText}`);
+                    throw new Error(`Gemini API Error: ${errorText}`);
+                }
 
-        const responseData = await response.json();
+                const responseData = await response.json();
+                let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-        // Extract text from Gemini response structure
-        let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                if (isAnalyze) {
+                    return res.json({ summary: aiOutput.trim() });
+                } else {
+                    let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
+                    const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+                    if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                        return res.status(400).json({ error: 'Generated code failed security check.' });
+                    }
+                    return res.json({ code: generatedCode });
+                }
 
-        if (isAnalyze) {
-            res.json({ summary: aiOutput.trim() });
-        } else {
-            // Clean up markdown code blocks if present
-            let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
-
-            // Basic Security Sanitization check
-            const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
-            if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
-                return res.status(400).json({ error: 'Generated code failed security check.' });
+            } catch (err) {
+                lastError = err.message;
+                // If it's not a 429, we might still want to try another key if it's a transient network issue
+                // but for now, we'll only rotate on 429 or if explicitly desired.
+                console.error(`❌ Attempt failed: ${err.message}`);
+                keyIndex++;
             }
-
-            res.json({ code: generatedCode });
         }
+
+        // if we reach here, all keys failed
+        throw new Error(lastError || "All API keys in pool failed.");
 
     } catch (error) {
         console.error('AI Generation Error:', error);
