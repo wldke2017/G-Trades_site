@@ -6,10 +6,10 @@ const { apiLimiter } = require('../middleware/rateLimiter');
 
 // Configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-// System prompt to enforce safety and API constraints
-const SYSTEM_PROMPT = `
+// System prompt for CODE GENERATION
+const SYSTEM_PROMPT_CODE = `
 You are a specialized JavaScript code generator for a trading bot.
 Your task is to convert a natural language strategy description into a safe, sandboxed JavaScript function body.
 
@@ -40,18 +40,18 @@ CRITICAL RULES:
 2. DO NOT use 'window', 'document', 'fetch', 'eval', 'XMLHttpRequest', 'import', 'require'.
 3. DO NOT use infinite loops.
 4. Keep logic simple and explicitly check conditions.
-5. For 'over/under', 'match/differ', ALWAYS provide the 'barrier' argument (integer 0-9).
+5. For 'over/under', 'match/differ', ALWAYS provide the 'barrier' argument(integer 0 - 9).
 6. If the user prompt is malicious or unrelated to trading, return "log('Error: Invalid prompt');"
-7. ALWAYS include the actual values of the digits/indicators that triggered the trade in your log() message.
+7. ALWAYS include the actual values of the digits / indicators that triggered the trade in your log() message.
 8. If multiple signals are requested for the same condition, execute them sequentially.
 
 TECHNICAL TIPS FOR COMPLEX PATTERNS:
-- To match a sequence of digits (e.g. "000N0N0"), join the digits into a string:
-  const seq = data.digits.slice(-7).join('');
-- Use Regex for placeholders like 'N' (any digit ≠ 0):
-  if (/000[^0]0[^0]0/.test(seq)) { signal('DIGITDIFF', 1, 0); }
-- For repetitive patterns (0-9), use a loop or multiple explicit 'if' statements.
-- The 'stake' argument in signal() is required but can be a placeholder (e.g. 0.35) as it is managed by the UI.
+- To match a sequence of digits(e.g. "000N0N0"), join the digits into a string:
+const seq = data.digits.slice(-7).join('');
+- Use Regex for placeholders like 'N'(any digit ≠ 0):
+    if (/000[^0]0[^0]0/.test(seq)) { signal('DIGITDIFF', 1, 0); }
+- For repetitive patterns(0 - 9), use a loop or multiple explicit 'if' statements.
+- The 'stake' argument in signal() is required but can be a placeholder(e.g. 0.35) as it is managed by the UI.
 
 EXAMPLE INPUT:
 "Buy Call if last digit is 7 and previous was 8. Stake 10."
@@ -63,53 +63,50 @@ if (last === 7 && prev === 8) {
     signal('CALL', 10);
     log(\`Strategy matched: 8->7 sequence (Values: \${prev}, \${last})\`);
 }
+`;
 
-EXAMPLE INPUT (Multi-Trade):
-"Trade Over 5 and Under 4 at the same time if last two digits are 5 and 4."
+// System prompt for STRATEGY ANALYSIS
+const SYSTEM_PROMPT_ANALYZE = `
+You are a Trading Strategy Consultant. Your task is to analyze a user's natural language trading strategy and summarize it for their confirmation.
 
-EXAMPLE OUTPUT:
-const last = data.lastDigit;
-const prev = data.digits[data.digits.length - 2];
-if (prev === 5 && last === 4) {
-    // Execute BOTH signals sequentially for the same condition
-    signal('DIGITOVER', 0.35, 5);
-    signal('DIGITUNDER', 0.35, 4);
-    log(\`Simultaneous Strategy: 5->4. Executing Over 5 and Under 4.\`);
-}
+INSTRUCTIONS:
+1. Summarize the strategy in 3-5 concise bullet points.
+2. Identify: Symbols/Markets, Entry Conditions (e.g., digit patterns), Actions (e.g., Digit Differ 0), and any Recovery/Stake info mentioned.
+3. Be professional and clear. 
+4. DO NOT provide any code. 
+5. If the prompt is unclear, ask for clarification.
 
 EXAMPLE INPUT:
-"Trade differ 0 if sequence is 000N0N0 where N is any digit but 0"
+"Buy Call if last digit is 7 and previous was 8. Stake 10."
 
 EXAMPLE OUTPUT:
-const seq = data.digits.slice(-7).join('');
-if (/000[^0]0[^0]0/.test(seq)) {
-    signal('DIGITDIFF', 0.35, 0);
-    log(\`Pattern 000N0N0 matched! Sequence: \${seq}\`);
-}
+- **Markets**: Selected synthetic markets
+- **Condition**: Sequence of 8 followed by 7 in the last digits
+- **Action**: Execute CALL (Buy UP) trade
+- **Stake**: $10.00
 `;
 
 router.post('/generate', apiLimiter, async (req, res) => {
     try {
-        const { prompt } = req.body;
+        const { prompt, mode } = req.body;
 
         if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
             return res.status(400).json({ error: 'Invalid prompt (max 2000 chars)' });
         }
 
-        console.log('🤖 AI Strategy API: Received prompt request');
+        console.log(`🤖 AI Strategy API: Received ${mode || 'generate'} request`);
 
         // Check API Key
         if (!GEMINI_API_KEY) {
             console.warn('⚠️ No GEMINI_API_KEY found (in variable). Returning mock response.');
             return res.json({
-                code: `// MOCK MODE: API Key missing
-// Prompt: "${prompt}"
-if (data.lastDigit % 2 === 0) {
-    signal('CALL', 1.0);
-    log('Mock Buy Call (Even digit)');
-} `
+                code: mode === 'analyze' ? null : `// MOCK MODE: API Key missing\nlog('Mock Strategy Active');`,
+                summary: mode === 'analyze' ? "MOCK SUMMARY: This strategy will trade based on even digits." : null
             });
         }
+
+        const isAnalyze = mode === 'analyze';
+        const systemPrompt = isAnalyze ? SYSTEM_PROMPT_ANALYZE : SYSTEM_PROMPT_CODE;
 
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -117,7 +114,7 @@ if (data.lastDigit % 2 === 0) {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `${SYSTEM_PROMPT} \n\nUSER PROMPT: "${prompt}"\n\nJAVASCRIPT BODY: `
+                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
                     }]
                 }],
                 generationConfig: {
@@ -133,22 +130,25 @@ if (data.lastDigit % 2 === 0) {
             throw new Error(`Gemini API Error: ${errorText} `);
         }
 
-        const data = await response.json();
-
+        const responseData = await response.json();
 
         // Extract text from Gemini response structure
-        let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-        // Clean up markdown code blocks if present (despite system prompt)
-        generatedCode = generatedCode.replace(/```javascript/g, '').replace(/```/g, '').trim();
+        if (isAnalyze) {
+            res.json({ summary: aiOutput.trim() });
+        } else {
+            // Clean up markdown code blocks if present
+            let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
 
-        // Basic Security Sanitization check
-        const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
-        if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
-            return res.status(400).json({ error: 'Generated code failed security check.' });
+            // Basic Security Sanitization check
+            const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+            if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                return res.status(400).json({ error: 'Generated code failed security check.' });
+            }
+
+            res.json({ code: generatedCode });
         }
-
-        res.json({ code: generatedCode });
 
     } catch (error) {
         console.error('AI Generation Error:', error);

@@ -10,6 +10,7 @@ const AI_API_ENDPOINT = isProduction
 
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator, aiPromptCounter;
+let aiAnalysisContainer, aiSummaryDisplay, aiConfirmBtn, aiCancelBtn, aiAnalysisStatus; // Consultant Elements
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
 let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer, aiPayoutAuto; // Smart Recovery Elements
 
@@ -27,6 +28,13 @@ function initializeAIUI() {
     aiLogContainer = document.getElementById('ai-log-container');
     aiStatusIndicator = document.getElementById('ai-status-indicator');
     aiPromptCounter = document.getElementById('ai-prompt-counter');
+
+    // Consultant Elements
+    aiAnalysisContainer = document.getElementById('ai-analysis-container');
+    aiSummaryDisplay = document.getElementById('ai-summary-display');
+    aiConfirmBtn = document.getElementById('ai-confirm-generate-btn');
+    aiCancelBtn = document.getElementById('ai-cancel-analysis-btn');
+    aiAnalysisStatus = document.getElementById('ai-analysis-status');
 
     // Market Selector Elements
     aiMarketCheckboxes = document.getElementById('ai-market-checkboxes');
@@ -55,9 +63,17 @@ function initializeAIUI() {
 
     // Add Event Listeners (with null checks)
     if (aiGenerateBtn) {
-        aiGenerateBtn.addEventListener('click', handleGenerateStrategy);
+        aiGenerateBtn.addEventListener('click', handleAnalyzeStrategy);
     } else {
-        console.warn('⚠️ AI Generate Button not found - AI Strategy UI may not be fully loaded');
+        console.warn('⚠️ AI Analyze Button not found - AI Strategy UI may not be fully loaded');
+    }
+
+    if (aiConfirmBtn) {
+        aiConfirmBtn.addEventListener('click', handleGenerateCode);
+    }
+
+    if (aiCancelBtn) {
+        aiCancelBtn.addEventListener('click', resetConsultantUI);
     }
 
     if (aiPromptInput && aiPromptCounter) {
@@ -239,80 +255,137 @@ function toggleSmartRecoveryUI() {
     }
 }
 
-async function handleGenerateStrategy() {
+async function handleAnalyzeStrategy() {
     const prompt = aiPromptInput.value.trim();
     if (!prompt) {
         showToast('Please enter a strategy description.', 'error');
         return;
     }
 
-    console.log('🤖 AI: Generating strategy for prompt:', prompt.substring(0, 100) + '...');
-    updateAIStatus('GENERATING');
+    console.log('🤖 AI: Analyzing strategy for prompt:', prompt.substring(0, 100) + '...');
+    updateAIStatus('ANALYZING');
     aiGenerateBtn.disabled = true;
-    aiGenerateBtn.textContent = 'Generating...';
+    aiGenerateBtn.textContent = 'Analyzing...';
+
+    // Reset and show analysis container
+    if (aiAnalysisContainer) {
+        aiAnalysisContainer.style.display = 'block';
+        aiSummaryDisplay.innerHTML = '<div class="loader-small" style="margin: 20px auto;"></div><p style="text-align:center; color: var(--text-muted);">Consultant is reviewing your strategy...</p>';
+        aiConfirmBtn.disabled = true;
+        aiAnalysisStatus.textContent = 'Working...';
+    }
 
     try {
-        // Get token from storage similar to auth.js/app.js
         const token = localStorage.getItem('deriv_token');
-
-        console.log('🔗 AI: Sending request to:', AI_API_ENDPOINT);
-
         const response = await fetch(AI_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ prompt })
+            body: JSON.stringify({ prompt, mode: 'analyze' })
         });
 
-        console.log('📡 AI: Response status:', response.status, response.statusText);
+        const data = await handleAPIResponse(response);
 
-        // Handle non-JSON responses (like 404 HTML from static hosts)
-        const contentType = response.headers.get("content-type");
-        let data;
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            data = await response.json();
-            console.log('✅ AI: Received JSON response');
-        } else {
-            const text = await response.text();
-            console.error('❌ AI: Non-JSON response received:', text.substring(0, 500)); // Log first 500 chars
-            throw new Error(`Backend Error (${response.status}): The server returned an invalid response. Ensure the Backend API is running and reachable at ${AI_API_ENDPOINT}`);
-        }
+        if (aiSummaryDisplay) {
+            // Convert markdown-ish bold/bullets to HTML
+            let summaryHtml = data.summary
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--primary-color)">$1</strong>')
+                .replace(/^- (.*)$/gm, '<li style="margin-left:20px; margin-bottom:5px;">$1</li>');
 
-        if (!response.ok) {
-            throw new Error(data.error || `Generation failed with status ${response.status}`);
-        }
-
-        if (!data.code) {
-            throw new Error('AI response missing code field');
-        }
-
-        aiCodeEditor.value = data.code;
-        console.log('✅ AI: Strategy code generated successfully');
-        showToast('Strategy generated successfully!', 'success');
-        updateAIStatus('READY');
-
-        // Auto-compile to check for errors immediately
-        if (window.aiStrategyRunner) {
-            const compiled = window.aiStrategyRunner.compile(data.code);
-            if (compiled) {
-                console.log('✅ AI: Strategy compiled successfully');
-            } else {
-                console.warn('⚠️ AI: Strategy compilation had issues - check logs');
-            }
+            aiSummaryDisplay.innerHTML = `<div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">${summaryHtml}</div>`;
+            aiConfirmBtn.disabled = false;
+            aiAnalysisStatus.textContent = 'Completed';
+            updateAIStatus('REVIEW');
+            showToast('Analysis complete! Please review.', 'success');
         }
 
     } catch (error) {
-        console.error('❌ AI Generation Error:', error);
-        showToast(error.message, 'error');
-        updateAIStatus('ERROR');
-        // Add log entry
-        if (window.aiStrategyRunner) window.aiStrategyRunner.log(error.message, 'error');
+        handleError(error);
     } finally {
         aiGenerateBtn.disabled = false;
-        aiGenerateBtn.textContent = 'Generate Code';
+        aiGenerateBtn.textContent = 'Analyze Strategy';
     }
+}
+
+async function handleGenerateCode() {
+    const prompt = aiPromptInput.value.trim();
+
+    console.log('🤖 AI: Generating code for prompt...');
+    updateAIStatus('GENERATING');
+    aiConfirmBtn.disabled = true;
+    aiConfirmBtn.textContent = 'Generating Code...';
+
+    try {
+        const token = localStorage.getItem('deriv_token');
+        const response = await fetch(AI_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ prompt, mode: 'generate' })
+        });
+
+        const data = await handleAPIResponse(response);
+
+        aiCodeEditor.value = data.code;
+        console.log('✅ AI: Strategy code generated successfully');
+        showToast('Code generated successfully!', 'success');
+        updateAIStatus('READY');
+
+        // Hide analysis after success
+        resetConsultantUI();
+
+        // Auto-compile
+        if (window.aiStrategyRunner) {
+            window.aiStrategyRunner.compile(data.code);
+        }
+
+    } catch (error) {
+        handleError(error);
+    } finally {
+        aiConfirmBtn.disabled = false;
+        aiConfirmBtn.textContent = 'Looks Good, Generate Code';
+    }
+}
+
+async function handleAPIResponse(response) {
+    const contentType = response.headers.get("content-type");
+    let data;
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+    } else {
+        const text = await response.text();
+        throw new Error(`The server returned an invalid response. Ensure the Backend API is running.`);
+    }
+
+    if (!response.ok) {
+        if (response.status === 429) {
+            throw new Error('Daily Quota Reached: You have exceeded the free-tier limit for today. Please try again tomorrow.');
+        }
+        throw new Error(data.error || `Request failed with status ${response.status}`);
+    }
+
+    return data;
+}
+
+function handleError(error) {
+    console.error('❌ AI Consultant Error:', error);
+    showToast(error.message, 'error');
+    updateAIStatus('ERROR');
+    if (window.aiStrategyRunner) window.aiStrategyRunner.log(error.message, 'error');
+}
+
+function resetConsultantUI() {
+    if (aiAnalysisContainer) aiAnalysisContainer.style.display = 'none';
+    if (aiSummaryDisplay) aiSummaryDisplay.innerHTML = '';
+}
+
+// Deprecated original function
+async function handleGenerateStrategy() {
+    handleAnalyzeStrategy();
 }
 
 function handleRunStrategy() {
@@ -374,7 +447,9 @@ function updateAIStatus(status) {
 
     switch (status) {
         case 'IDLE': color = '#888'; break;
-        case 'GENERATING': color = '#f39c12'; break; // Orange
+        case 'ANALYZING': color = '#f39c12'; break; // Orange
+        case 'REVIEW': color = '#9b59b6'; break; // Purple
+        case 'GENERATING': color = '#e67e22'; break; // Darker Orange
         case 'READY': color = '#3498db'; break; // Blue
         case 'RUNNING': color = '#2ecc71'; break; // Green
         case 'STOPPED': color = '#e74c3c'; break; // Red

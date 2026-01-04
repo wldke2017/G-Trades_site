@@ -1220,172 +1220,199 @@
                                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                            Generate Code
+                            Analyze Strategy
                         </button>
+                    </div>
 
+                    <!-- AI Consultant Analysis Box -->
+                    <div id="ai-analysis-container" class="glass-card"
+                        style="display: none; margin-top: 20px; border-left: 4px solid var(--primary-color); padding: 20px;">
                         <div
-                            style="display: flex; gap: 15px; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 8px 15px; border-radius: 8px; border: 1px solid var(--glass-border);">
-                            <div style="display: flex; flex-direction: column;">
-                                <label for="ai-stake-input"
-                                    style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">STAKE
-                                    ($)</label>
-                                <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01"
-                                    style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
-                            </div>
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4
+                                style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                                🤖 AI Consultant Analysis
+                            </h4>
+                            <span id="ai-analysis-status"
+                                style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
+                        </div>
+                        <div id="ai-summary-display"
+                            style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 20px; white-space: pre-wrap;">
+                            <!-- Summary will be injected here -->
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="ai-confirm-generate-btn" class="btn-primary"
+                                style="flex: 2; border-color: #2ecc71;">
+                                Looks Good, Generate Code
+                            </button>
+                            <button id="ai-cancel-analysis-btn" class="btn-secondary" style="flex: 1;">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; gap: 15px; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 8px 15px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <div style="display: flex; flex-direction: column;">
+                            <label for="ai-stake-input"
+                                style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">STAKE
+                                ($)</label>
+                            <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01"
+                                style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
+                        </div>
 
 
-                            <!-- Smart Recovery Toggle Wrapper -->
+                        <!-- Smart Recovery Toggle Wrapper -->
+                        <div
+                            style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 5px;">
+                            <label
+                                style="font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" id="ai-smart-recovery-toggle" checked
+                                    style="accent-color: var(--primary-color);">
+                                Smart Recovery
+                            </label>
+                        </div>
+
+                        <!-- Martingale Inputs (Swappable) -->
+                        <div id="ai-martingale-container" style="display: none; flex-direction: column;">
+                            <label for="ai-martingale-input"
+                                style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">MARTINGALE</label>
+                            <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1"
+                                style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
+                        </div>
+
+                        <div id="ai-payout-container" style="display: flex; flex-direction: column;">
                             <div
-                                style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 5px;">
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                <label for="ai-payout-input" style="font-size: 0.7rem; color: var(--text-muted);">PAYOUT
+                                    %</label>
                                 <label
-                                    style="font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                    <input type="checkbox" id="ai-smart-recovery-toggle" checked
-                                        style="accent-color: var(--primary-color);">
-                                    Smart Recovery
+                                    style="font-size: 0.6rem; color: var(--text-muted); display: flex; align-items: center; gap: 3px; cursor: pointer;">
+                                    <input type="checkbox" id="ai-payout-auto" checked
+                                        style="width: 10px; height: 10px;"> Auto
                                 </label>
                             </div>
+                            <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1"
+                                style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <!-- Martingale Inputs (Swappable) -->
-                            <div id="ai-martingale-container" style="display: none; flex-direction: column;">
-                                <label for="ai-martingale-input"
-                                    style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">MARTINGALE</label>
-                                <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1"
-                                    style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
-                            </div>
+            <!-- Market Selector for AI -->
+            <div class="ai-market-selector-wrapper"
+                style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted);">SELECT MARKETS TO
+                        TRADE (Bot will run on ALL checked):</label>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="ai-select-all-markets" class="btn-micro"
+                            style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">All</button>
+                        <button id="ai-clear-markets" class="btn-micro"
+                            style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">Clear</button>
+                    </div>
+                </div>
+                <div id="ai-market-checkboxes"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Checkboxes populated by JS -->
+                    <span style="color: #666; font-size: 0.8rem;">Loading markets...</span>
+                </div>
+            </div>
 
-                            <div id="ai-payout-container" style="display: flex; flex-direction: column;">
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                                    <label for="ai-payout-input"
-                                        style="font-size: 0.7rem; color: var(--text-muted);">PAYOUT %</label>
-                                    <label
-                                        style="font-size: 0.6rem; color: var(--text-muted); display: flex; align-items: center; gap: 3px; cursor: pointer;">
-                                        <input type="checkbox" id="ai-payout-auto" checked
-                                            style="width: 10px; height: 10px;"> Auto
-                                    </label>
-                                </div>
-                                <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1"
-                                    style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
-                            </div>
+            <div class="ai-workspace">
+                <div class="ai-editor-section">
+                    <h4>Generated Strategy Code</h4>
+                    <textarea id="ai-code-editor" class="code-editor" spellcheck="false"
+                        placeholder="// Generated code will appear here..."></textarea>
+
+                    <div class="ai-controls">
+                        <div class="status-box">
+                            Status: <span id="ai-status-indicator" class="status-text">IDLE</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button id="ai-run-btn" class="btn-bot btn-start">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width:16px;margin-right:5px;">
+                                    <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                                Run
+                            </button>
+                            <button id="ai-stop-btn" class="btn-secondary"
+                                style="display: none; border-color: #e74c3c; color: #e74c3c;">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width:16px;margin-right:5px;">
+                                    <rect x="6" y="6" width="12" height="12" fill="currentColor" />
+                                </svg>
+                                Stop
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Market Selector for AI -->
-                <div class="ai-market-selector-wrapper"
-                    style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted);">SELECT MARKETS TO
-                            TRADE (Bot will run on ALL checked):</label>
-                        <div style="display: flex; gap: 5px;">
-                            <button id="ai-select-all-markets" class="btn-micro"
-                                style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">All</button>
-                            <button id="ai-clear-markets" class="btn-micro"
-                                style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">Clear</button>
-                        </div>
-                    </div>
-                    <div id="ai-market-checkboxes"
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                        <!-- Checkboxes populated by JS -->
-                        <span style="color: #666; font-size: 0.8rem;">Loading markets...</span>
+                <div class="ai-logs-section">
+                    <h4>Live Logs</h4>
+                    <div id="ai-log-container" class="ai-logs">
+                        <div class="log-entry log-info">[System] Ready to generate strategies...</div>
                     </div>
                 </div>
 
-                <div class="ai-workspace">
-                    <div class="ai-editor-section">
-                        <h4>Generated Strategy Code</h4>
-                        <textarea id="ai-code-editor" class="code-editor" spellcheck="false"
-                            placeholder="// Generated code will appear here..."></textarea>
+                <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
+                <div class="ai-history-section" style="margin-top: 20px;">
 
-                        <div class="ai-controls">
-                            <div class="status-box">
-                                Status: <span id="ai-status-indicator" class="status-text">IDLE</span>
-                            </div>
-                            <div class="control-buttons">
-                                <button id="ai-run-btn" class="btn-bot btn-start">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                        style="width:16px;margin-right:5px;">
-                                        <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" />
-                                    </svg>
-                                    Run
-                                </button>
-                                <button id="ai-stop-btn" class="btn-secondary"
-                                    style="display: none; border-color: #e74c3c; color: #e74c3c;">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                        style="width:16px;margin-right:5px;">
-                                        <rect x="6" y="6" width="12" height="12" fill="currentColor" />
-                                    </svg>
-                                    Stop
-                                </button>
-                            </div>
+                    <!-- AI Stats Dashboard -->
+                    <div class="bot-header-section">
+                        <div class="bot-title-info">
+                            <h2>AI Strategy Bot</h2>
+                            <span class="bot-strategy-badge">Generated Strategy</span>
+                        </div>
+                        <div class="bot-profit-display">
+                            <span class="profit-label">Total P/L</span>
+                            <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
                         </div>
                     </div>
 
-                    <div class="ai-logs-section">
-                        <h4>Live Logs</h4>
-                        <div id="ai-log-container" class="ai-logs">
-                            <div class="log-entry log-info">[System] Ready to generate strategies...</div>
+                    <div class="bot-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Timer</div>
+                            <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Win Rate</div>
+                            <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Trades</div>
+                            <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Stake</div>
+                            <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Payout</div>
+                            <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">No. of Runs</div>
+                            <div class="stat-value" id="aiRunsCountDisplay">0</div>
                         </div>
                     </div>
 
-                    <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
-                    <div class="ai-history-section" style="margin-top: 20px;">
-
-                        <!-- AI Stats Dashboard -->
-                        <div class="bot-header-section">
-                            <div class="bot-title-info">
-                                <h2>AI Strategy Bot</h2>
-                                <span class="bot-strategy-badge">Generated Strategy</span>
-                            </div>
-                            <div class="bot-profit-display">
-                                <span class="profit-label">Total P/L</span>
-                                <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
-                            </div>
-                        </div>
-
-                        <div class="bot-stats">
-                            <div class="stat-item">
-                                <div class="stat-label">Timer</div>
-                                <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Win Rate</div>
-                                <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Trades</div>
-                                <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Stake</div>
-                                <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Payout</div>
-                                <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">No. of Runs</div>
-                                <div class="stat-value" id="aiRunsCountDisplay">0</div>
-                            </div>
-                        </div>
-
-                        <!-- History Table -->
-                        <div class="market-watch-container">
-                            <table id="ai-history-table" class="ticker-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Contract</th>
-                                        <th>P/L</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                    <!-- History Table -->
+                    <div class="market-watch-container">
+                        <table id="ai-history-table" class="ticker-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Contract</th>
+                                    <th>P/L</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
             </div>
         </section>
 
