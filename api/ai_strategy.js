@@ -114,66 +114,75 @@ router.post('/generate', apiLimiter, async (req, res) => {
         const systemPrompt = isAnalyze ? SYSTEM_PROMPT_ANALYZE : SYSTEM_PROMPT_CODE;
 
         let lastError = null;
-        // Try each key in the pool if one fails with 429
-        for (let attempt = 0; attempt < keys.length; attempt++) {
-            const currentKey = keys[keyIndex % keys.length];
-            console.log(`🤖 AI API: Attempt ${attempt + 1} using Key Index ${keyIndex % keys.length}`);
 
-            try {
-                const response = await fetch(`${GEMINI_API_URL}?key=${currentKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.2,
-                            maxOutputTokens: 1024,
-                        }
-                    })
-                });
+        // OUTER LOOP: Try each model in the fallback list
+        for (const model of FALLBACK_MODELS) {
+            const apiUrl = `${GEMINI_BASE_URL}/${model}:generateContent`;
 
-                if (response.status === 429) {
-                    console.warn(`⚠️ Key ${keyIndex % keys.length} hit rate limit (429). Rotating...`);
-                    keyIndex++; // Move to next key for next attempt
-                    lastError = "Rate limit exceeded on all available keys.";
-                    continue; // Try next iteration
-                }
+            // INNER LOOP: Try each key for the current model
+            for (let attempt = 0; attempt < keys.length; attempt++) {
+                const currentKey = keys[keyIndex % keys.length];
+                console.log(`🤖 AI API: Attempt using model [${model}] with Key Index ${keyIndex % keys.length}`);
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`❌ Gemini API Error (${response.status}): ${errorText}`);
-                    throw new Error(`Gemini API Error: ${errorText}`);
-                }
+                try {
+                    const response = await fetch(`${apiUrl}?key=${currentKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.2,
+                                maxOutputTokens: 1024,
+                            }
+                        })
+                    });
 
-                const responseData = await response.json();
-                let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-                if (isAnalyze) {
-                    return res.json({ summary: aiOutput.trim() });
-                } else {
-                    let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
-                    const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
-                    if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
-                        return res.status(400).json({ error: 'Generated code failed security check.' });
+                    if (response.status === 429) {
+                        const errorData = await response.json().catch(() => ({}));
+                        console.warn(`⚠️ Model [${model}] Key ${keyIndex % keys.length} hit rate limit (429). Rotating key...`);
+                        keyIndex++;
+                        lastError = errorData.error?.message || "Rate limit exceeded (429).";
+                        continue; // Try next key
                     }
-                    return res.json({ code: generatedCode });
-                }
 
-            } catch (err) {
-                lastError = err.message;
-                // If it's not a 429, we might still want to try another key if it's a transient network issue
-                // but for now, we'll only rotate on 429 or if explicitly desired.
-                console.error(`❌ Attempt failed: ${err.message}`);
-                keyIndex++;
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`❌ Gemini API Error (${response.status}) on model [${model}]: ${errorText}`);
+                        // If it's a 404 (model not found), we should skip this model entirely
+                        if (response.status === 404) break;
+                        throw new Error(`Gemini API Error: ${errorText}`);
+                    }
+
+                    const responseData = await response.json();
+                    let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                    if (isAnalyze) {
+                        return res.json({ summary: aiOutput.trim() });
+                    } else {
+                        let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
+                        const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+                        if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                            return res.status(400).json({ error: 'Generated code failed security check.' });
+                        }
+                        return res.json({ code: generatedCode });
+                    }
+
+                } catch (err) {
+                    lastError = err.message;
+                    console.error(`❌ Attempt failed on model [${model}]: ${err.message}`);
+                    keyIndex++; // Rotate key on error
+                }
             }
+
+            console.log(`🔄 Model [${model}] exhausted or unavailable. Falling back to next model...`);
         }
 
-        // if we reach here, all keys failed
-        throw new Error(lastError || "All API keys in pool failed.");
+        // if we reach here, all models and keys failed
+        throw new Error(lastError || "All API models and keys in pool failed.");
 
     } catch (error) {
         console.error('AI Generation Error:', error);
