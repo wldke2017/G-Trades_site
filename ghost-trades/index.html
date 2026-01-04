@@ -1507,10 +1507,32 @@
                                 <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01"
                                     style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
                             </div>
-                            <div style="display: flex; flex-direction: column;">
+
+
+                            <!-- Smart Recovery Toggle Wrapper -->
+                            <div
+                                style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 5px;">
+                                <label
+                                    style="font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <input type="checkbox" id="ai-smart-recovery-toggle" checked
+                                        style="accent-color: var(--primary-color);">
+                                    Smart Recovery
+                                </label>
+                            </div>
+
+                            <!-- Martingale Inputs (Swappable) -->
+                            <div id="ai-martingale-container" style="display: none; flex-direction: column;">
                                 <label for="ai-martingale-input"
                                     style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">MARTINGALE</label>
                                 <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1"
+                                    style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
+                            </div>
+
+                            <div id="ai-payout-container" style="display: flex; flex-direction: column;">
+                                <label for="ai-payout-input"
+                                    style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">PAYOUT
+                                    %</label>
+                                <input type="number" id="ai-payout-input" value="95" min="1" max="100" step="1"
                                     style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 4px;">
                             </div>
                         </div>
@@ -1575,29 +1597,59 @@
                         </div>
                     </div>
 
-                    <!-- New Trade History Section -->
-                    <div class="ai-history-section" style="margin-top: 15px;">
-                        <h4 style="margin-bottom: 10px;">Trade History</h4>
-                        <div class="market-watch-container"
-                            style="max-height: 200px; overflow-y: auto; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
-                            <table id="ai-history-table" class="ticker-table" style="width: 100%; border-collapse: collapse;">
-                                <thead style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 1;">
+                    <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
+                    <div class="ai-history-section" style="margin-top: 20px;">
+
+                        <!-- AI Stats Dashboard -->
+                        <div class="bot-header-section">
+                            <div class="bot-title-info">
+                                <h2>AI Strategy Bot</h2>
+                                <span class="bot-strategy-badge">Generated Strategy</span>
+                            </div>
+                            <div class="bot-profit-display">
+                                <span class="profit-label">Total P/L</span>
+                                <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="bot-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Timer</div>
+                                <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Win Rate</div>
+                                <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Trades</div>
+                                <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Stake</div>
+                                <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Payout</div>
+                                <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">No. of Runs</div>
+                                <div class="stat-value" id="aiRunsCountDisplay">0</div>
+                            </div>
+                        </div>
+
+                        <!-- History Table -->
+                        <div class="market-watch-container">
+                            <table id="ai-history-table" class="ticker-table">
+                                <thead>
                                     <tr>
-                                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--glass-border);">Time
-                                        </th>
-                                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--glass-border);">
-                                            Symbol</th>
-                                        <th
-                                            style="padding: 8px; text-align: center; border-bottom: 1px solid var(--glass-border);">
-                                            Result</th>
-                                        <th
-                                            style="padding: 8px; text-align: right; border-bottom: 1px solid var(--glass-border);">
-                                            Profit</th>
+                                        <th>Time</th>
+                                        <th>Contract</th>
+                                        <th>P/L</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <!-- Populated by JS -->
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>

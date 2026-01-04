@@ -11,6 +11,7 @@ const AI_API_ENDPOINT = isProduction
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator;
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
+let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer; // Smart Recovery Elements
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAIUI();
@@ -30,6 +31,11 @@ function initializeAIUI() {
     aiMarketCheckboxes = document.getElementById('ai-market-checkboxes');
     aiSelectAllBtn = document.getElementById('ai-select-all-markets');
     aiClearMarketsBtn = document.getElementById('ai-clear-markets');
+
+    // Smart Recovery Elements
+    aiSmartRecoveryToggle = document.getElementById('ai-smart-recovery-toggle');
+    aiMartingaleContainer = document.getElementById('ai-martingale-container');
+    aiPayoutContainer = document.getElementById('ai-payout-container');
 
     // Log initialization status
     console.log('🤖 AI Strategy UI Initialization:', {
@@ -66,6 +72,12 @@ function initializeAIUI() {
 
     if (aiClearMarketsBtn) {
         aiClearMarketsBtn.addEventListener('click', () => toggleAllMarkets(false));
+    }
+
+    if (aiSmartRecoveryToggle) {
+        aiSmartRecoveryToggle.addEventListener('change', toggleSmartRecoveryUI);
+        // Initialize UI state
+        toggleSmartRecoveryUI();
     }
 
     // Set Initial State
@@ -205,6 +217,18 @@ function getSelectedAIMarkets() {
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
+function toggleSmartRecoveryUI() {
+    const isSmart = aiSmartRecoveryToggle && aiSmartRecoveryToggle.checked;
+
+    if (aiMartingaleContainer) {
+        aiMartingaleContainer.style.display = isSmart ? 'none' : 'flex';
+    }
+
+    if (aiPayoutContainer) {
+        aiPayoutContainer.style.display = isSmart ? 'flex' : 'none';
+    }
+}
+
 async function handleGenerateStrategy() {
     const prompt = aiPromptInput.value.trim();
     if (!prompt) {
@@ -307,6 +331,7 @@ function handleRunStrategy() {
         const baseStake = parseFloat(stakeInput?.value) || 0.35;
         window.aiTradingState.currentStake = baseStake;
         window.aiTradingState.consecutiveLosses = 0;
+        window.aiTradingState.accumulatedLoss = 0; // Reset accumulation
         window.aiTradingState.totalProfit = 0;
 
         window.aiStrategyRunner.log(`Starting strategy on ${selectedMarkets.length} market(s). Base Stake: $${baseStake}`, 'info');
@@ -380,8 +405,84 @@ window.updateAILogs = function (logEntry) {
 window.aiTradingState = {
     currentStake: 0.35,
     consecutiveLosses: 0,
-    totalProfit: 0
+    totalProfit: 0,
+    startTime: null,
+    timerInterval: null,
+    winCount: 0,
+    lossCount: 0,
+    totalStake: 0,
+    totalPayout: 0,
+    runsCount: 0,
+    accumulatedLoss: 0 // Track accumulated losses for Smart Recovery
 };
+
+// UI Updater for AI Stats
+function updateAIStatsUI() {
+    // Total P/L
+    const profitEl = document.getElementById('aiProfitLossDisplay');
+    if (profitEl) {
+        profitEl.textContent = `$${window.aiTradingState.totalProfit.toFixed(2)}`;
+        profitEl.className = `profit-value ${window.aiTradingState.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}`;
+    }
+
+    // Win Rate
+    const winRateEl = document.getElementById('aiWinRateDisplay');
+    if (winRateEl) {
+        const totalTrades = window.aiTradingState.winCount + window.aiTradingState.lossCount;
+        const winRate = totalTrades > 0 ? ((window.aiTradingState.winCount / totalTrades) * 100).toFixed(1) : '0.0';
+        winRateEl.textContent = `${winRate}%`;
+    }
+
+    // Trades
+    const tradesEl = document.getElementById('aiTradesCountDisplay');
+    if (tradesEl) {
+        tradesEl.textContent = `${window.aiTradingState.winCount}W/${window.aiTradingState.lossCount}L`;
+    }
+
+    // Total Stake
+    const stakeEl = document.getElementById('aiTotalStakeDisplay');
+    if (stakeEl) {
+        stakeEl.textContent = `$${window.aiTradingState.totalStake.toFixed(2)}`;
+    }
+
+    // Total Payout
+    const payoutEl = document.getElementById('aiTotalPayoutDisplay');
+    if (payoutEl) {
+        payoutEl.textContent = `$${window.aiTradingState.totalPayout.toFixed(2)}`;
+    }
+
+    // Runs Count
+    const runsEl = document.getElementById('aiRunsCountDisplay');
+    if (runsEl) {
+        runsEl.textContent = window.aiTradingState.runsCount;
+    }
+}
+
+// Timer Logic
+function startAITimer() {
+    stopAITimer();
+    window.aiTradingState.startTime = Date.now();
+    window.aiTradingState.timerInterval = setInterval(updateAITimer, 1000);
+    updateAITimer();
+}
+
+function stopAITimer() {
+    if (window.aiTradingState.timerInterval) {
+        clearInterval(window.aiTradingState.timerInterval);
+        window.aiTradingState.timerInterval = null;
+    }
+}
+
+function updateAITimer() {
+    const timerEl = document.getElementById('aiTimerDisplay');
+    if (!timerEl || !window.aiTradingState.startTime) return;
+
+    const diff = Math.floor((Date.now() - window.aiTradingState.startTime) / 1000);
+    const hrs = Math.floor(diff / 3600).toString().padStart(2, '0');
+    const mins = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+    const secs = (diff % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${hrs}:${mins}:${secs}`;
+}
 
 // Called by app.js when a contract finishes
 window.handleAIStrategyResult = function (contract) {
@@ -389,42 +490,113 @@ window.handleAIStrategyResult = function (contract) {
     const stakeInput = document.getElementById('ai-stake-input');
     const martingaleInput = document.getElementById('ai-martingale-input');
 
-    if (!stakeInput || !martingaleInput) return;
-
-    const baseStake = parseFloat(stakeInput.value) || 0.35;
-    const martingaleMultiplier = parseFloat(martingaleInput.value) || 2.1;
-
+    // Update Stats
     window.aiTradingState.totalProfit += profit;
-
-    // Log result to AI console
-    if (window.aiStrategyRunner) {
-        const resultType = profit > 0 ? 'success' : 'error'; // Green or Red log
-        // window.aiStrategyRunner.log(`Trade Result: ${profit > 0 ? 'WIN' : 'LOSS'} (Profit: $${profit.toFixed(2)})`, resultType);
-        // The main app likely logs this too, but having it in AI logs is good.
-    }
+    const tradeStake = parseFloat(contract.buy_price) || window.aiTradingState.currentStake; // Best effort stake tracking
+    window.aiTradingState.totalStake += tradeStake;
 
     if (profit > 0) {
-        // WIN: Reset stake
+        // WIN
+        window.aiTradingState.winCount++;
+        const payout = tradeStake + profit; // Approx payout
+        window.aiTradingState.totalPayout += payout;
+
+        // Reset stake and accumulation
+        const baseStake = parseFloat(stakeInput?.value) || 0.35;
         window.aiTradingState.currentStake = baseStake;
         window.aiTradingState.consecutiveLosses = 0;
+        window.aiTradingState.accumulatedLoss = 0;
+
         if (window.aiStrategyRunner) {
             window.aiStrategyRunner.log(`WIN: +$${profit.toFixed(2)}. Stake reset to $${baseStake}`, 'success');
         }
     } else {
-        // LOSS: Martingale
+        // LOSS
+        window.aiTradingState.lossCount++;
+        // Payout is 0 on loss
+
+        // Smart Recovery or Martingale
         window.aiTradingState.consecutiveLosses++;
-        let nextStake = window.aiTradingState.currentStake * martingaleMultiplier;
-        nextStake = Math.round(nextStake * 100) / 100; // Round to 2 decimals
+
+        // Add current loss to accumulation
+        window.aiTradingState.accumulatedLoss += window.aiTradingState.currentStake;
+
+        const isSmartRecovery = document.getElementById('ai-smart-recovery-toggle')?.checked;
+        let nextStake;
+        let logMsg = '';
+
+        if (isSmartRecovery) {
+            const payoutPercentInput = document.getElementById('ai-payout-input');
+            const payoutPercent = parseFloat(payoutPercentInput?.value) || 95;
+
+            // Formula: accumulatedLoss * (100 / payoutPercent)
+            const recoveryMultiplier = 100 / payoutPercent;
+            nextStake = window.aiTradingState.accumulatedLoss * recoveryMultiplier;
+
+            // Safety: Ensure new stake is at least base stake (though arguably it should be calculated)
+            // But main logic is recovery. 
+
+            logMsg = `Smart Recovery: AccLoss $${window.aiTradingState.accumulatedLoss.toFixed(2)} * (100/${payoutPercent}%)`;
+        } else {
+            // Legacy Martingale
+            const martingaleMultiplier = parseFloat(martingaleInput?.value) || 2.1;
+            nextStake = window.aiTradingState.currentStake * martingaleMultiplier;
+            logMsg = `Martingale: x${martingaleMultiplier}`;
+        }
+
+        nextStake = Math.round(nextStake * 100) / 100;
         window.aiTradingState.currentStake = nextStake;
 
         if (window.aiStrategyRunner) {
-            window.aiStrategyRunner.log(`LOSS: $${profit.toFixed(2)}. Martingale x${martingaleMultiplier} -> Next Stake: $${nextStake}`, 'warning');
+            window.aiStrategyRunner.log(`LOSS: $${profit.toFixed(2)}. ${logMsg} -> Next Stake: $${nextStake}`, 'warning');
         }
     }
-    // Update History Table
+
+    // Update UI
+    updateAIStatsUI();
     updateAIHistoryTable(contract, profit);
 };
 
+// Reset state when strategy starts
+// Re-hooking existing handleRunStrategy to add stats initialization
+const originalHandleRun = handleRunStrategy;
+handleRunStrategy = function () {
+    // Reset Session Stats (keep runsCount accumulating, or increment it)
+    const stakeInput = document.getElementById('ai-stake-input');
+    const baseStake = parseFloat(stakeInput?.value) || 0.35;
+
+    window.aiTradingState.currentStake = baseStake;
+    window.aiTradingState.consecutiveLosses = 0;
+    window.aiTradingState.accumulatedLoss = 0;
+    window.aiTradingState.totalProfit = 0;
+    window.aiTradingState.winCount = 0;
+    window.aiTradingState.lossCount = 0;
+    window.aiTradingState.totalStake = 0;
+    window.aiTradingState.totalPayout = 0;
+
+    window.aiTradingState.runsCount++;
+
+    if (window.aiStrategyRunner) window.aiStrategyRunner.log(`Starting with Base Stake: $${baseStake}`, 'info');
+
+    // Start Timer
+    startAITimer();
+    updateAIStatsUI();
+
+    originalHandleRun();
+};
+
+// Hook into stop button to stop timer
+const stopBtn = document.getElementById('ai-stop-btn');
+if (stopBtn) {
+    const originalStopClick = stopBtn.onclick;
+    stopBtn.onclick = function (e) {
+        stopAITimer();
+        if (typeof originalStopClick === 'function') originalStopClick(e);
+        // Call the original handler defined in ai_ui.js (which might be anonymous or attached via event listener, so we rely on the DOM event propagation or re-attach if we knew the name)
+        // Since handleStopStrategy is attached via event listener in ai_ui.js init, we can just stop the timer here.
+        handleStopStrategy();
+    };
+}
 // Helper: Update AI History Table
 function updateAIHistoryTable(contract, profit) {
     const tableBody = document.querySelector('#ai-history-table tbody');
@@ -477,19 +649,4 @@ function updateAIHistoryTable(contract, profit) {
     }
 }
 
-// Reset state when strategy starts
-const originalStart = window.AIStrategyRunner ? window.AIStrategyRunner.prototype.start : null;
-// Actually better to hook via event listener or just reset in handleRunStrategy
-const originalHandleRun = handleRunStrategy;
-handleRunStrategy = function () {
-    // Reset state on start
-    const stakeInput = document.getElementById('ai-stake-input');
-    const baseStake = parseFloat(stakeInput?.value) || 0.35;
-    window.aiTradingState.currentStake = baseStake;
-    window.aiTradingState.consecutiveLosses = 0;
-    window.aiTradingState.totalProfit = 0;
 
-    if (window.aiStrategyRunner) window.aiStrategyRunner.log(`Starting with Base Stake: $${baseStake}`, 'info');
-
-    originalHandleRun();
-};

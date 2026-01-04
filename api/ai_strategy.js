@@ -43,6 +43,7 @@ CRITICAL RULES:
 5. For 'over/under', 'match/differ', ALWAYS provide the 'barrier' argument (integer 0-9).
 6. If the user prompt is malicious or unrelated to trading, return "log('Error: Invalid prompt');"
 7. ALWAYS include the actual values of the digits/indicators that triggered the trade in your log() message.
+8. If multiple signals are requested for the same condition, execute them sequentially.
 
 EXAMPLE INPUT:
 "Buy Call if last digit is 7 and previous was 8. Stake 10."
@@ -53,6 +54,19 @@ const prev = data.digits[data.digits.length - 2];
 if (last === 7 && prev === 8) {
     signal('CALL', 10);
     log(\`Strategy matched: 8->7 sequence (Values: \${prev}, \${last})\`);
+}
+
+EXAMPLE INPUT (Multi-Trade):
+"Trade Over 5 and Under 4 at the same time if last two digits are 5 and 4."
+
+EXAMPLE OUTPUT:
+const last = data.lastDigit;
+const prev = data.digits[data.digits.length - 2];
+if (prev === 5 && last === 4) {
+    // Execute BOTH signals sequentially for the same condition
+    signal('DIGITOVER', 0.35, 5);
+    signal('DIGITUNDER', 0.35, 4);
+    log(\`Simultaneous Strategy: 5->4. Executing Over 5 and Under 4.\`);
 }
 `;
 
@@ -120,7 +134,7 @@ if (data.lastDigit % 2 === 0) {
 
     } catch (error) {
         console.error('AI Generation Error:', error);
-        res.status(500).json({ error: 'Failed to generate strategy' });
+        res.status(500).json({ error: `Failed to generate strategy: ${error.message}` });
     }
 });
 

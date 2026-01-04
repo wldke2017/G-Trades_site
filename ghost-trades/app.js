@@ -587,6 +587,21 @@ function handleIncomingMessage(msg) {
                     });
                 }
             }
+            // Check if this is an AI Strategy trade
+            else if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
+                if (contractInfo) {
+                    const payout = parseFloat(contractInfo.payout).toFixed(2);
+                    showToast(`🤖 AI Trade placed: ${contractInfo.contract_id}`, 'success');
+
+                    // Subscribe WITH passthrough data so we can identify the result later
+                    sendAPIRequest({
+                        "proposal_open_contract": 1,
+                        "contract_id": contractInfo.contract_id,
+                        "subscribe": 1,
+                        "passthrough": passthrough
+                    });
+                }
+            }
             else if (contractInfo) {
                 currentContractId = contractInfo.contract_id;
                 const payout = parseFloat(contractInfo.payout).toFixed(2);
