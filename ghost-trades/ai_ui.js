@@ -8,11 +8,16 @@ const AI_API_ENDPOINT = isProduction
     ? 'https://ghost-trades.site/api/ai/generate'
     : (isLocalDev ? 'http://localhost:4000/api/ai/generate' : '/api/ai/generate');
 
+const AI_STRATEGY_API = isProduction
+    ? 'https://ghost-trades.site/api/ai/strategies'
+    : (isLocalDev ? 'http://localhost:4000/api/ai/strategies' : '/api/ai/strategies');
+
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator, aiPromptCounter;
 let aiAnalysisContainer, aiSummaryDisplay, aiConfirmBtn, aiCancelBtn, aiAnalysisStatus; // Consultant Elements
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
 let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer, aiPayoutAuto; // Smart Recovery Elements
+let aiStrategyDropdown, aiSaveStrategyBtn, aiLoadStrategyBtn, aiDeleteStrategyBtn; // Strategy Management Elements
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAIUI();
@@ -46,6 +51,12 @@ function initializeAIUI() {
     aiMartingaleContainer = document.getElementById('ai-martingale-container');
     aiPayoutContainer = document.getElementById('ai-payout-container');
     aiPayoutAuto = document.getElementById('ai-payout-auto');
+
+    // Strategy Management Elements
+    aiStrategyDropdown = document.getElementById('ai-strategy-dropdown');
+    aiSaveStrategyBtn = document.getElementById('ai-save-strategy-btn');
+    aiLoadStrategyBtn = document.getElementById('ai-load-strategy-btn');
+    aiDeleteStrategyBtn = document.getElementById('ai-delete-strategy-btn');
 
     // Log initialization status
     console.log('🤖 AI Strategy UI Initialization:', {
@@ -104,7 +115,16 @@ function initializeAIUI() {
         aiSmartRecoveryToggle.addEventListener('change', toggleSmartRecoveryUI);
         // Initialize UI state
         toggleSmartRecoveryUI();
+        toggleSmartRecoveryUI();
     }
+
+    // Strategy Management Event Listeners
+    if (aiSaveStrategyBtn) aiSaveStrategyBtn.addEventListener('click', handleSaveStrategy);
+    if (aiLoadStrategyBtn) aiLoadStrategyBtn.addEventListener('click', handleLoadStrategy);
+    if (aiDeleteStrategyBtn) aiDeleteStrategyBtn.addEventListener('click', handleDeleteStrategy);
+
+    // Load strategies on init
+    loadSavedStrategies();
 
     // Set Initial State
     updateAIStatus('IDLE');
@@ -755,4 +775,127 @@ function updateAIHistoryTable(contract, profit) {
     }
 }
 
+// ==========================================
+// STRATEGY MANAGEMENT FUNCTIONS
+// ==========================================
+
+async function loadSavedStrategies() {
+    if (!aiStrategyDropdown) return;
+
+    try {
+        const response = await fetch(AI_STRATEGY_API);
+        if (!response.ok) throw new Error('Failed to load strategies');
+
+        const strategies = await response.json();
+
+        // Clear current options except default
+        while (aiStrategyDropdown.options.length > 1) {
+            aiStrategyDropdown.remove(1);
+        }
+
+        strategies.forEach(strategy => {
+            const option = document.createElement('option');
+            option.value = strategy.id;
+            option.textContent = `${strategy.name} (${new Date(strategy.createdAt).toLocaleDateString()})`;
+            aiStrategyDropdown.appendChild(option);
+        });
+
+        console.log(`✅ Loaded ${strategies.length} saved strategies`);
+
+    } catch (error) {
+        console.error('Error loading strategies:', error);
+        showToast('Failed to load saved strategies', 'error');
+    }
+}
+
+async function handleSaveStrategy() {
+    const code = aiCodeEditor.value.trim();
+    if (!code) {
+        showToast('No code to save', 'error');
+        return;
+    }
+
+    const name = prompt('Enter a name for this strategy:');
+    if (!name) return; // User cancelled
+
+    const promptText = aiPromptInput.value.trim();
+
+    try {
+        const response = await fetch(AI_STRATEGY_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                code,
+                prompt: promptText
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to save');
+        }
+
+        showToast('Strategy saved successfully!', 'success');
+        loadSavedStrategies(); // Refresh list
+
+    } catch (error) {
+        console.error('Error saving strategy:', error);
+        showToast(error.message, 'error');
+    }
+}
+
+async function handleLoadStrategy() {
+    const id = aiStrategyDropdown.value;
+    if (!id) {
+        showToast('Please select a strategy to load', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${AI_STRATEGY_API}/${id}`);
+        if (!response.ok) throw new Error('Failed to load strategy details');
+
+        const strategy = await response.json();
+
+        aiCodeEditor.value = strategy.code;
+        if (strategy.prompt && aiPromptInput) {
+            aiPromptInput.value = strategy.prompt;
+            // update counter
+            if (aiPromptCounter) aiPromptCounter.textContent = `${strategy.prompt.length} / 2000`;
+        }
+
+        showToast(`Loaded "${strategy.name}"`, 'success');
+
+    } catch (error) {
+        console.error('Error loading strategy:', error);
+        showToast('Failed to load strategy', 'error');
+    }
+}
+
+async function handleDeleteStrategy() {
+    const id = aiStrategyDropdown.value;
+    if (!id) {
+        showToast('Please select a strategy to delete', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this strategy?')) return;
+
+    try {
+        const response = await fetch(`${AI_STRATEGY_API}/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Failed to delete');
+
+        showToast('Strategy deleted', 'success');
+        loadSavedStrategies(); // Refresh list
+        aiStrategyDropdown.value = ""; // Reset selection
+
+    } catch (error) {
+        console.error('Error deleting strategy:', error);
+        showToast('Failed to delete strategy', 'error');
+    }
+}
 

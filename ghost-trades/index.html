@@ -1320,6 +1320,29 @@
             </div>
 
             <div class="ai-workspace">
+                <!-- Strategy Management UI -->
+                <div class="ai-strategy-controls"
+                    style="margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <select id="ai-strategy-dropdown"
+                            style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); border-radius: 4px;">
+                            <option value="">-- Load Saved Strategy --</option>
+                        </select>
+                    </div>
+                    <button id="ai-save-strategy-btn" class="btn-secondary"
+                        style="padding: 6px 12px; font-size: 0.8rem;" title="Save current strategy">
+                        💾 Save
+                    </button>
+                    <button id="ai-load-strategy-btn" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;"
+                        title="Load selected strategy">
+                        📂 Load
+                    </button>
+                    <button id="ai-delete-strategy-btn" class="btn-secondary"
+                        style="padding: 6px 12px; font-size: 0.8rem; border-color: #e74c3c; color: #e74c3c;"
+                        title="Delete selected strategy">
+                        🗑️ Delete
+                    </button>
+                </div>
                 <div class="ai-editor-section">
                     <h4>Generated Strategy Code</h4>
                     <textarea id="ai-code-editor" class="code-editor" spellcheck="false"
