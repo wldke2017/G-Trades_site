@@ -549,7 +549,7 @@ window.handleAIStrategyResult = function (contract) {
 
         if (isSmartRecovery) {
             const payoutPercentInput = document.getElementById('ai-payout-input');
-            const payoutPercent = parseFloat(payoutPercentInput?.value) || 95;
+            const payoutPercent = parseFloat(payoutPercentInput?.value) || 70;
 
             // Formula: accumulatedLoss * (100 / payoutPercent)
             const recoveryMultiplier = 100 / payoutPercent;
