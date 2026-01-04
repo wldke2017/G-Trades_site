@@ -11,7 +11,7 @@ const AI_API_ENDPOINT = isProduction
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator;
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
-let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer; // Smart Recovery Elements
+let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer, aiPayoutAuto; // Smart Recovery Elements
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAIUI();
@@ -36,6 +36,7 @@ function initializeAIUI() {
     aiSmartRecoveryToggle = document.getElementById('ai-smart-recovery-toggle');
     aiMartingaleContainer = document.getElementById('ai-martingale-container');
     aiPayoutContainer = document.getElementById('ai-payout-container');
+    aiPayoutAuto = document.getElementById('ai-payout-auto');
 
     // Log initialization status
     console.log('🤖 AI Strategy UI Initialization:', {
@@ -494,6 +495,27 @@ window.handleAIStrategyResult = function (contract) {
     window.aiTradingState.totalProfit += profit;
     const tradeStake = parseFloat(contract.buy_price) || window.aiTradingState.currentStake; // Best effort stake tracking
     window.aiTradingState.totalStake += tradeStake;
+
+    // Potential Payout Auto-Detection
+    const payoutAutoCheckbox = document.getElementById('ai-payout-auto');
+    const payoutPercentInput = document.getElementById('ai-payout-input');
+
+    if (payoutAutoCheckbox && payoutAutoCheckbox.checked && payoutPercentInput) {
+        // Calculate payout percentage: (payout / buy_price * 100) - 100
+        // contract.payout is the total return (stake + profit)
+        const totalPayout = parseFloat(contract.payout);
+        const buyPrice = parseFloat(contract.buy_price);
+
+        if (totalPayout && buyPrice) {
+            const detectedPayoutPct = Math.round(((totalPayout / buyPrice) * 100) - 100);
+            if (!isNaN(detectedPayoutPct) && detectedPayoutPct > 0) {
+                payoutPercentInput.value = detectedPayoutPct;
+                if (window.aiStrategyRunner) {
+                    window.aiStrategyRunner.log(`Auto-detected Payout: ${detectedPayoutPct}%`, 'info');
+                }
+            }
+        }
+    }
 
     if (profit > 0) {
         // WIN
