@@ -3162,13 +3162,7 @@ h4 {
         width: 100%;
     }
 
-    /* Stack Smart Recovery / Stake inputs if needed */
-    /* Targeting the specific flex container for inputs */
-    .ai-input-group>div:has(label) {
-        /* This logical selection might be tricky without specific classes. 
-           Let's target the known structure based on index.html: 
-           It is the div with background rgba(255, 255, 255, 0.05) */
-    }
+
 
     /* Better targeting for the input row at the bottom of ai-input-group */
     .ai-input-group>div[style*="background"] {
