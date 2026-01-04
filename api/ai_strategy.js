@@ -3,8 +3,7 @@ const router = express.Router();
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid'); // You might need to install uuid or use a simple random generator if not available.
-// Since I cannot allow installing new packages easily without user permission, I'll use a simple helper function for IDs.
+// Using a simple random generator since we cannot easily install new packages.
 const generateId = () => Math.random().toString(36).substr(2, 9);
 const STRATEGIES_FILE = path.join(__dirname, '../saved_strategies.json');
 // Auth removed for standalone public API
