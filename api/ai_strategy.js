@@ -5,7 +5,13 @@ const fetch = require('node-fetch');
 const { apiLimiter } = require('../middleware/rateLimiter');
 
 // Configuration
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+const FALLBACK_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b'
+];
 
 // Key Management
 let keyIndex = 0;
