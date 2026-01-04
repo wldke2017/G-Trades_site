@@ -4,15 +4,23 @@ const fetch = require('node-fetch');
 // Auth removed for standalone public API
 const { apiLimiter } = require('../middleware/rateLimiter');
 
-// Configuration
+// Gemini Configuration
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-const FALLBACK_MODELS = [
+const GEMINI_MODELS = [
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
     'gemini-1.5-flash',
     'gemini-1.5-flash-8b',
     'gemini-1.5-pro',
     'gemini-1.0-pro'
+];
+
+// Groq Configuration (Fallback Provider)
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODELS = [
+    'llama-3.1-70b-versatile',
+    'llama-3.1-8b-instant'
 ];
 
 // Key Management
@@ -72,8 +80,8 @@ EXAMPLE INPUT:
 "Buy Call if last digit is 7 and previous was 8. Stake 10."
 
 EXAMPLE OUTPUT:
-const last = data.digits[data.digits.length - 1];
-const prev = data.digits[data.digits.length - 2];
+const last = data.digits[data.digits.length -1];
+const prev = data.digits[data.digits.length -2];
 if (last === 7 && prev === 8) {
     signal('CALL', 10);
     log(\`Strategy matched: 8->7 sequence (Values: \${prev}, \${last})\`);
@@ -106,8 +114,8 @@ router.post('/generate', apiLimiter, async (req, res) => {
         const { prompt, mode } = req.body;
         const keys = getKeys();
 
-        if (keys.length === 0) {
-            console.warn('⚠️ No Gemini API keys found. Returning mock response.');
+        if (keys.length === 0 && !GROQ_API_KEY) {
+            console.warn('⚠️ No AI API keys found. Returning mock response.');
             return res.json({
                 code: mode === 'analyze' ? null : `// MOCK MODE: API Key missing\nlog('Mock Strategy Active');`,
                 summary: mode === 'analyze' ? "MOCK SUMMARY: This strategy will trade based on even digits." : null
@@ -123,53 +131,108 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         let lastError = null;
 
-        // OUTER LOOP: Try each model in the fallback list
-        for (const model of FALLBACK_MODELS) {
-            const apiUrl = `${GEMINI_BASE_URL}/${model}:generateContent`;
+        // ===== PHASE 1: TRY GEMINI =====
+        if (keys.length > 0) {
+            console.log(`🔷 [GEMINI] Trying ${GEMINI_MODELS.length} models with ${keys.length} keys...`);
 
-            // INNER LOOP: Try each key for the current model
-            for (let attempt = 0; attempt < keys.length; attempt++) {
-                const currentKey = keys[keyIndex % keys.length];
-                console.log(`🤖 AI API: Attempt using model [${model}] with Key Index ${keyIndex % keys.length}`);
+            for (const model of GEMINI_MODELS) {
+                const apiUrl = `${GEMINI_BASE_URL}/${model}:generateContent`;
+
+                for (let attempt = 0; attempt < keys.length; attempt++) {
+                    const currentKey = keys[keyIndex % keys.length];
+                    console.log(`🤖 [GEMINI] ${model} / Key ${keyIndex % keys.length}`);
+
+                    try {
+                        const response = await fetch(`${apiUrl}?key=${currentKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{
+                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
+                                    }]
+                                }],
+                                generationConfig: {
+                                    temperature: 0.2,
+                                    maxOutputTokens: 1024,
+                                }
+                            })
+                        });
+
+                        if (response.status === 429) {
+                            console.warn(`⚠️ [GEMINI] Quota exhausted`);
+                            keyIndex++;
+                            continue;
+                        }
+
+                        if (!response.ok) {
+                            if (response.status === 404) break;
+                            throw new Error(`Gemini ${response.status}`);
+                        }
+
+                        const responseData = await response.json();
+                        let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                        if (isAnalyze) {
+                            console.log(`✅ [GEMINI] Success with ${model}`);
+                            return res.json({ summary: aiOutput.trim() });
+                        } else {
+                            let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
+                            const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+                            if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                                return res.status(400).json({ error: 'Generated code failed security check.' });
+                            }
+                            console.log(`✅ [GEMINI] Success with ${model}`);
+                            return res.json({ code: generatedCode });
+                        }
+
+                    } catch (err) {
+                        lastError = err.message;
+                        keyIndex++;
+                    }
+                }
+            }
+        }
+
+        // ===== PHASE 2: TRY GROQ =====
+        if (GROQ_API_KEY) {
+            console.log(`🟢 [GROQ] Gemini exhausted. Switching to Groq...`);
+
+            for (const model of GROQ_MODELS) {
+                console.log(`🤖 [GROQ] Trying ${model}`);
 
                 try {
-                    const response = await fetch(`${apiUrl}?key=${currentKey}`, {
+                    const response = await fetch(GROQ_BASE_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Authorization': `Bearer ${GROQ_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
-                                }]
+                            model: model,
+                            messages: [{
+                                role: 'system',
+                                content: systemPrompt
+                            }, {
+                                role: 'user',
+                                content: `${prompt}\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'}`
                             }],
-                            generationConfig: {
-                                temperature: 0.2,
-                                maxOutputTokens: 1024,
-                            }
+                            temperature: 0.2,
+                            max_tokens: 1024
                         })
                     });
 
-                    if (response.status === 429) {
-                        const errorData = await response.json().catch(() => ({}));
-                        const msg = errorData.error?.message || "Quota Exceeded";
-                        console.warn(`⚠️ Model [${model}] Key [${keyIndex % keys.length}] hit limit: ${msg}`);
-                        keyIndex++;
-                        lastError = msg;
-                        continue; // Try next key
-                    }
-
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.error(`❌ Gemini API Error (${response.status}) on model [${model}]: ${errorText}`);
-                        // If it's a 404 (model not found), we should skip this model entirely
-                        if (response.status === 404) break;
-                        throw new Error(`Gemini API Error: ${errorText}`);
+                        console.error(`❌ [GROQ] ${response.status}: ${errorText}`);
+                        continue;
                     }
 
                     const responseData = await response.json();
-                    let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    let aiOutput = responseData.choices?.[0]?.message?.content || '';
 
                     if (isAnalyze) {
+                        console.log(`✅ [GROQ] Success with ${model}`);
                         return res.json({ summary: aiOutput.trim() });
                     } else {
                         let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
@@ -177,21 +240,18 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                             return res.status(400).json({ error: 'Generated code failed security check.' });
                         }
+                        console.log(`✅ [GROQ] Success with ${model}`);
                         return res.json({ code: generatedCode });
                     }
 
                 } catch (err) {
                     lastError = err.message;
-                    console.error(`❌ Attempt failed on model [${model}]: ${err.message}`);
-                    keyIndex++; // Rotate key on error
+                    console.error(`❌ [GROQ] ${model}: ${err.message}`);
                 }
             }
-
-            console.log(`🔄 Model [${model}] exhausted or unavailable. Falling back to next model...`);
         }
 
-        // if we reach here, all models and keys failed
-        throw new Error(lastError || "All API models and keys in pool failed.");
+        throw new Error(lastError || "All AI providers exhausted.");
 
     } catch (error) {
         console.error('AI Generation Error:', error);
