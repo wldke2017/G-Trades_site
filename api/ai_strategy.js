@@ -45,6 +45,14 @@ CRITICAL RULES:
 7. ALWAYS include the actual values of the digits/indicators that triggered the trade in your log() message.
 8. If multiple signals are requested for the same condition, execute them sequentially.
 
+TECHNICAL TIPS FOR COMPLEX PATTERNS:
+- To match a sequence of digits (e.g. "000N0N0"), join the digits into a string:
+  const seq = data.digits.slice(-7).join('');
+- Use Regex for placeholders like 'N' (any digit ≠ 0):
+  if (/000[^0]0[^0]0/.test(seq)) { signal('DIGITDIFF', 1, 0); }
+- For repetitive patterns (0-9), use a loop or multiple explicit 'if' statements.
+- The 'stake' argument in signal() is required but can be a placeholder (e.g. 0.35) as it is managed by the UI.
+
 EXAMPLE INPUT:
 "Buy Call if last digit is 7 and previous was 8. Stake 10."
 
@@ -68,14 +76,24 @@ if (prev === 5 && last === 4) {
     signal('DIGITUNDER', 0.35, 4);
     log(\`Simultaneous Strategy: 5->4. Executing Over 5 and Under 4.\`);
 }
+
+EXAMPLE INPUT:
+"Trade differ 0 if sequence is 000N0N0 where N is any digit but 0"
+
+EXAMPLE OUTPUT:
+const seq = data.digits.slice(-7).join('');
+if (/000[^0]0[^0]0/.test(seq)) {
+    signal('DIGITDIFF', 0.35, 0);
+    log(\`Pattern 000N0N0 matched! Sequence: \${seq}\`);
+}
 `;
 
 router.post('/generate', apiLimiter, async (req, res) => {
     try {
         const { prompt } = req.body;
 
-        if (!prompt || typeof prompt !== 'string' || prompt.length > 500) {
-            return res.status(400).json({ error: 'Invalid prompt (max 500 chars)' });
+        if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
+            return res.status(400).json({ error: 'Invalid prompt (max 2000 chars)' });
         }
 
         console.log('🤖 AI Strategy API: Received prompt request');

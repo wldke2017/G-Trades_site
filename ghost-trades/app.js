@@ -85,14 +85,14 @@ const speedbotNav = document.getElementById('speedbot-nav');
 const ghostaiNav = document.getElementById('ghostai-nav');
 const ghosteoddNav = document.getElementById('ghost-eodd-nav');
 const aiStrategyNav = document.getElementById('ghostai-strategy-nav');
-const hedgingNav = document.getElementById('hedging-nav');
+
 
 // Trading Interface
 const tradingInterface = document.getElementById('trading-interface');
 const ghostaiInterface = document.getElementById('ghostai-interface');
 const ghosteoddInterface = document.getElementById('ghost-eodd-interface');
 const aiStrategyInterface = document.getElementById('ai-strategy-interface');
-const hedgingInterface = document.getElementById('hedging-interface');
+
 const chartContainer = document.getElementById('chart-container');
 const tradeMessageContainer = document.getElementById('tradeMessageContainer');
 const tickerTableBody = document.querySelector('#tickerTable tbody');
@@ -560,33 +560,7 @@ function handleIncomingMessage(msg) {
                     });
                 }
             }
-            // Check if this is a Lookback Hedge trade
-            else if (passthrough && passthrough.purpose === 'lookback_hedge' && passthrough.run_id) {
-                if (contractInfo) {
-                    const runId = passthrough.run_id;
-                    const contractType = passthrough.contract_type;
 
-                    console.log(`✅ Lookback: ${contractType} contract opened: ${contractInfo.contract_id}`);
-
-                    // Update hedge state with contract ID
-                    if (typeof updateLookbackHedgeContract === 'function') {
-                        updateLookbackHedgeContract(runId, contractType, contractInfo.contract_id, contractInfo.buy_price);
-                    }
-
-                    // Subscribe to contract updates for real-time P/L
-                    sendAPIRequest({
-                        "proposal_open_contract": 1,
-                        "contract_id": contractInfo.contract_id,
-                        "subscribe": 1,
-                        "passthrough": {
-                            "purpose": "lookback_hedge",
-                            "run_id": runId,
-                            "contract_type": contractType,
-                            "symbol": passthrough.symbol
-                        }
-                    });
-                }
-            }
             // Check if this is an AI Strategy trade
             else if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
                 if (contractInfo) {
@@ -625,31 +599,7 @@ function handleIncomingMessage(msg) {
                 const proposal = data.proposal;
                 const passthrough = data.echo_req.passthrough;
 
-                // Check if this is a Lookback Hedge proposal
-                if (passthrough && passthrough.purpose === 'lookback_hedge_proposal') {
-                    console.log(`✅ Proposal received for Lookback Hedge (${passthrough.contract_type}): ${proposal.id}`);
 
-                    // Execute the BUY request using the proposal ID
-                    const buyRequest = {
-                        "buy": proposal.id,
-                        "price": proposal.ask_price,
-                        "passthrough": {
-                            "purpose": "lookback_hedge", // Switch back to original purpose for buy handler
-                            "hedge_type": "lookback",
-                            "contract_type": passthrough.contract_type,
-                            "run_id": passthrough.run_id,
-                            "symbol": passthrough.symbol,
-                            "stake": passthrough.stake
-                        }
-                    };
-
-                    sendAPIRequest(buyRequest)
-                        .then(() => console.log(`✅ Buy request sent for ${passthrough.contract_type} on ${passthrough.symbol}`))
-                        .catch(error => {
-                            console.error(`❌ Failed to buy proposal ${proposal.id}:`, error);
-                            showToast(`Failed to execute ${passthrough.contract_type}: ${error.message}`, 'error');
-                        });
-                }
             }
             break;
 
@@ -1031,96 +981,7 @@ function handleIncomingMessage(msg) {
 
                     updateEvenOddProfitLossDisplay();
                 }
-                // Check if this is a Lookback Hedge contract
-                else if ((passthrough && passthrough.purpose === 'lookback_hedge') ||
-                    (typeof isLookbackContract === 'function' && isLookbackContract(contract.contract_id))) {
-                    const contractId = contract.contract_id;
-                    let profitVal = parseFloat(contract.profit);
 
-                    // Debug Log
-                    if (passthrough && passthrough.purpose === 'lookback_hedge') {
-                        console.log(`🔍 DEBUG: Lookback Update (via passthrough) - ID: ${contractId}, Profit: ${profitVal}, Spot: ${contract.current_spot}`);
-                    } else {
-                        console.log(`🔍 DEBUG: Lookback Update (via ID match) - ID: ${contractId}, Profit: ${profitVal}, Spot: ${contract.current_spot}`);
-                    }
-
-                    // MANUAL FALLBACK CALCULATION
-                    if ((isNaN(profitVal) || profitVal === 0) && contract.buy_price) {
-                        const stake = parseFloat(contract.buy_price);
-
-                        // 1. Try Bid Price (Best accuracy if available)
-                        if (contract.bid_price) {
-                            profitVal = parseFloat(contract.bid_price) - stake;
-                            console.log(`💡 Calc via Bid: ${contract.bid_price} - ${stake} = ${profitVal}`);
-                        }
-                        // 2. Try Manual Formula (Approximation)
-                        else if (contract.current_spot && (contract.barrier || contract.entry_spot)) {
-                            const spot = parseFloat(contract.current_spot);
-                            // Use barrier if available, otherwise entry_spot
-                            const barrier = parseFloat(contract.barrier || contract.entry_spot);
-
-                            // Iterate active hedges to find type (safe access via window or global)
-                            const state = (typeof window !== 'undefined' && window.hedgingState) ? window.hedgingState : (typeof hedgingState !== 'undefined' ? hedgingState : null);
-
-                            if (state && state.activeLookbackHedges) {
-                                for (const runId in state.activeLookbackHedges) {
-                                    const h = state.activeLookbackHedges[runId];
-                                    if (h.hlContractId == contractId) {
-                                        // HL = Call (LBFLOATCALL) -> Payoff ~ Spot - Low
-                                        // Assuming barrier tracks Low (or Entry is proxy)
-                                        profitVal = (spot - barrier) - stake;
-                                        console.log(`💡 Calc via Formula (HL/Call): ${spot} - ${barrier} - ${stake} = ${profitVal}`);
-                                        break;
-                                    } else if (h.clContractId == contractId) {
-                                        // CL = Put (LBFLOATPUT) -> Payoff ~ High - Spot
-                                        // Assuming barrier tracks High (or Entry is proxy)
-                                        profitVal = (barrier - spot) - stake;
-                                        console.log(`💡 Calc via Formula (CL/Put): ${barrier} - ${spot} - ${stake} = ${profitVal}`);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Update real-time P/L
-                    if (typeof updateLookbackContractPL === 'function') {
-                        updateLookbackContractPL(contractId, profitVal);
-                    }
-
-                    // Handle completed contract
-                    if (contract.is_expired || contract.is_sold) {
-                        console.log(`📊 Lookback contract ${passthrough.contract_type} completed: ${contractId}, P/L: $${profitVal.toFixed(2)}`);
-
-                        // Check if both contracts in the pair are complete
-                        const runId = passthrough.run_id;
-                        if (hedgingState && hedgingState.activeLookbackHedges && hedgingState.activeLookbackHedges[runId]) {
-                            const hedge = hedgingState.activeLookbackHedges[runId];
-
-                            // Mark this contract as complete
-                            if (passthrough.contract_type === 'LBFLOATCALL') {
-                                hedge.hlComplete = true;
-                            } else if (passthrough.contract_type === 'LBFLOATPUT') {
-                                hedge.clComplete = true;
-                            }
-
-                            // If both are complete, finalize the hedge
-                            if (hedge.hlComplete && hedge.clComplete) {
-                                const totalPL = (hedge.hlPL || 0) + (hedge.clPL || 0);
-                                console.log(`✅ Lookback pair complete: ${hedge.symbol}, Total P/L: $${totalPL.toFixed(2)}`);
-
-                                if (typeof completeLookbackHedge === 'function') {
-                                    completeLookbackHedge(runId, totalPL);
-                                }
-
-                                showToast(`Lookback Hedge closed: ${hedge.symbol}, P/L: ${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`, totalPL >= 0 ? 'success' : 'error');
-                            }
-                        }
-
-                        // Unsubscribe from updates
-                        sendAPIRequest({ "forget": contract.id });
-                    }
-                }
                 else if (contract.contract_id === currentContractId) {
                     const status = contract.is_sold ? 'SOLD' : 'EXPIRED';
                     const profit = parseFloat(contract.profit).toFixed(2);

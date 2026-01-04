@@ -9,7 +9,7 @@ const AI_API_ENDPOINT = isProduction
     : (isLocalDev ? 'http://localhost:4000/api/ai/generate' : '/api/ai/generate');
 
 // UI Elements
-let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator;
+let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator, aiPromptCounter;
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
 let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer, aiPayoutAuto; // Smart Recovery Elements
 
@@ -26,6 +26,7 @@ function initializeAIUI() {
     aiStopBtn = document.getElementById('ai-stop-btn');
     aiLogContainer = document.getElementById('ai-log-container');
     aiStatusIndicator = document.getElementById('ai-status-indicator');
+    aiPromptCounter = document.getElementById('ai-prompt-counter');
 
     // Market Selector Elements
     aiMarketCheckboxes = document.getElementById('ai-market-checkboxes');
@@ -57,6 +58,14 @@ function initializeAIUI() {
         aiGenerateBtn.addEventListener('click', handleGenerateStrategy);
     } else {
         console.warn('⚠️ AI Generate Button not found - AI Strategy UI may not be fully loaded');
+    }
+
+    if (aiPromptInput && aiPromptCounter) {
+        aiPromptInput.addEventListener('input', () => {
+            const length = aiPromptInput.value.length;
+            aiPromptCounter.textContent = `${length} / 2000`;
+            aiPromptCounter.style.color = length > 2000 ? '#e74c3c' : (length > 1800 ? '#f39c12' : 'var(--text-muted)');
+        });
     }
 
     if (aiRunBtn) {
