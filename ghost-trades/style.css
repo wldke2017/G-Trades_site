@@ -2969,6 +2969,7 @@ h4 {
 .ai-header h3 {
     font-size: 2rem;
     background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: var(--spacing-sm);
@@ -3117,14 +3118,129 @@ h4 {
     font-weight: bold;
 }
 
+/* --- AI Parameters Grid Styles --- */
+.ai-parameters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    align-items: end;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    margin-top: 15px;
+}
+
+.ai-param-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-param-group label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.ai-param-group input[type="number"] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    color: white;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all var(--transition-base);
+}
+
+.ai-param-group input[type="number"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 68, 79, 0.1);
+}
+
+.smart-recovery-group {
+    padding-bottom: 2px;
+}
+
+.toggle-label,
+.auto-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.85rem !important;
+    color: var(--text-secondary) !important;
+    text-transform: none;
+    font-weight: 500 !important;
+}
+
+.toggle-label input[type="checkbox"],
+.auto-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.label-row label {
+    margin-bottom: 0;
+}
+
+/* --- Mobile Responsiveness Updates --- */
 @media (max-width: 900px) {
     .ai-workspace {
         grid-template-columns: 1fr;
     }
 }
 
-/* --- Mobile Responsiveness for AI Strategy --- */
 @media (max-width: 640px) {
+
+    /* Header & Auth adjustments */
+    .header-container {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+
+    .header-right {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .balance-display {
+        width: auto;
+        flex-grow: 1;
+        justify-content: center;
+        min-width: 200px;
+    }
+
+    .btn-logout {
+        display: flex !important;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 0;
+    }
+
+    /* AI UI Mobile Stacking */
     .ai-container {
         padding: var(--spacing-md);
     }
@@ -3137,8 +3253,8 @@ h4 {
         padding: var(--spacing-md);
     }
 
-    /* Stack the main controls (Generate, etc.) */
-    .ai-input-group>div[style*="display: flex"] {
+    /* Stack main controls buttons */
+    .ai-input-group>div[style*="justify-content: flex-end"] {
         flex-direction: column;
         align-items: stretch !important;
         gap: 15px !important;
@@ -3146,34 +3262,35 @@ h4 {
 
     .ai-input-group button {
         width: 100%;
+        margin-left: 0 !important;
     }
 
-    /* Stack Strategy Management Controls */
+    /* Grid for parameters */
+    .ai-parameters-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 12px;
+    }
+
     .ai-strategy-controls {
         flex-direction: column;
         align-items: stretch !important;
     }
 
-    .ai-strategy-controls select {
-        width: 100%;
-    }
-
+    .ai-strategy-controls select,
     .ai-strategy-controls button {
         width: 100%;
-    }
-
-
-
-    /* Better targeting for the input row at the bottom of ai-input-group */
-    .ai-input-group>div[style*="background"] {
-        flex-wrap: wrap;
-        justify-content: space-between;
     }
 
     .ai-editor-section,
     .ai-logs-section {
         height: 400px;
-        /* Reduces height on mobile */
         padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 380px) {
+    .ai-parameters-grid {
+        grid-template-columns: 1fr;
     }
 }
