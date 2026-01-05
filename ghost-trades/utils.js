@@ -442,7 +442,9 @@ function updateTechnicalIndicators() {
  */
 function calculateDigitPercentages(symbol, count = 15) {
     // USE window.digitHistory (marketFullTickDigits) which is always updated
-    const allDigits = (window.digitHistory && window.digitHistory[symbol]) || [];
+    const allDigits = (window.digitHistory && window.digitHistory[symbol]) ||
+        (window.marketFullTickDigits && window.marketFullTickDigits[symbol]) ||
+        [];
     if (allDigits.length === 0) return null;
 
     // Use specific count or fallback to last 15
