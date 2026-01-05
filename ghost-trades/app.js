@@ -404,6 +404,10 @@ function handleIncomingMessage(msg) {
                 }
 
                 // 2. Update Full Tick Digits for distribution analysis (keep last 100)
+                if (!marketFullTickDigits[symbol]) {
+                    marketFullTickDigits[symbol] = [];
+                }
+
                 if (marketFullTickDigits[symbol]) {
                     const digit = parseInt(price.toString().slice(-1));
                     marketFullTickDigits[symbol].push(digit);

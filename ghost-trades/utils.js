@@ -441,7 +441,8 @@ function updateTechnicalIndicators() {
  * @param {number} count - Number of ticks to analyze (default 15)
  */
 function calculateDigitPercentages(symbol, count = 15) {
-    const allDigits = marketTickHistory[symbol] || [];
+    // USE window.digitHistory (marketFullTickDigits) which is always updated
+    const allDigits = (window.digitHistory && window.digitHistory[symbol]) || [];
     if (allDigits.length === 0) return null;
 
     // Use specific count or fallback to last 15
