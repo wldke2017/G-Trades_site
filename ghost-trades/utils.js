@@ -430,3 +430,43 @@ function updateTechnicalIndicators() {
         }
     }
 }
+
+// ===================================
+// DIGIT ANALYSIS FUNCTIONS
+// ===================================
+
+/**
+ * Calculate percentage of each digit (0-9) in the last N ticks
+ * @param {string} symbol - The market symbol
+ * @param {number} count - Number of ticks to analyze (default 15)
+ */
+function calculateDigitPercentages(symbol, count = 15) {
+    const allDigits = marketTickHistory[symbol] || [];
+    if (allDigits.length === 0) return null;
+
+    // Use specific count or fallback to last 15
+    const digits = allDigits.slice(-count);
+    const percentages = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
+    const total = digits.length;
+
+    // Count occurrences of each digit
+    digits.forEach(digit => {
+        percentages[digit]++;
+    });
+
+    // Convert to percentages
+    for (let i = 0; i <= 9; i++) {
+        percentages[i] = (percentages[i] / total) * 100;
+    }
+
+    // Calculate dynamic percentages based on prediction barriers
+    for (let barrier = 0; barrier <= 9; barrier++) {
+        let overSum = 0;
+        for (let d = barrier + 1; d <= 9; d++) {
+            overSum += percentages[d];
+        }
+        percentages[`over${barrier}`] = overSum;
+    }
+
+    return percentages;
+}

@@ -434,12 +434,20 @@ function handleIncomingMessage(msg) {
 
                 // 4. Feed AI Strategy Runner
                 if (window.aiStrategyRunner && window.aiStrategyRunner.isActive) {
+                    // Get user-defined analysis count (default 15)
+                    const analysisCountInput = document.getElementById('ai-analysis-period');
+                    const analysisCount = analysisCountInput ? parseInt(analysisCountInput.value) || 15 : 15;
+
+                    // Calculate percentages using shared utility
+                    const percentages = calculateDigitPercentages(symbol, analysisCount);
+
                     const aiTickContext = {
                         symbol: symbol,
                         tick: price,
                         digits: marketFullTickDigits[symbol] || [],
                         lastDigit: parseInt(price.toString().slice(-1)),
-                        // We can add more context like percentages if needed, but digits array often sufficient for simple strategies
+                        percentages: percentages, // Add calculated percentages
+                        analysis: { count: analysisCount } // Meta info
                     };
                     window.aiStrategyRunner.execute(aiTickContext);
                 }

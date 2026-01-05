@@ -295,40 +295,7 @@ function compareWithOperator(actual, operator, expected) {
     }
 }
 
-/**
- * Calculate percentage of each digit (0-9) in the last N ticks
- */
-function calculateDigitPercentages(symbol) {
-    const allDigits = marketTickHistory[symbol] || [];
-    if (allDigits.length === 0) return null;
-
-    // Use configured analysis digits count
-    const analysisCount = botState.analysisDigits || 15;
-    const digits = allDigits.slice(-analysisCount);
-    const percentages = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
-    const total = digits.length;
-
-    // Count occurrences of each digit
-    digits.forEach(digit => {
-        percentages[digit]++;
-    });
-
-    // Convert to percentages
-    for (let i = 0; i <= 9; i++) {
-        percentages[i] = (percentages[i] / total) * 100;
-    }
-
-    // Calculate dynamic percentages based on prediction barriers
-    for (let barrier = 0; barrier <= 9; barrier++) {
-        let overSum = 0;
-        for (let d = barrier + 1; d <= 9; d++) {
-            overSum += percentages[d];
-        }
-        percentages[`over${barrier}`] = overSum;
-    }
-
-    return percentages;
-}
+// function calculateDigitPercentages(symbol) moved to utils.js for shared use
 
 /**
  * Calculate digit distribution from full tick history (last 100 digits)
@@ -587,7 +554,9 @@ function handleBotTick(tick) {
 
         // 2. Calculate and store digit percentages (only if we have enough data)
         if (marketTickHistory[symbol].length >= 20) {
-            marketDigitPercentages[symbol] = calculateDigitPercentages(symbol);
+            // Use bot state for Ghost AI logic
+            const analysisCount = botState.analysisDigits || 15;
+            marketDigitPercentages[symbol] = calculateDigitPercentages(symbol, analysisCount);
 
             // Reduce logging frequency
             if (Math.random() < 0.02) {

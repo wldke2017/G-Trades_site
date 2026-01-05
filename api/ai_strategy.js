@@ -49,7 +49,8 @@ Input 'data' structure:
   tick: number,            // Current price
   digits: number[],        // Array of last 100 digits (last entry is current)
   lastDigit: number,       // Last digit of current price
-  percentages: object      // { 0: 10.2, 1: 9.5, ..., over2: 60.5, ... }
+  percentages: object,     // { 0: 10.2, ..., 9: 5.5, over2: 60.5, ... } (Calculated on last N digits)
+  analysis: object         // { count: 15 } (The number of ticks analyzed for percenatges)
 }
 
 AVAILABLE ACTIONS (you must use these to trade):
