@@ -82,9 +82,9 @@ function subscribeToAllVolatilities() {
         };
         marketFullTickDigits[symbol] = [];
 
-        // Fetch historical tick data for distribution analysis (100 ticks immediately)
-        console.log(`📊 Fetching 100 historical ticks for ${symbol}...`);
-        fetchTickHistory(symbol);
+        // Fetch historical tick data for distribution analysis (1000 ticks immediately)
+        console.log(`📊 Fetching 1000 historical ticks for ${symbol}...`);
+        fetchTickHistory(symbol, 1000);
 
         if (!document.getElementById(`row-${symbol}`)) {
             const row = tickerTableBody.insertRow();
@@ -162,12 +162,13 @@ function requestMarketData(symbol) {
 /**
  * Fetches historical tick data for a symbol to build full digit distribution
  * @param {string} symbol - The symbol to fetch tick history for
+ * @param {number} count - Number of historical ticks to fetch (default 1000)
  */
-function fetchTickHistory(symbol) {
+function fetchTickHistory(symbol, count = 1000) {
     const tickHistoryRequest = {
         "ticks_history": symbol,
         "end": "latest",
-        "count": 100,
+        "count": count,
         "style": "ticks",
         "subscribe": 0
     };
@@ -208,9 +209,9 @@ function refreshDistributionData() {
         content.style.display = 'none';
     }
 
-    // Fetch fresh 100 ticks
+    // Fetch fresh 1000 ticks
     console.log(`🔄 Refreshing distribution data for ${selectedSymbol}...`);
-    fetchTickHistory(selectedSymbol);
+    fetchTickHistory(selectedSymbol, 1000);
 
     // Show toast notification
     if (typeof showToast === 'function') {

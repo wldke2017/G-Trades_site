@@ -358,11 +358,26 @@ function handleIncomingMessage(msg) {
                 const symbol = data.echo_req.ticks_history;
                 const quotes = data.history.quotes || [];
                 const digits = quotes.map(quote => parseInt(quote.toString().slice(-1)));
-                marketFullTickDigits[symbol] = digits.slice(-100); // Keep last 100
+                const requestedCount = data.echo_req.count || 100;
+                
+                // Store up to requested count (1000 for initial load, or custom count for refresh)
+                marketFullTickDigits[symbol] = digits.slice(-requestedCount);
+
+                // Calculate even/odd percentages immediately
+                const digitCounts = Array(10).fill(0);
+                marketFullTickDigits[symbol].forEach(d => digitCounts[d]++);
+                
+                const total = marketFullTickDigits[symbol].length;
+                const evenCount = [0,2,4,6,8].reduce((sum, d) => sum + digitCounts[d], 0);
+                const oddCount = [1,3,5,7,9].reduce((sum, d) => sum + digitCounts[d], 0);
+                
+                const evenPercentage = ((evenCount / total) * 100).toFixed(2);
+                const oddPercentage = ((oddCount / total) * 100).toFixed(2);
 
                 // Log detailed information
                 console.log(`✅ Loaded ${digits.length} historical ticks for ${symbol} distribution analysis`);
                 console.log(`   Actual ticks stored: ${marketFullTickDigits[symbol].length}`);
+                console.log(`   Even: ${evenPercentage}% | Odd: ${oddPercentage}%`);
 
                 // Count digit distribution for verification
                 const counts = {};
@@ -403,7 +418,7 @@ function handleIncomingMessage(msg) {
                     }
                 }
 
-                // 2. Update Full Tick Digits for distribution analysis (keep last 100)
+                // 2. Update Full Tick Digits for distribution analysis (keep last 1000)
                 if (!marketFullTickDigits[symbol]) {
                     marketFullTickDigits[symbol] = [];
                 }
@@ -411,7 +426,7 @@ function handleIncomingMessage(msg) {
                 if (marketFullTickDigits[symbol]) {
                     const digit = parseInt(price.toString().slice(-1));
                     marketFullTickDigits[symbol].push(digit);
-                    if (marketFullTickDigits[symbol].length > 100) {
+                    if (marketFullTickDigits[symbol].length > 1000) {
                         marketFullTickDigits[symbol].shift();
                     }
 
