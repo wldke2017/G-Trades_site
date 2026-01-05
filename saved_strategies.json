@@ -20,6 +20,13 @@
       "code": "// Get full digit history\\nconst digits = data.digits;\\nconst total = digits.length;\\n\\n// Helper: Check if digit is SMALL (0-4)\\nconst isSmall = (d) => d <= 4;\\nconst isBig = (d) => d >= 5;\\n\\n// Helper: Strict Streak Checker\\nconst isStrictStreak = (count, type) => {\\n    if (total < count + 1) return false;\\n    \\n    const streak = digits.slice(-count);\\n    // Check specific type\\n    const checkFn = type === 'SMALL' ? isSmall : isBig;\\n    const streakMatch = streak.every(checkFn);\\n    \\n    // Strict Start Check (Previous digit must be opposite)\\n    const prevDigit = digits[total - count - 1];\\n    const prevIsOpposite = type === 'SMALL' ? !isSmall(prevDigit) : !isBig(prevDigit);\\n    \\n    return streakMatch && prevIsOpposite;\\n};\\n\\n// --- LOGIC ---\\n\\n// 1. Strict 8 Small Digits -> Trade OVER 4 (Big)\\nif (isStrictStreak(8, 'SMALL')) {\\n    signal('DIGITOVER', 0.35, 4); // Barrier 4 means > 4 (5,6,7,8,9 wins)\\n    log(`Matched: Strict 8 Small Streak (Last: ${data.lastDigit}) -> Trading OVER 4`);\\n}\\n\\n// 2. Strict 8 Big Digits -> Trade UNDER 5 (Small)\\nif (isStrictStreak(8, 'BIG')) {\\n    signal('DIGITUNDER', 0.35, 5); // Barrier 5 means < 5 (0,1,2,3,4 wins)\\n    log(`Matched: Strict 8 Big Streak (Last: ${data.lastDigit}) -> Trading UNDER 5`);\\n}",
       "prompt": "strict over/under reversal 8 streak",
       "createdAt": "2026-01-05T10:45:00.000Z"
+    },
+    {
+      "id": "strictoddv2",
+      "name": "Strict Odd Reversal V2",
+      "code": "// Get full digit history\\nconst digits = data.digits;\\nconst total = digits.length;\\n\\n// Helper: Check if digit is ODD\\nconst isOdd = (d) => d % 2 !== 0;\\n\\n// --- LOGIC ---\\n// Need at least 12 digits of history\\nif (total >= 12) {\\n    // Get the last 12 digits\\n    const last12 = digits.slice(-12);\\n    \\n    // Check if digits 1-10 (positions 0-9) are ALL ODD\\n    const first10AreOdd = last12.slice(0, 10).every(isOdd);\\n    \\n    // Check if the 12th digit (position 11) is ODD\\n    const digit12IsOdd = isOdd(last12[11]);\\n    \\n    // TRIGGER: If first 10 are odd AND 12th is odd\\n    if (first10AreOdd && digit12IsOdd) {\\n        signal('DIGITEVEN', 0.35);\\n        log(`🔥 MATCH! 10 Odds + 12th Odd -> Trading EVEN (11th was: ${last12[10]})`);\\n    }\\n}",
+      "prompt": "wait for 10 consecutive odds, then if 12th is odd, trade even",
+      "createdAt": "2026-01-05T12:17:00.000Z"
     }
   ]
 }
