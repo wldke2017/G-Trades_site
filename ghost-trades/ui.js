@@ -37,15 +37,31 @@ function updateAuthUI(data) {
         showRealAccountSwitchConfirmation();
     }
 
-    // Hide login container
+    // Hide login container - use direct DOM manipulation for reliability
     const loginInterface = document.querySelector('.auth-container');
     if (loginInterface) {
         loginInterface.style.display = 'none';
+        console.log('✅ Auth container hidden after authorization');
     }
 
-    // Show dashboard
+    // Show dashboard - use both direct DOM and showSection for reliability
+    const dashboardElement = document.getElementById('dashboard');
+    if (dashboardElement) {
+        dashboardElement.style.display = 'flex';
+        console.log('✅ Dashboard shown after authorization');
+    }
+    
+    // Also use showSection if available for proper navigation state
     if (typeof showSection === 'function') {
         showSection('dashboard');
+    } else {
+        console.warn('⚠️ showSection() not available in updateAuthUI, using direct DOM manipulation');
+        // Manually update nav active state
+        const dashboardNav = document.getElementById('dashboard-nav');
+        if (dashboardNav) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            dashboardNav.classList.add('active');
+        }
     }
 
     // Update connection status

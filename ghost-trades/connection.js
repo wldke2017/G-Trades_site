@@ -8,11 +8,15 @@ let reconnectAttempts = 0;
 let reconnectTimer = null;
 
 function connectToDeriv() {
+    console.log('🔌 connectToDeriv() called, current state:', connection ? connection.readyState : 'no connection');
+    
     if (connection && (connection.readyState === WebSocket.OPEN || connection.readyState === WebSocket.CONNECTING)) {
+        console.log('✅ Connection already open or connecting, skipping...');
         return;
     }
 
     try {
+        console.log('🔄 Creating new WebSocket connection to:', WS_URL);
         connection = new WebSocket(WS_URL);
         updateConnectionStatus('connecting');
         if (typeof statusMessage !== 'undefined' && statusMessage) {
@@ -34,7 +38,7 @@ function connectToDeriv() {
         };
 
     } catch (error) {
-        console.error("Failed to create WebSocket:", error);
+        console.error("❌ Failed to create WebSocket:", error);
         showToast("Failed to establish connection", 'error');
         updateConnectionStatus('error');
         attemptReconnect();
@@ -225,22 +229,27 @@ function getDerivTokensFromURL() {
  */
 function handleOAuthCallback() {
     console.log('🔄 OAuth callback detected, processing...');
+    console.log('Current URL:', window.location.href);
+    console.log('Hash:', window.location.hash);
+    console.log('Search:', window.location.search);
 
     let params;
 
     // Check hash first, then search (query params)
     if (window.location.hash.length > 1) {
         params = new URLSearchParams(window.location.hash.substring(1));
-        console.log('📋 Found params in Hash');
+        console.log('📋 Found params in Hash:', Array.from(params.entries()));
     } else if (window.location.search.length > 1) {
         params = new URLSearchParams(window.location.search);
-        console.log('📋 Found params in Search Query');
+        console.log('📋 Found params in Search Query:', Array.from(params.entries()));
     } else {
-        console.error('No OAuth parameters found in URL');
+        console.error('❌ No OAuth parameters found in URL');
+        showToast('OAuth parameters missing. Please try logging in again.', 'error');
+        statusMessage.textContent = "OAuth login failed. Please try again.";
         return;
     }
 
-    console.log('📋 URL parameters found');
+    console.log('📋 URL parameters found, processing accounts...');
 
     // Check for errors
     const error = params.get('error');

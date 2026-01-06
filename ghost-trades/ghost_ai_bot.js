@@ -13,6 +13,17 @@ let botLoopInterval = null;
 let currentMarketIndex = 0;
 let botStartTime = null;
 
+// Initialize global tracking variables
+if (typeof window.activeContracts === 'undefined') {
+    window.activeContracts = {};
+}
+if (typeof window.activeS1Symbols === 'undefined') {
+    window.activeS1Symbols = new Set();
+}
+if (typeof window.processedContracts === 'undefined') {
+    window.processedContracts = new Set();
+}
+
 // Bot State Object - Tracks current strategy state
 const botState = {
     // Strategy Parameters
@@ -116,14 +127,19 @@ async function startGhostAiBot() {
     startBotTimer();
 
     // Clear logs but KEEP trade history (users need to see past trades)
-    botLogContainer.innerHTML = '';
+    const botLogContainer = document.getElementById('bot-log-container');
+    if (botLogContainer) {
+        botLogContainer.innerHTML = '';
+    }
 
     // Clear any stale contracts and locks from previous session
     window.activeContracts = {}; // Reset global contract tracking
-    window.activeS1Symbols.clear(); // Reset global S1 symbol tracking
-    window.processedContracts.clear(); // Reset processed contracts tracking
+    if (window.activeS1Symbols) window.activeS1Symbols.clear(); // Reset global S1 symbol tracking
+    if (window.processedContracts) window.processedContracts.clear(); // Reset processed contracts tracking
     expectedStakes = {}; // Clear expected stakes
-    clearAllPendingStakes();
+    if (typeof clearAllPendingStakes === 'function') {
+        clearAllPendingStakes();
+    }
 
     // Add session start marker in logs
     addBotLog(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
@@ -332,7 +348,9 @@ async function stopGhostAiBot() {
     }
 
     // Clear all trade locks when stopping
-    clearAllPendingStakes();
+    if (typeof clearAllPendingStakes === 'function') {
+        clearAllPendingStakes();
+    }
 
     // Clear virtual hook data
     if (typeof window.virtualHookManager !== 'undefined') {
@@ -460,9 +478,34 @@ let lastTradeTime = 0;
 const TRADE_COOLDOWN = 100; // No scans for 5 seconds after a trade is placed
 let isScanning = false; // Atomic scan lock to prevent simultaneous scans
 
-// Access global values
-const activeContracts = window.activeContracts;
-const activeS1Symbols = window.activeS1Symbols;
+// Access global values (ensure they exist)
+const activeContracts = window.activeContracts || {};
+const activeS1Symbols = window.activeS1Symbols || new Set();
+
+// Bot Log Function
+function addBotLog(message, type = 'info') {
+    const botLogContainer = document.getElementById('bot-log-container');
+    if (!botLogContainer) {
+        console.warn('Bot log container not found');
+        return;
+    }
+
+    const logEntry = document.createElement('div');
+    logEntry.className = `log-entry log-${type}`;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> ${message}`;
+    
+    botLogContainer.appendChild(logEntry);
+    
+    // Auto-scroll to bottom
+    botLogContainer.scrollTop = botLogContainer.scrollHeight;
+    
+    // Limit log entries to prevent memory issues (keep last 100)
+    while (botLogContainer.children.length > 100) {
+        botLogContainer.removeChild(botLogContainer.firstChild);
+    }
+}
 
 // Bot timer variables
 let botTimerInterval = null;

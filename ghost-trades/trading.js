@@ -316,17 +316,30 @@ function sendPurchaseRequest(action) {
 // ----------------------------------------------------
 
 function authorizeAndProceed(apiToken) {
+    console.log('📤 Sending authorization request to Deriv API...');
     const authRequest = {
         "authorize": apiToken,
         "passthrough": { "purpose": "initial_login" }
     };
-    sendAPIRequest(authRequest);
+    
+    sendAPIRequest(authRequest)
+        .then(() => {
+            console.log('✅ Authorization request sent successfully');
+        })
+        .catch(error => {
+            console.error('❌ Failed to send authorization request:', error);
+            setButtonLoading(loginButton, false);
+            showToast('Failed to send authorization request. Please try again.', 'error');
+            statusMessage.textContent = "Authorization failed. Please try again.";
+        });
 }
 
 function handleLogin() {
+    console.log('🔑 API Token login initiated');
     const apiToken = apiTokenInput.value.trim();
 
     if (!apiToken) {
+        console.error('❌ No API token provided');
         statusMessage.textContent = "⚠️ Please enter a valid API Token.";
         showToast("API Token is required", 'warning');
         apiTokenInput.focus();
@@ -335,37 +348,45 @@ function handleLogin() {
 
     // Validate token format (basic check)
     if (apiToken.length < 10) {
+        console.error('❌ API token too short:', apiToken.length, 'characters');
         statusMessage.textContent = "⚠️ Invalid API Token format.";
         showToast("API Token appears to be invalid", 'error');
         return;
     }
 
+    console.log('✅ API token validated, length:', apiToken.length);
+
     // Save the API token for session persistence
     localStorage.setItem('deriv_token', apiToken);
     localStorage.setItem('deriv_account_type', 'demo'); // Assume demo for manual login
+    console.log('✅ Token saved to localStorage');
 
     setButtonLoading(loginButton, true);
     statusMessage.textContent = "Authorizing your account...";
 
     if (connection && connection.readyState === WebSocket.OPEN) {
+        console.log('✅ WebSocket already open, authorizing...');
         authorizeAndProceed(apiToken);
     } else {
+        console.log('🔄 WebSocket not open, connecting first...');
         connectToDeriv();
+        let connectionCheckAttempts = 0;
+        const maxAttempts = 100; // 10 seconds (100 * 100ms)
+        
         const checkConnection = setInterval(() => {
+            connectionCheckAttempts++;
             if (connection && connection.readyState === WebSocket.OPEN) {
+                console.log('✅ WebSocket connected after', connectionCheckAttempts * 100, 'ms');
                 clearInterval(checkConnection);
                 authorizeAndProceed(apiToken);
-            }
-        }, 100);
-
-        // Timeout after 10 seconds
-        setTimeout(() => {
-            clearInterval(checkConnection);
-            if (!connection || connection.readyState !== WebSocket.OPEN) {
+            } else if (connectionCheckAttempts >= maxAttempts) {
+                console.error('❌ Connection timeout after', maxAttempts * 100, 'ms');
+                clearInterval(checkConnection);
                 setButtonLoading(loginButton, false);
                 showToast("Connection timeout. Please try again.", 'error');
+                statusMessage.textContent = "Connection failed. Please check your internet and try again.";
             }
-        }, 10000);
+        }, 100);
     }
 }
 

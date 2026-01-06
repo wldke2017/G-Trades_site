@@ -74,30 +74,8 @@ const botLogContainer = document.getElementById('bot-log-container');
 const botHistoryTableBody = document.querySelector('#bot-history-table tbody');
 
 // --- Ghost AI Bot State ---
-let botState = {
-    activeSymbol: null,
-    recoverySymbol: null, // Market symbol to stick to during Martingale recovery
-    initialStake: 1.0,
-    targetProfit: 50.0,
-    payoutPercentage: 96,
-    stopLoss: 20.0,
-    maxMartingaleSteps: 5,
-    currentStake: 1.0,
-    totalProfit: 0.0,
-    totalLoss: 0.0,
-    accumulatedStakesLost: 0.0, // Accumulate stake amounts lost for martingale calculation
-    activeStrategy: 'S1', // S1 or S2
-    martingaleStepCount: 0,
-    isTrading: false, // To prevent placing a new trade while one is active
-    runId: null,
-    winCount: 0, // Number of wins
-    lossCount: 0, // Number of losses
-    winPercentage: 0, // Win percentage
-    s1LossSymbol: null, // Symbol where S1 loss occurred, to avoid in recovery
-    totalStake: 0.0, // Total stake across all trades
-    totalPayout: 0.0, // Total payout across all trades
-    runsCount: 0, // Number of times bot has been started
-};
+// NOTE: botState is declared in ghost_ai_bot.js (loaded before app.js)
+// Do not redeclare here - causes "Identifier 'botState' has already been declared" error
 
 // --- Additional Bot State for Missing Elements ---
 let emaValue = null;
