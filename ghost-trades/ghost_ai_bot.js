@@ -313,6 +313,13 @@ async function startGhostAiBot() {
     addBotLog(`📉 S2: ${s2Conditions.join(' & ')} → ${s2ContractType} ${s2Prediction}`);
 
     addBotLog(`⏳ Waiting for valid entry conditions...`);
+    
+    // Log initial market status
+    const totalMarkets = Object.keys(marketTickHistory).length;
+    const readyMarkets = Object.keys(marketTickHistory).filter(s => 
+        marketTickHistory[s] && marketTickHistory[s].length >= 20
+    ).length;
+    addBotLog(`📊 Markets: ${totalMarkets} total, ${readyMarkets} ready (need 20+ ticks)`, 'info');
 
     // Initialize technical indicators
     updateTechnicalIndicators();
@@ -324,6 +331,13 @@ async function startGhostAiBot() {
     botLoopInterval = setInterval(() => {
         if (isBotRunning) {
             cleanupStaleContracts();
+            
+            // Log market readiness every 30 seconds
+            const ready = Object.keys(marketTickHistory).filter(s => 
+                marketTickHistory[s] && marketTickHistory[s].length >= 20
+            ).length;
+            const total = Object.keys(marketTickHistory).length;
+            console.log(`📊 Market Status: ${ready}/${total} markets ready`);
         }
     }, 30000);
 }
@@ -608,6 +622,13 @@ function handleBotTick(tick) {
     if (!isScanning && now - lastScanTime > SCAN_COOLDOWN && now - lastTradeTime > TRADE_COOLDOWN) {
         isScanning = true;
         lastScanTime = now;
+        
+        // Log scan attempt
+        const readyMarkets = Object.keys(marketTickHistory).filter(s => 
+            marketTickHistory[s] && marketTickHistory[s].length >= 20
+        ).length;
+        console.log(`🔍 Scan triggered - ${readyMarkets} markets ready`);
+        
         scanAndPlaceMultipleTrades();
         isScanning = false;
     }
@@ -615,6 +636,15 @@ function handleBotTick(tick) {
 
 function scanAndPlaceMultipleTrades() {
     const symbolsToScan = Object.keys(marketTickHistory).filter(isAllowedBotMarket);
+    
+    // Debug: Log scan status
+    if (symbolsToScan.length === 0) {
+        console.log('⚠️ No symbols to scan - marketTickHistory is empty');
+        return;
+    }
+    
+    console.log(`🔍 Scanning ${symbolsToScan.length} markets for trading opportunities...`);
+    
     let validS1Markets = [];
     let validS2Markets = [];
 
@@ -623,7 +653,14 @@ function scanAndPlaceMultipleTrades() {
         const lastDigits = marketTickHistory[symbol] || [];
         const percentages = marketDigitPercentages[symbol];
 
+        // Debug: Log market data status
+        if (lastDigits.length < 20) {
+            console.log(`⏳ ${symbol}: Only ${lastDigits.length}/20 ticks collected`);
+        }
+        
         if (lastDigits.length < 20 || !percentages) continue;
+        
+        console.log(`✅ ${symbol}: Ready with ${lastDigits.length} ticks`);
 
         // Check S1
         if (!activeS1Symbols.has(symbol) && !botState.s1Blocked) {
@@ -647,6 +684,11 @@ function scanAndPlaceMultipleTrades() {
                 percentageCheckPassed = compareWithOperator(overPercentage, operator, minPercentage);
             }
 
+            // Debug logging for S1 conditions
+            if (Math.random() < 0.1) { // Log 10% of checks to avoid spam
+                console.log(`🔍 S1 Check ${symbol}: Digit=${digitCheckPassed}, Pct=${percentageCheckPassed}, Over${prediction}=${percentages[`over${prediction}`]}%`);
+            }
+            
             if (digitCheckPassed && percentageCheckPassed) {
                 const fullDistribution = calculateFullDigitDistribution(symbol);
                 if (fullDistribution) {

@@ -73,7 +73,12 @@ function subscribeToAllVolatilities() {
     sendAPIRequest({ "forget_all": "ticks" });
 
     volatilitySymbols.forEach((symbol, index) => {
-        sendAPIRequest({ "ticks_history": symbol, "count": 1, "end": "latest", "style": "ticks", "subscribe": 1 });
+        // FIXED: Subscribe to real-time ticks (NOT ticks_history)
+        console.log(`📡 Subscribing to real-time ticks for ${symbol}...`);
+        sendAPIRequest({ 
+            "ticks": symbol, 
+            "subscribe": 1 
+        });
 
         // Initialize market tick history
         marketTickHistory[symbol] = [];
@@ -165,14 +170,22 @@ function requestMarketData(symbol) {
  * @param {number} count - Number of historical ticks to fetch (default 1000)
  */
 function fetchTickHistory(symbol, count = 1000) {
+    console.log(`📊 Fetching ${count} historical ticks for ${symbol}...`);
     const tickHistoryRequest = {
         "ticks_history": symbol,
         "end": "latest",
         "count": count,
-        "style": "ticks",
-        "subscribe": 0
+        "style": "ticks"
+        // FIXED: Removed subscribe parameter - not valid for historical requests
     };
-    sendAPIRequest(tickHistoryRequest);
+    
+    sendAPIRequest(tickHistoryRequest)
+        .then(() => {
+            console.log(`✅ Historical tick request sent for ${symbol}`);
+        })
+        .catch(error => {
+            console.error(`❌ Failed to fetch tick history for ${symbol}:`, error);
+        });
 }
 
 function handleMarketChange() {
