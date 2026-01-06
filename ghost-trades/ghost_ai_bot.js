@@ -965,9 +965,13 @@ function addVirtualTradeHistory(result) {
     const profitClass = result.isWin ? 'text-success' : 'text-danger';
     const profitLabel = result.isWin ? 'VH WIN' : 'VH LOSS';
     const stakeLabel = 'Virtual';
+    // User requested "CALL/PUT" style or similar, but for Digits it is OVER/UNDER
     const contractType = result.contract.contract_type ? result.contract.contract_type.replace('DIGIT', '') : '-';
+    const refId = result.contract.contract_id || result.passthrough.symbol;
 
-    row.innerHTML = `<td>${time}</td><td>${result.passthrough.symbol} (${result.passthrough.strategy})</td><td>${result.passthrough.barrier}</td><td>${stakeLabel}</td><td>${contractType}</td><td>${result.contract.entry_tick || '-'}</td><td>${result.contract.exit_tick || '-'}</td><td class="${profitClass} fw-bold">${profitLabel}</td>`;
+    // Layout matching standard Deriv tables: 
+    // Time | Reference | Type | Entry | Exit | Buy Price | Profit/Loss
+    row.innerHTML = `<td>${time}</td><td>${refId}</td><td>${contractType}</td><td>${result.contract.entry_tick || '-'}</td><td>${result.contract.exit_tick || '-'}</td><td>${stakeLabel}</td><td class="${profitClass} fw-bold">${profitLabel}</td>`;
 
     if (tableBody.firstChild) tableBody.insertBefore(row, tableBody.firstChild);
     else tableBody.appendChild(row);
