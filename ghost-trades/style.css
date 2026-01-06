@@ -3823,3 +3823,126 @@ h4 {
         grid-template-columns: 1fr;
     }
 }
+/* --- Mobile Header Redesign (Screenshot Match) --- */
+@media (max-width: 768px) {
+    /* Stack Header: Branding Top, Actions Bottom */
+    .header-container {
+        padding: 5px 15px 5px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    /* Branding Row */
+    .header-left {
+        width: 100%;
+        margin-bottom: 2px;
+    }
+    
+    .logo-wrapper {
+        gap: 8px; /* Tighter logo space */
+    }
+
+    /* Scrollable Right Actions Row */
+    .header-right {
+        width: 100%;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        padding-bottom: 4px; /* Space for hidden scrollbar */
+        gap: 6px !important;
+    }
+
+    /* Hide Scrollbar */
+    .header-right::-webkit-scrollbar { display: none; }
+    .header-right { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Prevent shrinking of action items */
+    .header-right > div, 
+    .header-right > button {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+    }
+
+    /* Compact Action Buttons */
+    .connection-status {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+        height: 30px !important;
+    }
+
+    .account-switcher {
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .account-select {
+        height: 30px !important;
+        padding: 0 8px !important;
+        font-size: 0.75rem !important;
+        min-width: 120px !important;
+    }
+
+    .balance-display {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+        height: 30px !important;
+    }
+    
+    .btn-logout {
+        width: 30px !important;
+        height: 30px !important;
+    }
+
+    /* Navigation Bar: Buttons with Text */
+    .nav-bar {
+        padding: 5px 15px 10px !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .nav-item {
+        flex-shrink: 0 !important;
+        padding: 8px 12px !important;
+        font-size: 0.75rem !important;
+        min-width: auto !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        
+        /* Button Style */
+        border-radius: 6px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-bottom: none !important; /* Remove desktop underline */
+        color: var(--text-secondary);
+    }
+
+    /* Show Text */
+    .nav-item .nav-text {
+        display: inline-block !important;
+        font-weight: 600;
+    }
+    
+    /* Keep Icons Visible */
+    .nav-icon {
+        width: 14px;
+        height: 14px;
+        display: inline-block !important; /* Ensure icons show too */
+    }
+
+    /* Active State - Red Tint */
+    .nav-item.active {
+        background: rgba(255, 68, 79, 0.15) !important;
+        color: #ff444f !important;
+        border: 1px solid rgba(255, 68, 79, 0.3) !important;
+        box-shadow: 0 0 15px rgba(255, 68, 79, 0.15) !important;
+    }
+    
+    .nav-item.active::before {
+        display: none !important; /* Hide desktop highlight line */
+    }
+}
+
