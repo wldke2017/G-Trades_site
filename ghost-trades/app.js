@@ -10,8 +10,8 @@ let lastPrices = {};
 let currentContractId = null;
 
 // --- Bot Toggle State ---
-let isBotRunning = false; // NEW: State for the bot
-let botLoopInterval = null; // NEW: To hold the bot's running interval
+// Note: isBotRunning and botLoopInterval are now managed by ghost_ai_bot.js
+// but are available globally once that script loads.
 
 // --- GLOBAL MARKET DATA STRUCTURE ---
 // Note: marketTickHistory, marketDigitPercentages, and marketFullTickDigits 
@@ -1240,5 +1240,6 @@ function restoreBotSettingsOnLoad() {
 }
 
 // Final Step: Call the functions to start the application when the script loads
-handleOAuthRedirectAndInit();
+// CRITICAL: Setup navigation FIRST so showSection() is available for OAuth callback
 setupNavigation();
+handleOAuthRedirectAndInit();

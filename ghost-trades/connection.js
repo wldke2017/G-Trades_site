@@ -15,12 +15,23 @@ function connectToDeriv() {
     try {
         connection = new WebSocket(WS_URL);
         updateConnectionStatus('connecting');
-        statusMessage.textContent = "Establishing connection...";
+        if (typeof statusMessage !== 'undefined' && statusMessage) {
+            statusMessage.textContent = "Establishing connection...";
+        }
 
-        connection.onopen = handleConnectionOpen;
-        connection.onmessage = handleIncomingMessage;
-        connection.onerror = handleConnectionError;
-        connection.onclose = handleConnectionClose;
+        connection.onopen = (event) => {
+            if (typeof handleConnectionOpen === 'function') handleConnectionOpen(event);
+        };
+        connection.onmessage = (event) => {
+            if (typeof handleIncomingMessage === 'function') handleIncomingMessage(event);
+            else console.warn('⚠️ handleIncomingMessage not yet defined. Message skipped.');
+        };
+        connection.onerror = (event) => {
+            if (typeof handleConnectionError === 'function') handleConnectionError(event);
+        };
+        connection.onclose = (event) => {
+            if (typeof handleConnectionClose === 'function') handleConnectionClose(event);
+        };
 
     } catch (error) {
         console.error("Failed to create WebSocket:", error);
@@ -382,15 +393,35 @@ function switchAccount(token, accountId) {
 
     console.log('✅ Account switched to:', accountId, `(${window.oauthState.account_type})`);
 
-    // 🔥 THE FIX: Show the dashboard immediately
+    // 🔥 ROBUST FIX: Show the dashboard immediately using direct DOM manipulation
+    // This ensures it works even if showSection() isn't loaded yet
+    const loginInterface = document.querySelector('.auth-container');
+    const dashboardElement = document.getElementById('dashboard');
+    
+    if (loginInterface) {
+        loginInterface.style.display = 'none';
+        console.log('✅ Login interface hidden');
+    }
+    
+    if (dashboardElement) {
+        dashboardElement.style.display = 'flex';
+        console.log('✅ Dashboard shown');
+    }
+    
+    // Update navigation if available
     if (typeof showSection === 'function') {
-        // Hide login screen
-        const loginInterface = document.querySelector('.auth-container');
-        if (loginInterface) {
-            loginInterface.style.display = 'none';
-        }
-        // Show dashboard
         showSection('dashboard');
+        console.log('✅ Navigation updated via showSection()');
+    } else {
+        console.warn('⚠️ showSection() not available yet, using direct DOM manipulation');
+        // Manually update nav active state
+        const dashboardNav = document.getElementById('dashboard-nav');
+        if (dashboardNav) {
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            // Add active to dashboard
+            dashboardNav.classList.add('active');
+        }
     }
 
     // Connect with the new token
