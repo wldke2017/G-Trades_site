@@ -234,20 +234,23 @@ async function startGhostAiBot() {
     
     // Initialize Virtual Hook (if manager exists)
     if (typeof window.virtualHookManager !== 'undefined') {
-        // Check if virtual hook inputs exist (they may not be in UI yet)
-        const vHookEnabled = false; // TODO: Add UI inputs for Ghost AI virtual hook
-        const vHookTrigger = 'LOSS';
-        const vHookCount = 1;
+        const vHookEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked || false;
+        const vHookTrigger = document.getElementById('ghostaiVirtualHookStartWhen')?.value || 'LOSS';
+        const vHookCount = parseInt(document.getElementById('ghostaiVirtualHookTrigger')?.value) || 1;
+        const vHookFixedStake = parseFloat(document.getElementById('ghostaiVirtualHookFixedStake')?.value) || null;
         
         window.virtualHookManager.enableForBot('ghost_ai', {
             enabled: vHookEnabled,
             triggerType: vHookTrigger,
             triggerCount: vHookCount,
-            fixedStake: null
+            fixedStake: vHookFixedStake
         });
         
         if (vHookEnabled) {
             addBotLog(`🪝 Virtual Hook ENABLED: Wait for ${vHookCount} Virtual ${vHookTrigger}(s)`, 'warning');
+            if (vHookFixedStake) {
+                addBotLog(`💰 Fixed Stake Override: $${vHookFixedStake.toFixed(2)}`, 'info');
+            }
         }
     }
 

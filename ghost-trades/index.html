@@ -17,6 +17,180 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Tutorial Modal -->
+    <div id="tutorial-modal" class="modal" style="display: none;">
+        <div class="modal-content tutorial-modal">
+            <div class="modal-header">
+                <h2>📚 Ghost Trades - Quick Start Guide</h2>
+                <button class="modal-close" onclick="closeTutorial()">&times;</button>
+            </div>
+            <div class="modal-body tutorial-content">
+                <!-- Tabs -->
+                <div class="tutorial-tabs">
+                    <button class="tutorial-tab active" data-tab="overview">Overview</button>
+                    <button class="tutorial-tab" data-tab="speedbot">Speedbot</button>
+                    <button class="tutorial-tab" data-tab="ghostai">Ghost AI</button>
+                    <button class="tutorial-tab" data-tab="ghosteodd">Ghost E/ODD</button>
+                    <button class="tutorial-tab" data-tab="aistrategy">AI Strategy</button>
+                    <button class="tutorial-tab" data-tab="safety">Safety</button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="tutorial-tab-content active" data-content="overview">
+                    <h3>🚀 Welcome to Ghost Trades</h3>
+                    <p>Advanced trading platform with AI-powered strategies for Deriv markets.</p>
+                    
+                    <h4>Quick Setup</h4>
+                    <ol>
+                        <li><strong>Login:</strong> Use OAuth (Demo/Real Account) or API Token</li>
+                        <li><strong>Markets:</strong> Visit Speedbot to subscribe to volatility markets</li>
+                        <li><strong>Choose Bot:</strong> Select Ghost AI, E/ODD, or AI Strategy</li>
+                        <li><strong>Configure:</strong> Set stake, targets, and strategy parameters</li>
+                        <li><strong>Start Trading:</strong> Click Start and monitor in real-time</li>
+                    </ol>
+                    
+                    <h4>Key Features</h4>
+                    <ul>
+                        <li>✅ <strong>Multiple Bots:</strong> Run different strategies simultaneously</li>
+                        <li>✅ <strong>Virtual Hook:</strong> Test strategies virtually before trading</li>
+                        <li>✅ <strong>Real-time Analytics:</strong> Live digit distribution & percentages</li>
+                        <li>✅ <strong>Smart Recovery:</strong> Automated martingale management</li>
+                    </ul>
+                </div>
+                
+                <div class="tutorial-tab-content" data-content="speedbot">
+                    <h3>⚡ Speedbot - Manual Trading</h3>
+                    <p>Quick manual trades on volatility indices.</p>
+                    
+                    <h4>How to Use</h4>
+                    <ol>
+                        <li>Select Market (R_10, R_100, etc.)</li>
+                        <li>Set Stake Amount (min $0.35)</li>
+                        <li>Choose Duration (ticks)</li>
+                        <li>Click BUY UP or BUY DOWN</li>
+                    </ol>
+                    
+                    <h4>Features</h4>
+                    <ul>
+                        <li>📊 Live chart with 1-minute candles</li>
+                        <li>📈 Ticker watch table for all markets</li>
+                        <li>🎯 Digit distribution analysis (last 1000 ticks)</li>
+                    </ul>
+                    
+                    <div class="tutorial-note">
+                        <strong>💡 Tip:</strong> Use distribution analysis to spot patterns before trading.
+                    </div>
+                </div>
+                
+                <div class="tutorial-tab-content" data-content="ghostai">
+                    <h3>🤖 Ghost AI Bot - Pattern Recognition</h3>
+                    <p>Advanced bot using digit analysis and percentage-based strategies.</p>
+                    
+                    <h4>Strategy Logic</h4>
+                    <ul>
+                        <li><strong>S1 (Entry):</strong> Opens trades based on digit patterns & percentages</li>
+                        <li><strong>S2 (Recovery):</strong> Activates after S1 losses with different conditions</li>
+                    </ul>
+                    
+                    <h4>Configuration</h4>
+                    <ol>
+                        <li><strong>Basic:</strong> Initial stake, target profit, stop loss</li>
+                        <li><strong>S1:</strong> Check last N digits, prediction barrier, min percentage</li>
+                        <li><strong>S2:</strong> Recovery conditions when S1 fails</li>
+                        <li><strong>Virtual Hook:</strong> Test N virtual trades before going real</li>
+                    </ol>
+                    
+                    <div class="tutorial-warning">
+                        <strong>⚠️ Important:</strong> Start with small stakes. Test on demo account first.
+                    </div>
+                </div>
+                
+                <div class="tutorial-tab-content" data-content="ghosteodd">
+                    <h3>🎯 Ghost E/ODD - Even/Odd Patterns</h3>
+                    <p>Specialized bot for even/odd digit pattern trading.</p>
+                    
+                    <h4>Pattern Examples</h4>
+                    <ul>
+                        <li><strong>22222:</strong> 5 consecutive even → Trade ODD</li>
+                        <li><strong>11111:</strong> 5 consecutive odd → Trade EVEN</li>
+                        <li><strong>12121:</strong> Alternating pattern → Trade ODD</li>
+                    </ul>
+                    
+                    <h4>Setup</h4>
+                    <ol>
+                        <li>Enable desired patterns (checkboxes)</li>
+                        <li>Set initial stake & target profit</li>
+                        <li>Configure martingale (recovery multiplier)</li>
+                        <li>Optional: Enable Virtual Hook</li>
+                    </ol>
+                    
+                    <div class="tutorial-note">
+                        <strong>💡 Multi-Market:</strong> Bot monitors all volatility indices simultaneously.
+                    </div>
+                </div>
+                
+                <div class="tutorial-tab-content" data-content="aistrategy">
+                    <h3>🧠 AI Strategy Generator</h3>
+                    <p>Describe strategies in plain English - AI codes them for you!</p>
+                    
+                    <h4>How It Works</h4>
+                    <ol>
+                        <li><strong>Describe:</strong> Write strategy in natural language</li>
+                        <li><strong>Analyze:</strong> AI shows summary for confirmation</li>
+                        <li><strong>Generate:</strong> AI creates executable JavaScript code</li>
+                        <li><strong>Select Markets:</strong> Choose which symbols to trade</li>
+                        <li><strong>Start:</strong> Bot executes on every tick</li>
+                    </ol>
+                    
+                    <h4>Example Prompts</h4>
+                    <ul>
+                        <li>"Buy Over 5 when last 3 digits are all even"</li>
+                        <li>"Trade Digit Match 7 if it appears 3+ times in last 10 ticks"</li>
+                        <li>"Buy Even when percentage of even digits > 60%"</li>
+                    </ul>
+                    
+                    <div class="tutorial-warning">
+                        <strong>⚠️ Advanced:</strong> Review generated code before trading. Test thoroughly.
+                    </div>
+                </div>
+                
+                <div class="tutorial-tab-content" data-content="safety">
+                    <h3>🛡️ Safety & Risk Management</h3>
+                    
+                    <h4>Account Safety</h4>
+                    <ul>
+                        <li>🔴 <strong>Real Account Warning:</strong> Red badge shows when using real money</li>
+                        <li>✅ <strong>Double Confirmation:</strong> Required when switching to real account</li>
+                        <li>🚨 <strong>Emergency Stop:</strong> Red button stops ALL bots instantly</li>
+                    </ul>
+                    
+                    <h4>Virtual Hook Feature</h4>
+                    <ul>
+                        <li>Test strategies without risking real money</li>
+                        <li>Wait for N virtual wins/losses before trading</li>
+                        <li>Available in all bots (Ghost AI, E/ODD, AI Strategy)</li>
+                    </ul>
+                    
+                    <h4>Best Practices</h4>
+                    <ol>
+                        <li><strong>Start Small:</strong> Use minimum stake ($0.35) initially</li>
+                        <li><strong>Demo First:</strong> Always test on demo account</li>
+                        <li><strong>Set Limits:</strong> Use stop loss and target profit</li>
+                        <li><strong>Monitor Closely:</strong> Never leave bots unattended</li>
+                        <li><strong>One Strategy:</strong> Don't run multiple bots on same market</li>
+                    </ol>
+                    
+                    <div class="tutorial-warning">
+                        <strong>⚠️ Trading Risk:</strong> Only trade with money you can afford to lose. Past performance doesn't guarantee future results.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeTutorial()" class="btn-primary">Got It!</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="header-container">
             <div class="header-left">
@@ -259,6 +433,7 @@
                     <div class="card-content">
                         <h3>Login ID</h3>
                         <p id="loginIdDisplay" class="stat-value">...</p>
+                        <span id="accountTypeBadge" class="account-badge" style="display: none;"></span>
                     </div>
                 </div>
                 <div class="card stat-card highlight">
@@ -286,6 +461,17 @@
                         <p id="symbolCountDisplay" class="stat-value">...</p>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Tutorial Button -->
+            <div style="margin-top: 30px; text-align: center;">
+                <button onclick="openTutorial()" class="btn-secondary" style="padding: 12px 24px; font-size: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>📚 Quick Start Guide</span>
+                </button>
             </div>
         </section>
 
@@ -607,6 +793,58 @@
                             <label for="botAnalysisDigits">Analysis Digits (Last N)</label>
                             <input type="number" id="botAnalysisDigits" name="botAnalysisDigits" value="15" min="10"
                                 max="100" title="Number of last digits to use for percentage analysis">
+                        </div>
+
+                        <!-- Virtual Hook Configuration for Ghost AI -->
+                        <h5 class="collapsible-header" style="margin-top: 20px; color: #ff9800;"
+                            onclick="toggleSection('ghostai-virtual-hook-config')">
+                            <span>🪝 Virtual Hook (Advanced)</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-ghostai-virtual-hook-config" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h5>
+                        <div class="collapsible-content collapsed" id="ghostai-virtual-hook-config">
+                            <div class="control-group">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="ghostaiVirtualHookEnabled" name="ghostaiVirtualHookEnabled"
+                                        style="width: auto;">
+                                    <span>Enable Virtual Hook</span>
+                                </label>
+                                <small style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">
+                                    Test strategies virtually before trading with real money
+                                </small>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="ghostaiVirtualHookStartWhen">Start Real Trade After</label>
+                                <select id="ghostaiVirtualHookStartWhen" name="ghostaiVirtualHookStartWhen"
+                                    class="control-select">
+                                    <option value="LOSS" selected>Virtual Loss</option>
+                                    <option value="WIN">Virtual Win</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="ghostaiVirtualHookTrigger">Trigger Streak</label>
+                                <input type="number" id="ghostaiVirtualHookTrigger" name="ghostaiVirtualHookTrigger" value="1"
+                                    min="1" max="50"
+                                    title="Number of consecutive virtual results to trigger real trade">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="ghostaiVirtualHookFixedStake">Fixed Stake (Override)</label>
+                                <div class="input-with-unit">
+                                    <input type="number" id="ghostaiVirtualHookFixedStake" name="ghostaiVirtualHookFixedStake"
+                                        placeholder="Optional" min="0.35" step="0.01">
+                                    <span class="unit">USD</span>
+                                </div>
+                                <small
+                                    style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">
+                                    Leave empty to use calculated stake
+                                </small>
+                            </div>
                         </div>
 
                         <h5 class="collapsible-header" style="margin-top: 20px; color: var(--primary-color);"
@@ -1308,6 +1546,14 @@
                             <label class="toggle-label">
                                 <input type="checkbox" id="ai-smart-recovery-toggle" checked>
                                 Smart Recovery
+                            </label>
+                        </div>
+                        
+                        <!-- Virtual Hook Toggle for AI Strategy -->
+                        <div class="ai-param-group smart-recovery-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="ai-virtual-hook-toggle">
+                                🪝 Virtual Hook
                             </label>
                         </div>
 

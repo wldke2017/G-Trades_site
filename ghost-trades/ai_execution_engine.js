@@ -65,8 +65,8 @@ class AIStrategyRunner {
         
         // Initialize Virtual Hook (if manager exists)
         if (typeof window.virtualHookManager !== 'undefined') {
-            const vHookEnabled = false; // TODO: Add UI inputs for AI Strategy virtual hook
-            const vHookTrigger = 'LOSS';
+            const vHookEnabled = document.getElementById('ai-virtual-hook-toggle')?.checked || false;
+            const vHookTrigger = 'LOSS'; // Default for AI Strategy
             const vHookCount = 1;
             
             window.virtualHookManager.enableForBot('ai_strategy', {
@@ -77,7 +77,7 @@ class AIStrategyRunner {
             });
             
             if (vHookEnabled) {
-                this.log(`🪝 Virtual Hook ENABLED: Wait for ${vHookCount} Virtual ${vHookTrigger}(s)`, 'warning');
+                this.log(`🪝 Virtual Hook ENABLED: Testing strategies virtually first`, 'warning');
             }
         }
         

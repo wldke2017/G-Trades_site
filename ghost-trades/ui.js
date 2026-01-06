@@ -14,6 +14,10 @@ function updateAuthUI(data) {
     // CRITICAL: Determine account type
     const accountType = loginId.startsWith('VRT') || loginId.startsWith('VRTC') ? 'demo' : 'real';
     
+    // Check if account type changed
+    const previousAccountType = localStorage.getItem('deriv_account_type');
+    const accountTypeChanged = previousAccountType && previousAccountType !== accountType;
+    
     // Store account information in localStorage
     localStorage.setItem('deriv_login_id', loginId);
     localStorage.setItem('deriv_account_type', accountType);
@@ -23,24 +27,14 @@ function updateAuthUI(data) {
     // Update displays
     if (typeof loginIdDisplay !== 'undefined') {
         loginIdDisplay.textContent = loginId;
-        
-        // Visual indicator for real accounts
-        if (accountType === 'real') {
-            loginIdDisplay.style.color = '#ff6b6b';
-            loginIdDisplay.style.fontWeight = 'bold';
-            loginIdDisplay.style.textShadow = '0 0 10px rgba(255, 107, 107, 0.5)';
-        } else {
-            loginIdDisplay.style.color = '';
-            loginIdDisplay.style.fontWeight = '';
-            loginIdDisplay.style.textShadow = '';
-        }
     }
-
-    // Show/hide real account warning banner
-    if (accountType === 'real') {
-        showRealAccountWarning();
-    } else {
-        hideRealAccountWarning();
+    
+    // Update account badge
+    updateAccountBadge(accountType);
+    
+    // If switched to real account, show confirmation
+    if (accountTypeChanged && accountType === 'real') {
+        showRealAccountSwitchConfirmation();
     }
 
     // Hide login container
@@ -69,54 +63,69 @@ function updateAuthUI(data) {
 }
 
 /**
- * Show real account warning banner
+ * Update account badge
+ * @param {string} accountType - 'demo' or 'real'
  */
-function showRealAccountWarning() {
-    let banner = document.getElementById('real-account-warning');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'real-account-warning';
-        banner.style.cssText = `
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%); 
-            color: white; 
-            padding: 12px; 
-            text-align: center; 
-            font-weight: bold; 
-            z-index: 99999;
-            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.5);
-            animation: pulse 2s infinite;
-        `;
-        banner.innerHTML = '⚠️ REAL ACCOUNT ACTIVE - You are trading with REAL money! ⚠️';
-        document.body.prepend(banner);
-        
-        // Add pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.8; }
-            }
-        `;
-        document.head.appendChild(style);
+function updateAccountBadge(accountType) {
+    const badge = document.getElementById('accountTypeBadge');
+    if (!badge) return;
+    
+    badge.style.display = 'inline-block';
+    badge.className = `account-badge ${accountType}`;
+    
+    if (accountType === 'real') {
+        badge.textContent = '⚠️ REAL';
+        badge.title = 'Trading with real money';
+    } else {
+        badge.textContent = '✓ DEMO';
+        badge.title = 'Practice account';
     }
 }
 
 /**
- * Hide real account warning banner
+ * Show confirmation when switching to real account
  */
-function hideRealAccountWarning() {
-    const banner = document.getElementById('real-account-warning');
-    if (banner) {
-        banner.remove();
+function showRealAccountSwitchConfirmation() {
+    // Stop all running bots first
+    let botsStopped = 0;
+    
+    if (typeof isBotRunning !== 'undefined' && isBotRunning) {
+        if (typeof stopGhostAiBot === 'function') {
+            stopGhostAiBot();
+            botsStopped++;
+        }
+    }
+    
+    if (typeof evenOddBotState !== 'undefined' && evenOddBotState.isTrading) {
+        if (typeof stopEvenOddBot === 'function') {
+            stopEvenOddBot();
+            botsStopped++;
+        }
+    }
+    
+    if (window.aiStrategyRunner && window.aiStrategyRunner.isActive) {
+        if (typeof window.aiStrategyRunner.stop === 'function') {
+            window.aiStrategyRunner.stop();
+            botsStopped++;
+        }
+    }
+    
+    // Show warning modal
+    const confirmed = confirm(
+        `⚠️ REAL ACCOUNT ACTIVATED ⚠️\n\n` +
+        `You have switched to a REAL account.\n` +
+        `All trades will use REAL MONEY.\n\n` +
+        (botsStopped > 0 ? `${botsStopped} bot(s) have been stopped for safety.\n\n` : '') +
+        `Please confirm you understand the risks.`
+    );
+    
+    if (confirmed && typeof showToast === 'function') {
+        showToast('⚠️ REAL ACCOUNT ACTIVE - Trade carefully!', 'error', 5000);
     }
 }
 
 /**
- * Confirm before starting bot on real account
+ * Confirm before starting bot on real account (simplified - no double confirmation)
  * @param {string} botName - Name of the bot
  * @returns {boolean} - True if confirmed, false if cancelled
  */
@@ -127,43 +136,82 @@ function confirmRealAccountBotStart(botName) {
         return true; // No confirmation needed for demo
     }
     
-    // First confirmation
+    // Single confirmation on bot start
     const confirmed = confirm(
-        `⚠️ REAL ACCOUNT WARNING ⚠️\n\n` +
-        `You are about to start ${botName} on a REAL account.\n` +
-        `Real money will be used for trades.\n\n` +
-        `Are you absolutely sure you want to continue?`
+        `⚠️ REAL ACCOUNT ACTIVE ⚠️\n\n` +
+        `${botName} will trade with REAL MONEY.\n\n` +
+        `Continue?`
     );
     
     if (!confirmed) {
         if (typeof showToast === 'function') {
-            showToast(`${botName} start cancelled (Real Account Safety)`, 'warning', 5000);
+            showToast(`${botName} start cancelled`, 'warning', 3000);
         }
         return false;
     }
     
-    // Second confirmation
-    const doubleConfirmed = confirm(
-        `⚠️ FINAL CONFIRMATION ⚠️\n\n` +
-        `This is your LAST CHANCE to cancel.\n` +
-        `${botName} will start trading with REAL MONEY.\n\n` +
-        `Click OK to confirm, or Cancel to abort.`
-    );
-    
-    if (!doubleConfirmed) {
-        if (typeof showToast === 'function') {
-            showToast(`${botName} start cancelled (Final Confirmation)`, 'warning', 5000);
-        }
-        return false;
-    }
-    
-    console.log(`⚠️ USER CONFIRMED: Starting ${botName} on REAL account`);
-    if (typeof showToast === 'function') {
-        showToast(`⚠️ ${botName} started on REAL account!`, 'error', 5000);
-    }
-    
+    console.log(`⚠️ Starting ${botName} on REAL account`);
     return true;
 }
+
+/**
+ * Tutorial Functions
+ */
+function openTutorial() {
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeTutorial() {
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+// Tutorial tab switching
+document.addEventListener('DOMContentLoaded', () => {
+    const tutorialTabs = document.querySelectorAll('.tutorial-tab');
+    const tutorialContents = document.querySelectorAll('.tutorial-tab-content');
+    
+    tutorialTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+            
+            // Remove active class from all tabs and contents
+            tutorialTabs.forEach(t => t.classList.remove('active'));
+            tutorialContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            tab.classList.add('active');
+            const targetContent = document.querySelector(`[data-content="${targetTab}"]`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
+    
+    // Close tutorial on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeTutorial();
+        }
+    });
+    
+    // Close tutorial on backdrop click
+    const tutorialModal = document.getElementById('tutorial-modal');
+    if (tutorialModal) {
+        tutorialModal.addEventListener('click', (e) => {
+            if (e.target === tutorialModal) {
+                closeTutorial();
+            }
+        });
+    }
+});
 
 /**
  * Update Balance Display
