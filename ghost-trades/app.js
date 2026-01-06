@@ -95,6 +95,8 @@ window.oauthState = {
 // MESSAGE ROUTER
 // ===================================
 
+window.handleIncomingMessage = handleIncomingMessage;
+
 function handleIncomingMessage(msg) {
     let data;
 

@@ -9,7 +9,7 @@ let reconnectTimer = null;
 
 function connectToDeriv() {
     console.log('🔌 connectToDeriv() called, current state:', connection ? connection.readyState : 'no connection');
-    
+
     if (connection && (connection.readyState === WebSocket.OPEN || connection.readyState === WebSocket.CONNECTING)) {
         console.log('✅ Connection already open or connecting, skipping...');
         return;
@@ -27,7 +27,7 @@ function connectToDeriv() {
             if (typeof handleConnectionOpen === 'function') handleConnectionOpen(event);
         };
         connection.onmessage = (event) => {
-            if (typeof handleIncomingMessage === 'function') handleIncomingMessage(event);
+            if (typeof window.handleIncomingMessage === 'function') window.handleIncomingMessage(event);
             else console.warn('⚠️ handleIncomingMessage not yet defined. Message skipped.');
         };
         connection.onerror = (event) => {
@@ -77,7 +77,9 @@ function connectAndAuthorize(token) {
         }
 
         // Ensure handlers are set
-        connection.onmessage = handleIncomingMessage;
+        connection.onmessage = (event) => {
+            if (typeof window.handleIncomingMessage === 'function') window.handleIncomingMessage(event);
+        };
         connection.onerror = handleConnectionError;
         connection.onclose = handleConnectionClose;
         return;
@@ -93,7 +95,9 @@ function connectAndAuthorize(token) {
     };
 
     // Standard handlers
-    connection.onmessage = handleIncomingMessage;
+    connection.onmessage = (event) => {
+        if (typeof window.handleIncomingMessage === 'function') window.handleIncomingMessage(event);
+    };
     connection.onerror = handleConnectionError;
     connection.onclose = handleConnectionClose;
 }
@@ -406,17 +410,17 @@ function switchAccount(token, accountId) {
     // This ensures it works even if showSection() isn't loaded yet
     const loginInterface = document.querySelector('.auth-container');
     const dashboardElement = document.getElementById('dashboard');
-    
+
     if (loginInterface) {
         loginInterface.style.display = 'none';
         console.log('✅ Login interface hidden');
     }
-    
+
     if (dashboardElement) {
         dashboardElement.style.display = 'flex';
         console.log('✅ Dashboard shown');
     }
-    
+
     // Update navigation if available
     if (typeof showSection === 'function') {
         showSection('dashboard');
