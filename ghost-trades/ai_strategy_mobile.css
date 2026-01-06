@@ -639,3 +639,59 @@
         grid-template-columns: repeat(6, 1fr);
     }
 }
+/* Strategy List Styles */
+.ai-strategy-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.ai-strategy-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(2px);
+}
+
+.strategy-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+    margin-right: 10px;
+}
+
+.strategy-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.strategy-date {
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+.strategy-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+#ai-strategies-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#ai-strategies-list::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1); 
+    border-radius: 2px;
+}
+

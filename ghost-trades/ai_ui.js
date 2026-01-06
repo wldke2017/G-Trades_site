@@ -17,7 +17,8 @@ let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContai
 let aiAnalysisContainer, aiSummaryDisplay, aiConfirmBtn, aiCancelBtn, aiAnalysisStatus; // Consultant Elements
 let aiMarketCheckboxes, aiSelectAllBtn, aiClearMarketsBtn; // New Elements
 let aiSmartRecoveryToggle, aiMartingaleContainer, aiPayoutContainer, aiPayoutAuto; // Smart Recovery Elements
-let aiStrategyDropdown, aiSaveStrategyBtn, aiLoadStrategyBtn, aiDeleteStrategyBtn; // Strategy Management Elements
+let aiStrategyDropdown, aiSaveStrategyBtn, aiLoadStrategyBtn, aiDeleteStrategyBtn; // Old Reference - Deprecated in favor of list
+let aiStrategiesList; // New Strategy List Container
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAIUI();
@@ -53,10 +54,12 @@ function initializeAIUI() {
     aiPayoutAuto = document.getElementById('ai-payout-auto');
 
     // Strategy Management Elements
-    aiStrategyDropdown = document.getElementById('ai-strategy-dropdown');
+    // Strategy Management Elements
+    // aiStrategyDropdown = document.getElementById('ai-strategy-dropdown'); // Removed
+    aiStrategiesList = document.getElementById('ai-strategies-list');
     aiSaveStrategyBtn = document.getElementById('ai-save-strategy-btn');
-    aiLoadStrategyBtn = document.getElementById('ai-load-strategy-btn');
-    aiDeleteStrategyBtn = document.getElementById('ai-delete-strategy-btn');
+    // aiLoadStrategyBtn = document.getElementById('ai-load-strategy-btn'); // Removed
+    // aiDeleteStrategyBtn = document.getElementById('ai-delete-strategy-btn'); // Removed
 
     // Log initialization status
     console.log('🤖 AI Strategy UI Initialization:', {
@@ -119,9 +122,9 @@ function initializeAIUI() {
     }
 
     // Strategy Management Event Listeners
+    // Strategy Management Event Listeners
     if (aiSaveStrategyBtn) aiSaveStrategyBtn.addEventListener('click', handleSaveStrategy);
-    if (aiLoadStrategyBtn) aiLoadStrategyBtn.addEventListener('click', handleLoadStrategy);
-    if (aiDeleteStrategyBtn) aiDeleteStrategyBtn.addEventListener('click', handleDeleteStrategy);
+    // Load and Delete are now handled via delegation or direct binding in render
 
     // Load strategies on init
     loadSavedStrategies();
@@ -780,7 +783,7 @@ function updateAIHistoryTable(contract, profit) {
 // ==========================================
 
 async function loadSavedStrategies() {
-    if (!aiStrategyDropdown) return;
+    if (!aiStrategiesList) return;
 
     try {
         const response = await fetch(AI_STRATEGY_API);
@@ -788,23 +791,43 @@ async function loadSavedStrategies() {
 
         const strategies = await response.json();
 
-        // Clear current options except default
-        while (aiStrategyDropdown.options.length > 1) {
-            aiStrategyDropdown.remove(1);
+        // Clear list
+        aiStrategiesList.innerHTML = '';
+
+        if (strategies.length === 0) {
+            aiStrategiesList.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem; font-style: italic;">
+                    No strategies saved yet. Create one!
+                </div>`;
+            return;
         }
 
         strategies.forEach(strategy => {
-            const option = document.createElement('option');
-            option.value = strategy.id;
-            option.textContent = `${strategy.name} (${new Date(strategy.createdAt).toLocaleDateString()})`;
-            aiStrategyDropdown.appendChild(option);
+            const el = document.createElement('div');
+            el.className = 'ai-strategy-item';
+            el.innerHTML = `
+                <div class="strategy-info">
+                    <span class="strategy-name">${strategy.name}</span>
+                    <span class="strategy-date">${new Date(strategy.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div class="strategy-actions">
+                    <button class="btn-micro load-btn" data-id="${strategy.id}" title="Load Strategy">📂 Load</button>
+                    <button class="btn-micro delete-btn" data-id="${strategy.id}" title="Delete Strategy" style="color: #ff444f; border-color: rgba(255, 68, 79, 0.3);">❌</button>
+                </div>
+            `;
+
+            // Bind events
+            el.querySelector('.load-btn').addEventListener('click', () => handleLoadStrategy(strategy.id));
+            el.querySelector('.delete-btn').addEventListener('click', () => handleDeleteStrategy(strategy.id));
+
+            aiStrategiesList.appendChild(el);
         });
 
         console.log(`✅ Loaded ${strategies.length} saved strategies`);
 
     } catch (error) {
         console.error('Error loading strategies:', error);
-        showToast('Failed to load saved strategies', 'error');
+        aiStrategiesList.innerHTML = `<div style="text-align: center; color: #e74c3c; padding: 10px;">Failed to load strategies</div>`;
     }
 }
 
@@ -845,12 +868,8 @@ async function handleSaveStrategy() {
     }
 }
 
-async function handleLoadStrategy() {
-    const id = aiStrategyDropdown.value;
-    if (!id) {
-        showToast('Please select a strategy to load', 'error');
-        return;
-    }
+async function handleLoadStrategy(id) {
+    if (!id) return;
 
     try {
         const response = await fetch(`${AI_STRATEGY_API}/${id}`);
@@ -873,12 +892,8 @@ async function handleLoadStrategy() {
     }
 }
 
-async function handleDeleteStrategy() {
-    const id = aiStrategyDropdown.value;
-    if (!id) {
-        showToast('Please select a strategy to delete', 'error');
-        return;
-    }
+async function handleDeleteStrategy(id) {
+    if (!id) return;
 
     if (!confirm('Are you sure you want to delete this strategy?')) return;
 
@@ -891,7 +906,6 @@ async function handleDeleteStrategy() {
 
         showToast('Strategy deleted', 'success');
         loadSavedStrategies(); // Refresh list
-        aiStrategyDropdown.value = ""; // Reset selection
 
     } catch (error) {
         console.error('Error deleting strategy:', error);
