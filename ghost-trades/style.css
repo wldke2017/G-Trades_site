@@ -3325,11 +3325,14 @@ h4 {
 }
 
 @keyframes pulse-badge {
-    0%, 100% { 
+
+    0%,
+    100% {
         opacity: 1;
         box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
     }
-    50% { 
+
+    50% {
         opacity: 0.8;
         box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
     }
@@ -3355,8 +3358,13 @@ h4 {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -3377,6 +3385,7 @@ h4 {
         transform: translateY(30px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -3546,25 +3555,26 @@ h4 {
     header {
         padding: 12px 15px;
     }
-    
+
     .header-container {
         flex-direction: column;
         gap: 12px;
     }
-    
-    .header-left, .header-right {
+
+    .header-left,
+    .header-right {
         width: 100%;
         justify-content: center;
     }
-    
+
     .site-branding h1 {
         font-size: 1.3rem;
     }
-    
+
     .powered-by {
         font-size: 0.7rem;
     }
-    
+
     /* Emergency button mobile */
     #emergency-stop-all {
         width: 100%;
@@ -3579,20 +3589,20 @@ h4 {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .stat-card {
         padding: 15px;
     }
-    
+
     .card-icon svg {
         width: 35px;
         height: 35px;
     }
-    
+
     .stat-value {
         font-size: 1.2rem;
     }
-    
+
     .balance-large {
         font-size: 1.5rem;
     }
@@ -3603,16 +3613,16 @@ h4 {
     .trading-controls {
         padding: 15px;
     }
-    
+
     .controls-title {
         font-size: 1.1rem;
     }
-    
+
     .trade-actions {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .btn-trade {
         width: 100%;
         justify-content: center;
@@ -3624,23 +3634,23 @@ h4 {
     .bot-card {
         padding: 15px;
     }
-    
+
     .bot-header-section {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
     }
-    
+
     .bot-profit-display {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .bot-stats {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
-    
+
     .stat-item {
         padding: 10px;
     }
@@ -3651,18 +3661,19 @@ h4 {
     .control-group {
         margin-bottom: 15px;
     }
-    
+
     .control-group label {
         font-size: 0.85rem;
     }
-    
+
     input[type="number"],
     input[type="text"],
     input[type="password"],
     select {
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px;
+        /* Prevents zoom on iOS */
     }
-    
+
     .input-with-unit {
         width: 100%;
     }
@@ -3674,7 +3685,7 @@ h4 {
         font-size: 0.95rem;
         padding: 12px;
     }
-    
+
     .collapsible-content {
         padding: 15px 12px;
     }
@@ -3686,11 +3697,11 @@ h4 {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     .ticker-table {
         font-size: 0.8rem;
     }
-    
+
     .ticker-table th,
     .ticker-table td {
         padding: 8px 5px;
@@ -3703,16 +3714,16 @@ h4 {
         min-height: 120px;
         font-size: 14px;
     }
-    
+
     .ai-parameters-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .ai-market-checkboxes {
         grid-template-columns: repeat(2, 1fr) !important;
     }
-    
+
     .ai-code-editor {
         font-size: 12px;
     }
@@ -3723,48 +3734,48 @@ h4 {
     .modal {
         padding: 10px;
     }
-    
+
     .modal-content {
         max-height: 95vh;
     }
-    
+
     .modal-header {
         padding: 15px;
     }
-    
+
     .modal-header h2 {
         font-size: 1.2rem;
     }
-    
+
     .modal-body {
         padding: 15px;
     }
-    
+
     .modal-footer {
         padding: 15px;
     }
-    
+
     .tutorial-tabs {
         gap: 5px;
         overflow-x: auto;
         flex-wrap: nowrap;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     .tutorial-tab {
         padding: 8px 12px;
         font-size: 0.8rem;
         white-space: nowrap;
     }
-    
+
     .tutorial-content h3 {
         font-size: 1.1rem;
     }
-    
+
     .tutorial-content h4 {
         font-size: 1rem;
     }
-    
+
     .tutorial-content ol,
     .tutorial-content ul {
         margin-left: 20px;
@@ -3778,7 +3789,7 @@ h4 {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     nav button {
         padding: 8px 12px;
         font-size: 0.85rem;
@@ -3791,7 +3802,7 @@ h4 {
     .modal-content {
         max-height: 85vh;
     }
-    
+
     .tutorial-tabs {
         overflow-x: auto;
     }
@@ -3802,15 +3813,15 @@ h4 {
     .dashboard-grid {
         gap: 10px;
     }
-    
+
     .stat-card {
         padding: 12px;
     }
-    
+
     .bot-card {
         padding: 12px;
     }
-    
+
     .btn-primary,
     .btn-secondary {
         padding: 10px 15px;
@@ -3823,8 +3834,10 @@ h4 {
         grid-template-columns: 1fr;
     }
 }
+
 /* --- Mobile Header Redesign (Screenshot Match) --- */
 @media (max-width: 768px) {
+
     /* Stack Header: Branding Top, Actions Bottom */
     .header-container {
         padding: 5px 15px 5px !important;
@@ -3838,9 +3851,10 @@ h4 {
         width: 100%;
         margin-bottom: 2px;
     }
-    
+
     .logo-wrapper {
-        gap: 8px; /* Tighter logo space */
+        gap: 8px;
+        /* Tighter logo space */
     }
 
     /* Scrollable Right Actions Row */
@@ -3848,17 +3862,24 @@ h4 {
         width: 100%;
         overflow-x: auto !important;
         justify-content: flex-start !important;
-        padding-bottom: 4px; /* Space for hidden scrollbar */
+        padding-bottom: 4px;
+        /* Space for hidden scrollbar */
         gap: 6px !important;
     }
 
     /* Hide Scrollbar */
-    .header-right::-webkit-scrollbar { display: none; }
-    .header-right { -ms-overflow-style: none; scrollbar-width: none; }
+    .header-right::-webkit-scrollbar {
+        display: none;
+    }
+
+    .header-right {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 
     /* Prevent shrinking of action items */
-    .header-right > div, 
-    .header-right > button {
+    .header-right>div,
+    .header-right>button {
         flex-shrink: 0 !important;
         white-space: nowrap !important;
     }
@@ -3888,7 +3909,7 @@ h4 {
         font-size: 0.75rem !important;
         height: 30px !important;
     }
-    
+
     .btn-logout {
         width: 30px !important;
         height: 30px !important;
@@ -3911,12 +3932,13 @@ h4 {
         display: flex !important;
         align-items: center !important;
         gap: 4px !important;
-        
+
         /* Button Style */
         border-radius: 6px !important;
         background: rgba(255, 255, 255, 0.03) !important;
         border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        border-bottom: none !important; /* Remove desktop underline */
+        border-bottom: none !important;
+        /* Remove desktop underline */
         color: var(--text-secondary);
     }
 
@@ -3925,12 +3947,13 @@ h4 {
         display: inline-block !important;
         font-weight: 600;
     }
-    
+
     /* Keep Icons Visible */
     .nav-icon {
         width: 14px;
         height: 14px;
-        display: inline-block !important; /* Ensure icons show too */
+        display: inline-block !important;
+        /* Ensure icons show too */
     }
 
     /* Active State - Red Tint */
@@ -3940,9 +3963,9 @@ h4 {
         border: 1px solid rgba(255, 68, 79, 0.3) !important;
         box-shadow: 0 0 15px rgba(255, 68, 79, 0.15) !important;
     }
-    
+
     .nav-item.active::before {
-        display: none !important; /* Hide desktop highlight line */
+        display: none !important;
+        /* Hide desktop highlight line */
     }
 }
-
