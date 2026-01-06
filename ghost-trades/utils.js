@@ -1,4 +1,40 @@
 // ===================================
+// GHOST_TRADES - GLOBAL CONSTANTS & UTILITIES
+// ===================================
+
+// --- Core Constants ---
+const APP_ID = 119056;
+const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+const RECONNECT_DELAY = 1000;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
+// --- Account Types ---
+const ACCOUNT_TYPES = {
+    DEMO: 'demo',
+    REAL: 'real'
+};
+
+// --- Deriv OAuth Configuration ---
+const OAUTH_CONFIG = {
+    app_id: '119056',
+    authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
+    token_url: 'https://oauth.deriv.com/oauth2/token',
+    redirect_uri: window.location.origin + window.location.pathname,
+    scope: 'read,trade,payments,trading_information,admin',
+    brand: 'deriv',
+    language: 'EN',
+    response_type: 'token'
+};
+
+// --- GLOBAL STATE OBJECTS ---
+let globalTradeLocks = {};
+const TRADE_LOCK_DURATION = 5000;
+let marketTickHistory = {};
+let marketDigitPercentages = {};
+let marketFullTickDigits = {};
+window.digitHistory = marketFullTickDigits;
+
+// ===================================
 // UTILITY FUNCTIONS
 // ===================================
 
@@ -75,7 +111,7 @@ function acquireTradeLock(symbol, botType, condition = 'default') {
  */
 function releaseTradeLock(symbol, botType, condition = 'default') {
     const lockKey = `${symbol}_${condition}`;
-    
+
     if (globalTradeLocks[lockKey] && globalTradeLocks[lockKey].botType === botType) {
         delete globalTradeLocks[lockKey];
         console.log(`🔓 Trade lock released: ${lockKey} by ${botType}`);
@@ -119,18 +155,18 @@ function canPlaceTrade(symbol, botType, condition = 'default') {
     if (window.activeContracts) {
         const hasActiveContract = Object.values(window.activeContracts)
             .some(c => c.symbol === symbol && c.botType === botType);
-        
+
         if (hasActiveContract) {
             console.log(`⚠️ ${symbol} already has active contract for ${botType}`);
             return false;
         }
     }
-    
+
     // 2. Check trade lock
     if (!acquireTradeLock(symbol, botType, condition)) {
         return false;
     }
-    
+
     return true;
 }
 
