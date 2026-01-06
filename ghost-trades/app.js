@@ -750,6 +750,11 @@ function handleIncomingMessage(msg) {
                         botState.lossCount++;
                     }
 
+                    // Request fresh balance
+                    if (typeof requestBalance === 'function') {
+                        requestBalance();
+                    }
+
                     // Update win percentage immediately for all trades
                     updateWinPercentage();
 

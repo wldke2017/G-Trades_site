@@ -13,11 +13,11 @@ function updateAuthUI(data) {
 
     // CRITICAL: Determine account type
     const accountType = loginId.startsWith('VRT') || loginId.startsWith('VRTC') ? 'demo' : 'real';
-    
+
     // Check if account type changed
     const previousAccountType = localStorage.getItem('deriv_account_type');
     const accountTypeChanged = previousAccountType && previousAccountType !== accountType;
-    
+
     // Store account information in localStorage
     localStorage.setItem('deriv_login_id', loginId);
     localStorage.setItem('deriv_account_type', accountType);
@@ -28,10 +28,10 @@ function updateAuthUI(data) {
     if (typeof loginIdDisplay !== 'undefined') {
         loginIdDisplay.textContent = loginId;
     }
-    
+
     // Update account badge
     updateAccountBadge(accountType);
-    
+
     // If switched to real account, show confirmation
     if (accountTypeChanged && accountType === 'real') {
         showRealAccountSwitchConfirmation();
@@ -50,7 +50,7 @@ function updateAuthUI(data) {
         dashboardElement.style.display = 'flex';
         console.log('✅ Dashboard shown after authorization');
     }
-    
+
     // Also use showSection if available for proper navigation state
     if (typeof showSection === 'function') {
         showSection('dashboard');
@@ -74,7 +74,7 @@ function updateAuthUI(data) {
     if (loginButton && typeof setButtonLoading === 'function') {
         setButtonLoading(loginButton, false);
     }
-    
+
     console.log(`✅ Account type: ${accountType.toUpperCase()}`);
 }
 
@@ -85,10 +85,10 @@ function updateAuthUI(data) {
 function updateAccountBadge(accountType) {
     const badge = document.getElementById('accountTypeBadge');
     if (!badge) return;
-    
+
     badge.style.display = 'inline-block';
     badge.className = `account-badge ${accountType}`;
-    
+
     if (accountType === 'real') {
         badge.textContent = '⚠️ REAL';
         badge.title = 'Trading with real money';
@@ -104,28 +104,28 @@ function updateAccountBadge(accountType) {
 function showRealAccountSwitchConfirmation() {
     // Stop all running bots first
     let botsStopped = 0;
-    
+
     if (typeof isBotRunning !== 'undefined' && isBotRunning) {
         if (typeof stopGhostAiBot === 'function') {
             stopGhostAiBot();
             botsStopped++;
         }
     }
-    
+
     if (typeof evenOddBotState !== 'undefined' && evenOddBotState.isTrading) {
         if (typeof stopEvenOddBot === 'function') {
             stopEvenOddBot();
             botsStopped++;
         }
     }
-    
+
     if (window.aiStrategyRunner && window.aiStrategyRunner.isActive) {
         if (typeof window.aiStrategyRunner.stop === 'function') {
             window.aiStrategyRunner.stop();
             botsStopped++;
         }
     }
-    
+
     // Show warning modal
     const confirmed = confirm(
         `⚠️ REAL ACCOUNT ACTIVATED ⚠️\n\n` +
@@ -134,7 +134,7 @@ function showRealAccountSwitchConfirmation() {
         (botsStopped > 0 ? `${botsStopped} bot(s) have been stopped for safety.\n\n` : '') +
         `Please confirm you understand the risks.`
     );
-    
+
     if (confirmed && typeof showToast === 'function') {
         showToast('⚠️ REAL ACCOUNT ACTIVE - Trade carefully!', 'error', 5000);
     }
@@ -147,25 +147,25 @@ function showRealAccountSwitchConfirmation() {
  */
 function confirmRealAccountBotStart(botName) {
     const accountType = localStorage.getItem('deriv_account_type');
-    
+
     if (accountType !== 'real') {
         return true; // No confirmation needed for demo
     }
-    
+
     // Single confirmation on bot start
     const confirmed = confirm(
         `⚠️ REAL ACCOUNT ACTIVE ⚠️\n\n` +
         `${botName} will trade with REAL MONEY.\n\n` +
         `Continue?`
     );
-    
+
     if (!confirmed) {
         if (typeof showToast === 'function') {
             showToast(`${botName} start cancelled`, 'warning', 3000);
         }
         return false;
     }
-    
+
     console.log(`⚠️ Starting ${botName} on REAL account`);
     return true;
 }
@@ -193,15 +193,15 @@ function closeTutorial() {
 document.addEventListener('DOMContentLoaded', () => {
     const tutorialTabs = document.querySelectorAll('.tutorial-tab');
     const tutorialContents = document.querySelectorAll('.tutorial-tab-content');
-    
+
     tutorialTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetTab = tab.dataset.tab;
-            
+
             // Remove active class from all tabs and contents
             tutorialTabs.forEach(t => t.classList.remove('active'));
             tutorialContents.forEach(c => c.classList.remove('active'));
-            
+
             // Add active class to clicked tab and corresponding content
             tab.classList.add('active');
             const targetContent = document.querySelector(`[data-content="${targetTab}"]`);
@@ -210,14 +210,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    
+
     // Close tutorial on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeTutorial();
         }
     });
-    
+
     // Close tutorial on backdrop click
     const tutorialModal = document.getElementById('tutorial-modal');
     if (tutorialModal) {
@@ -246,7 +246,7 @@ function updateBalanceUI(balance, currency) {
         } else {
             balanceDisplay.textContent = `${formattedBalance} ${currency}`;
         }
-        
+
         // Visual indicator for real accounts
         if (accountType === 'real') {
             balanceDisplay.style.color = '#ff6b6b';
@@ -268,7 +268,7 @@ function updateBalanceUI(balance, currency) {
         } else {
             headerBalanceAmount.textContent = `${formattedBalance} ${currency}`;
         }
-        
+
         // Visual indicator for real accounts
         if (accountType === 'real') {
             headerBalanceAmount.style.color = '#ff6b6b';
@@ -284,7 +284,7 @@ function updateBalanceUI(balance, currency) {
     if (logoutButton) {
         logoutButton.style.display = 'flex';
     }
-    
+
     // Update localStorage
     localStorage.setItem('deriv_balance', balance);
     localStorage.setItem('deriv_currency', currency);
@@ -373,3 +373,85 @@ function updateGhostAIButtonStates(isRunning) {
         }
     });
 }
+
+/**
+ * Update the Bot Profit/Loss Display
+ */
+function updateProfitLossDisplay() {
+    const plDisplay = document.getElementById('botProfitLossDisplay');
+    const plValue = botState.totalPL;
+
+    if (plDisplay) {
+        plDisplay.textContent = `$${plValue.toFixed(2)}`;
+        plDisplay.className = 'profit-value ' + (plValue >= 0 ? 'profit-positive' : 'profit-negative');
+    }
+
+    // Also update stats
+    const winRateDisplay = document.getElementById('botWinRateDisplay');
+    const tradesCountDisplay = document.getElementById('botTradesCountDisplay');
+    const totalStakeDisplay = document.getElementById('botTotalStakeDisplay');
+    const totalPayoutDisplay = document.getElementById('botTotalPayoutDisplay');
+
+    if (winRateDisplay) {
+        const totalTrades = botState.winCount + botState.lossCount;
+        const winRate = totalTrades > 0 ? (botState.winCount / totalTrades) * 100 : 0;
+        winRateDisplay.textContent = `${winRate.toFixed(1)}%`;
+    }
+
+    if (tradesCountDisplay) {
+        tradesCountDisplay.textContent = `${botState.winCount}W / ${botState.lossCount}L`;
+    }
+
+    if (totalStakeDisplay) {
+        totalStakeDisplay.textContent = `$${botState.totalStake.toFixed(2)}`;
+    }
+
+    if (totalPayoutDisplay) {
+        totalPayoutDisplay.textContent = `$${botState.totalPayout.toFixed(2)}`;
+    }
+}
+
+/**
+ * Add a trade to the Bot History Table
+ * @param {object} contract - The contract details
+ * @param {number} profit - The profit/loss amount
+ */
+function addBotTradeHistory(contract, profit) {
+    const tableBody = document.querySelector('#bot-history-table tbody');
+    if (!tableBody) {
+        console.warn('⚠️ Bot history table not found!');
+        return;
+    }
+
+    const row = tableBody.insertRow(0);
+    const timeCell = row.insertCell(0);
+    const contractCell = row.insertCell(1);
+    const plCell = row.insertCell(2);
+
+    const isWin = profit > 0;
+    const time = new Date().toLocaleTimeString();
+
+    const symbol = contract.symbol || 'Unknown';
+    const type = contract.contract_type || 'Unknown';
+    const stake = contract.buy_price || 0;
+
+    contractCell.innerHTML = `
+        <div class="contract-info">
+            <span class="contract-symbol">${symbol}</span>
+            <span class="contract-type ${type.toLowerCase()}">${type}</span>
+            <span class="contract-stake">Stake: $${parseFloat(stake).toFixed(2)}</span>
+        </div>
+    `;
+
+    plCell.textContent = (isWin ? '+' : '') + `$${parseFloat(profit).toFixed(2)}`;
+    plCell.className = isWin ? 'profit-positive' : 'profit-negative';
+
+    // Limit rows to 50
+    if (tableBody.rows.length > 50) {
+        tableBody.deleteRow(50);
+    }
+}
+
+// Ensure globally available
+window.addBotTradeHistory = addBotTradeHistory;
+window.updateProfitLossDisplay = updateProfitLossDisplay;
