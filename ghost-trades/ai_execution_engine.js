@@ -50,10 +50,42 @@ class AIStrategyRunner {
             this.log('No markets selected. Please select at least one market.', 'error');
             return false;
         }
+        
+        // CRITICAL: Real account confirmation
+        if (typeof confirmRealAccountBotStart === 'function') {
+            if (!confirmRealAccountBotStart('AI Strategy Bot')) {
+                this.log('AI Strategy start cancelled (Real Account Safety)', 'warning');
+                return false; // User cancelled
+            }
+        }
 
         this.allowedMarkets = markets;
         this.isActive = true;
         this.resetStats();
+        
+        // Initialize Virtual Hook (if manager exists)
+        if (typeof window.virtualHookManager !== 'undefined') {
+            const vHookEnabled = false; // TODO: Add UI inputs for AI Strategy virtual hook
+            const vHookTrigger = 'LOSS';
+            const vHookCount = 1;
+            
+            window.virtualHookManager.enableForBot('ai_strategy', {
+                enabled: vHookEnabled,
+                triggerType: vHookTrigger,
+                triggerCount: vHookCount,
+                fixedStake: null
+            });
+            
+            if (vHookEnabled) {
+                this.log(`🪝 Virtual Hook ENABLED: Wait for ${vHookCount} Virtual ${vHookTrigger}(s)`, 'warning');
+            }
+        }
+        
+        // Update emergency button visibility
+        if (typeof updateEmergencyButtonVisibility === 'function') {
+            updateEmergencyButtonVisibility();
+        }
+        
         this.log(`Strategy execution started on markets: ${markets.join(', ')}`, 'success');
         return true;
     }
@@ -64,6 +96,17 @@ class AIStrategyRunner {
     stop() {
         this.isActive = false;
         this.allowedMarkets = [];
+        
+        // Clear virtual hook data
+        if (typeof window.virtualHookManager !== 'undefined') {
+            window.virtualHookManager.clearBot('ai_strategy');
+        }
+        
+        // Update emergency button visibility
+        if (typeof updateEmergencyButtonVisibility === 'function') {
+            updateEmergencyButtonVisibility();
+        }
+        
         this.log('Strategy execution stopped.', 'warning');
     }
 

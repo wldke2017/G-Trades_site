@@ -30,49 +30,70 @@ function toggleSection(sectionId) {
 }
 
 /**
- * Attempts to acquire a trade lock for a symbol
+ * Attempts to acquire a trade lock for a symbol with condition-based locking
  * @param {string} symbol - The symbol to lock
- * @param {string} botType - Type of bot requesting lock ('ghost_ai' or 'ghost_eodd')
+ * @param {string} botType - Type of bot requesting lock ('ghost_ai', 'ghost_eodd', 'ai_strategy')
+ * @param {string} condition - Optional condition hash (e.g., 'DIGITOVER_2')
  * @returns {boolean} - True if lock acquired, false if symbol is already locked
  */
-function acquireTradeLock(symbol, botType) {
+function acquireTradeLock(symbol, botType, condition = 'default') {
+    const lockKey = `${symbol}_${condition}`;
     const now = Date.now();
 
-    // Check if there's an existing lock
-    if (globalTradeLocks[symbol]) {
-        const lock = globalTradeLocks[symbol];
+    // Check if there's an existing lock for this symbol+condition
+    if (globalTradeLocks[lockKey]) {
+        const lock = globalTradeLocks[lockKey];
         const timeSinceLock = now - lock.timestamp;
 
         // If lock is still active (within duration)
         if (timeSinceLock < TRADE_LOCK_DURATION) {
-            console.log(`⚠️ Trade lock active on ${symbol} by ${lock.botType} (${(TRADE_LOCK_DURATION - timeSinceLock)}ms remaining)`);
+            console.log(`⚠️ Trade BLOCKED: ${lockKey} locked by ${lock.botType} (${(TRADE_LOCK_DURATION - timeSinceLock)}ms remaining)`);
             return false;
         }
 
         // Lock has expired, can be overwritten
-        console.log(`🔓 Expired lock on ${symbol} from ${lock.botType}, acquiring new lock for ${botType}`);
+        console.log(`🔓 Expired lock on ${lockKey} from ${lock.botType}, acquiring new lock for ${botType}`);
     }
 
     // Acquire the lock
-    globalTradeLocks[symbol] = {
+    globalTradeLocks[lockKey] = {
         timestamp: now,
-        botType: botType
+        botType: botType,
+        condition: condition,
+        symbol: symbol
     };
 
-    console.log(`🔒 Trade lock acquired on ${symbol} by ${botType} for ${TRADE_LOCK_DURATION}ms`);
+    console.log(`🔒 Trade lock acquired: ${lockKey} by ${botType} for ${TRADE_LOCK_DURATION}ms`);
     return true;
 }
 
 /**
- * Releases a trade lock for a symbol
+ * Releases a trade lock for a symbol and condition
  * @param {string} symbol - The symbol to unlock
  * @param {string} botType - Type of bot releasing lock
+ * @param {string} condition - Optional condition hash
  */
-function releaseTradeLock(symbol, botType) {
-    if (globalTradeLocks[symbol] && globalTradeLocks[symbol].botType === botType) {
-        delete globalTradeLocks[symbol];
-        console.log(`🔓 Trade lock released on ${symbol} by ${botType}`);
+function releaseTradeLock(symbol, botType, condition = 'default') {
+    const lockKey = `${symbol}_${condition}`;
+    
+    if (globalTradeLocks[lockKey] && globalTradeLocks[lockKey].botType === botType) {
+        delete globalTradeLocks[lockKey];
+        console.log(`🔓 Trade lock released: ${lockKey} by ${botType}`);
     }
+}
+
+/**
+ * Releases a trade lock by exact lock key (on contract confirmation)
+ * @param {string} lockKey - The full lock key (symbol_condition)
+ */
+function releaseTradeLockByKey(lockKey) {
+    if (globalTradeLocks[lockKey]) {
+        const lock = globalTradeLocks[lockKey];
+        delete globalTradeLocks[lockKey];
+        console.log(`🔓 Trade lock released: ${lockKey} (was held by ${lock.botType})`);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -84,6 +105,33 @@ function clearAllTradeLocks() {
     if (count > 0) {
         console.log(`🔓 Cleared ${count} trade lock(s)`);
     }
+}
+
+/**
+ * Check if a trade can be placed (no active contracts + no locks)
+ * @param {string} symbol - The symbol to check
+ * @param {string} botType - Type of bot
+ * @param {string} condition - Optional condition hash
+ * @returns {boolean} - True if trade can be placed
+ */
+function canPlaceTrade(symbol, botType, condition = 'default') {
+    // 1. Check if symbol has active contracts from this bot
+    if (window.activeContracts) {
+        const hasActiveContract = Object.values(window.activeContracts)
+            .some(c => c.symbol === symbol && c.botType === botType);
+        
+        if (hasActiveContract) {
+            console.log(`⚠️ ${symbol} already has active contract for ${botType}`);
+            return false;
+        }
+    }
+    
+    // 2. Check trade lock
+    if (!acquireTradeLock(symbol, botType, condition)) {
+        return false;
+    }
+    
+    return true;
 }
 
 /**

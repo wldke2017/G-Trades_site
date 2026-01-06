@@ -41,6 +41,25 @@
                     <div class="status-dot"></div>
                     <span class="status-text">Connecting...</span>
                 </div>
+                <!-- Emergency Stop Button -->
+                <button id="emergency-stop-all" style="
+                    background: #ff4444; 
+                    color: white; 
+                    padding: 8px 16px; 
+                    border: none; 
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    display: none;
+                    margin-right: 15px;
+                    box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+                    transition: all 0.3s;
+                " 
+                onmouseover="this.style.background='#ff0000'; this.style.transform='scale(1.05)';"
+                onmouseout="this.style.background='#ff4444'; this.style.transform='scale(1)';">
+                    🚨 EMERGENCY STOP
+                </button>
+                
                 <!-- Account Switcher -->
                 <div class="account-switcher" id="accountSwitcher" style="display: none;">
                     <label for="active-account-select" style="margin-right: 8px; font-size: 14px;">Account:</label>
@@ -1453,11 +1472,15 @@
 
     </main>
 
+    <!-- Core Utilities -->
+    <script src="virtual_hook_manager.js"></script>
+    <script src="settings_manager.js"></script>
     <script src="utils.js"></script>
     <script src="connection.js"></script>
     <script src="trading.js"></script>
     <script src="navigation.js"></script>
 
+    <!-- Bot Modules -->
     <script src="ghost_ai_bot.js"></script>
     <script src="ghost_even_odd.js"></script>
     <script src="ai_execution_engine.js"></script>

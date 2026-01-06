@@ -81,6 +81,14 @@ function cleanupStaleContracts() {
 
 async function startGhostAiBot() {
     if (isBotRunning) return;
+    
+    // CRITICAL: Real account confirmation
+    if (typeof confirmRealAccountBotStart === 'function') {
+        if (!confirmRealAccountBotStart('Ghost AI Bot')) {
+            return; // User cancelled
+        }
+    }
+    
     isBotRunning = true;
     botState.runId = `bot-${Date.now()}`;
 
@@ -192,11 +200,67 @@ async function startGhostAiBot() {
     // Don't reset runsCount - it should persist across runs
     // botState.runsCount is incremented at the start of the function
 
+    // Save current settings to localStorage
+    if (typeof window.botSettingsManager !== 'undefined') {
+        const settings = {
+            initialStake: initialStake,
+            targetProfit: targetProfit,
+            payoutPercentage: payoutPercentage,
+            stopLoss: stopLoss,
+            maxMartingale: maxMartingaleSteps,
+            analysisDigits: analysisDigits,
+            s1UseDigitCheck: s1UseDigitCheck,
+            s1CheckDigits: s1CheckDigits,
+            s1MaxDigit: s1MaxDigit,
+            s1UsePercentage: s1UsePercentage,
+            s1Prediction: s1Prediction,
+            s1Percentage: s1Percentage,
+            s1PercentageOperator: s1PercentageOperator,
+            s1MaxLosses: s1MaxLosses,
+            s1ContractType: s1ContractType,
+            s1DigitOperator: s1DigitOperator,
+            s2UseDigitCheck: s2UseDigitCheck,
+            s2CheckDigits: s2CheckDigits,
+            s2MaxDigit: s2MaxDigit,
+            s2UsePercentage: s2UsePercentage,
+            s2Prediction: s2Prediction,
+            s2ContractType: s2ContractType,
+            s2DigitOperator: s2DigitOperator,
+            s2Percentage: s2Percentage,
+            s2PercentageOperator: s2PercentageOperator
+        };
+        window.botSettingsManager.saveSettings('ghost_ai', settings);
+    }
+    
+    // Initialize Virtual Hook (if manager exists)
+    if (typeof window.virtualHookManager !== 'undefined') {
+        // Check if virtual hook inputs exist (they may not be in UI yet)
+        const vHookEnabled = false; // TODO: Add UI inputs for Ghost AI virtual hook
+        const vHookTrigger = 'LOSS';
+        const vHookCount = 1;
+        
+        window.virtualHookManager.enableForBot('ghost_ai', {
+            enabled: vHookEnabled,
+            triggerType: vHookTrigger,
+            triggerCount: vHookCount,
+            fixedStake: null
+        });
+        
+        if (vHookEnabled) {
+            addBotLog(`🪝 Virtual Hook ENABLED: Wait for ${vHookCount} Virtual ${vHookTrigger}(s)`, 'warning');
+        }
+    }
+
     updateProfitLossDisplay();
     updateBotStats();
 
     addBotLog(`🤖 Rammy Auto Strategy Started`);
     addBotLog(`📊 Analyzing last ${analysisDigits} digits + percentages + full distribution across ${Object.keys(marketTickHistory).length} markets`);
+    
+    // Update emergency button visibility
+    if (typeof updateEmergencyButtonVisibility === 'function') {
+        updateEmergencyButtonVisibility();
+    }
 
     // CRITICAL: Check if we have subscribed markets
     if (Object.keys(marketTickHistory).length === 0) {
@@ -256,6 +320,11 @@ async function stopGhostAiBot() {
 
     // Clear all trade locks when stopping
     clearAllPendingStakes();
+    
+    // Clear virtual hook data
+    if (typeof window.virtualHookManager !== 'undefined') {
+        window.virtualHookManager.clearBot('ghost_ai');
+    }
 
     // Update button states (if updateGhostAIButtonStates function exists)
     if (typeof updateGhostAIButtonStates === 'function') {
@@ -268,6 +337,11 @@ async function stopGhostAiBot() {
     addBotLog("🛑 Bot stopped by user.", 'warning');
     botState.runId = null;
     updateProfitLossDisplay();
+    
+    // Update emergency button visibility
+    if (typeof updateEmergencyButtonVisibility === 'function') {
+        updateEmergencyButtonVisibility();
+    }
 }
 
 /**

@@ -550,6 +550,13 @@ function updateMoneyManagement(isWin, profit) {
 
 async function startEvenOddBot() {
     if (evenOddBotState.isTrading) return;
+    
+    // CRITICAL: Real account confirmation
+    if (typeof confirmRealAccountBotStart === 'function') {
+        if (!confirmRealAccountBotStart('Ghost E/ODD Bot')) {
+            return; // User cancelled
+        }
+    }
 
     evenOddBotState.isTrading = true;
     evenOddBotState.runId = `even-odd-${Date.now()}`;
@@ -562,6 +569,32 @@ async function startEvenOddBot() {
 
     // Initialize money management
     initializeMoneyManagement();
+    
+    // Save current settings to localStorage
+    if (typeof window.botSettingsManager !== 'undefined') {
+        const settings = {
+            initialStake: mm.initStake,
+            targetProfit: mm.targetProfit,
+            stopLoss: mm.stopLoss,
+            martingaleFactor: mm.martingaleFactor,
+            martingaleLevel: mm.martingaleLevel,
+            vHookEnabled: evenOddBotState.virtualHook.enabled,
+            vHookStartWhen: evenOddBotState.virtualHook.triggerType,
+            vHookTrigger: evenOddBotState.virtualHook.triggerCount,
+            vHookFixedStake: evenOddBotState.virtualHook.fixedStake
+        };
+        window.botSettingsManager.saveSettings('ghost_eodd', settings);
+    }
+    
+    // Integrate with universal virtual hook manager
+    if (typeof window.virtualHookManager !== 'undefined' && evenOddBotState.virtualHook.enabled) {
+        window.virtualHookManager.enableForBot('ghost_eodd', {
+            enabled: evenOddBotState.virtualHook.enabled,
+            triggerType: evenOddBotState.virtualHook.triggerType,
+            triggerCount: evenOddBotState.virtualHook.triggerCount,
+            fixedStake: evenOddBotState.virtualHook.fixedStake
+        });
+    }
 
     // Clear logs but KEEP trade history (users need to see past trades)
     const eoddBotLogContainer = document.getElementById('eodd-bot-log-container');
@@ -602,6 +635,11 @@ async function startEvenOddBot() {
     evenOddBotState.accumulatedLoss = 0;
     evenOddBotState.virtualOrders = {}; // Initialize virtual orders for Virtual Hook
     symbolDigitHistory = {};
+    
+    // Update emergency button visibility
+    if (typeof updateEmergencyButtonVisibility === 'function') {
+        updateEmergencyButtonVisibility();
+    }
 }
 
 async function stopEvenOddBot() {
@@ -611,6 +649,11 @@ async function stopEvenOddBot() {
 
     // Clear all trade locks when stopping
     clearAllTradeLocks();
+    
+    // Clear virtual hook data
+    if (typeof window.virtualHookManager !== 'undefined') {
+        window.virtualHookManager.clearBot('ghost_eodd');
+    }
 
     // Update all button states
     updateEvenOddButtonStates(false);
@@ -625,6 +668,11 @@ async function stopEvenOddBot() {
     addEvenOddBotLog(`📊 Final Stats: ${mm.winCount}W/${mm.lossCount}L | Total P/L: $${mm.totalProfit.toFixed(2)}`, 'info');
     evenOddBotState.runId = null;
     updateEvenOddProfitLossDisplay();
+    
+    // Update emergency button visibility
+    if (typeof updateEmergencyButtonVisibility === 'function') {
+        updateEmergencyButtonVisibility();
+    }
 }
 
 // Performance optimization: Track last pattern check time per symbol

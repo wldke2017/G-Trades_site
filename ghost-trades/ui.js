@@ -8,9 +8,40 @@
  */
 function updateAuthUI(data) {
     const loginId = data.authorize.loginid;
+    const balance = data.authorize.balance;
+    const currency = data.authorize.currency;
+
+    // CRITICAL: Determine account type
+    const accountType = loginId.startsWith('VRT') || loginId.startsWith('VRTC') ? 'demo' : 'real';
+    
+    // Store account information in localStorage
+    localStorage.setItem('deriv_login_id', loginId);
+    localStorage.setItem('deriv_account_type', accountType);
+    localStorage.setItem('deriv_balance', balance);
+    localStorage.setItem('deriv_currency', currency);
 
     // Update displays
-    if (typeof loginIdDisplay !== 'undefined') loginIdDisplay.textContent = loginId;
+    if (typeof loginIdDisplay !== 'undefined') {
+        loginIdDisplay.textContent = loginId;
+        
+        // Visual indicator for real accounts
+        if (accountType === 'real') {
+            loginIdDisplay.style.color = '#ff6b6b';
+            loginIdDisplay.style.fontWeight = 'bold';
+            loginIdDisplay.style.textShadow = '0 0 10px rgba(255, 107, 107, 0.5)';
+        } else {
+            loginIdDisplay.style.color = '';
+            loginIdDisplay.style.fontWeight = '';
+            loginIdDisplay.style.textShadow = '';
+        }
+    }
+
+    // Show/hide real account warning banner
+    if (accountType === 'real') {
+        showRealAccountWarning();
+    } else {
+        hideRealAccountWarning();
+    }
 
     // Hide login container
     const loginInterface = document.querySelector('.auth-container');
@@ -33,6 +64,105 @@ function updateAuthUI(data) {
     if (loginButton && typeof setButtonLoading === 'function') {
         setButtonLoading(loginButton, false);
     }
+    
+    console.log(`✅ Account type: ${accountType.toUpperCase()}`);
+}
+
+/**
+ * Show real account warning banner
+ */
+function showRealAccountWarning() {
+    let banner = document.getElementById('real-account-warning');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'real-account-warning';
+        banner.style.cssText = `
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%); 
+            color: white; 
+            padding: 12px; 
+            text-align: center; 
+            font-weight: bold; 
+            z-index: 99999;
+            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.5);
+            animation: pulse 2s infinite;
+        `;
+        banner.innerHTML = '⚠️ REAL ACCOUNT ACTIVE - You are trading with REAL money! ⚠️';
+        document.body.prepend(banner);
+        
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+/**
+ * Hide real account warning banner
+ */
+function hideRealAccountWarning() {
+    const banner = document.getElementById('real-account-warning');
+    if (banner) {
+        banner.remove();
+    }
+}
+
+/**
+ * Confirm before starting bot on real account
+ * @param {string} botName - Name of the bot
+ * @returns {boolean} - True if confirmed, false if cancelled
+ */
+function confirmRealAccountBotStart(botName) {
+    const accountType = localStorage.getItem('deriv_account_type');
+    
+    if (accountType !== 'real') {
+        return true; // No confirmation needed for demo
+    }
+    
+    // First confirmation
+    const confirmed = confirm(
+        `⚠️ REAL ACCOUNT WARNING ⚠️\n\n` +
+        `You are about to start ${botName} on a REAL account.\n` +
+        `Real money will be used for trades.\n\n` +
+        `Are you absolutely sure you want to continue?`
+    );
+    
+    if (!confirmed) {
+        if (typeof showToast === 'function') {
+            showToast(`${botName} start cancelled (Real Account Safety)`, 'warning', 5000);
+        }
+        return false;
+    }
+    
+    // Second confirmation
+    const doubleConfirmed = confirm(
+        `⚠️ FINAL CONFIRMATION ⚠️\n\n` +
+        `This is your LAST CHANCE to cancel.\n` +
+        `${botName} will start trading with REAL MONEY.\n\n` +
+        `Click OK to confirm, or Cancel to abort.`
+    );
+    
+    if (!doubleConfirmed) {
+        if (typeof showToast === 'function') {
+            showToast(`${botName} start cancelled (Final Confirmation)`, 'warning', 5000);
+        }
+        return false;
+    }
+    
+    console.log(`⚠️ USER CONFIRMED: Starting ${botName} on REAL account`);
+    if (typeof showToast === 'function') {
+        showToast(`⚠️ ${botName} started on REAL account!`, 'error', 5000);
+    }
+    
+    return true;
 }
 
 /**
@@ -42,6 +172,7 @@ function updateAuthUI(data) {
  */
 function updateBalanceUI(balance, currency) {
     const formattedBalance = parseFloat(balance).toFixed(2);
+    const accountType = localStorage.getItem('deriv_account_type');
 
     // Main Dashboard Balance
     const balanceDisplay = document.getElementById('balanceDisplay');
@@ -50,6 +181,15 @@ function updateBalanceUI(balance, currency) {
             balanceDisplay.textContent = formatCurrency(formattedBalance, currency);
         } else {
             balanceDisplay.textContent = `${formattedBalance} ${currency}`;
+        }
+        
+        // Visual indicator for real accounts
+        if (accountType === 'real') {
+            balanceDisplay.style.color = '#ff6b6b';
+            balanceDisplay.style.fontWeight = 'bold';
+        } else {
+            balanceDisplay.style.color = '';
+            balanceDisplay.style.fontWeight = '';
         }
     }
 
@@ -64,6 +204,15 @@ function updateBalanceUI(balance, currency) {
         } else {
             headerBalanceAmount.textContent = `${formattedBalance} ${currency}`;
         }
+        
+        // Visual indicator for real accounts
+        if (accountType === 'real') {
+            headerBalanceAmount.style.color = '#ff6b6b';
+            headerBalanceAmount.style.fontWeight = 'bold';
+        } else {
+            headerBalanceAmount.style.color = '';
+            headerBalanceAmount.style.fontWeight = '';
+        }
     }
 
     // Show logout button
@@ -71,6 +220,10 @@ function updateBalanceUI(balance, currency) {
     if (logoutButton) {
         logoutButton.style.display = 'flex';
     }
+    
+    // Update localStorage
+    localStorage.setItem('deriv_balance', balance);
+    localStorage.setItem('deriv_currency', currency);
 }
 
 /**

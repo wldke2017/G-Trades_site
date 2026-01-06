@@ -1132,7 +1132,151 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', toggleBot);
         }
     });
+    
+    // Emergency stop button
+    const emergencyStopButton = document.getElementById('emergency-stop-all');
+    if (emergencyStopButton) {
+        emergencyStopButton.addEventListener('click', emergencyStopAllBots);
+    }
+    
+    // Restore bot settings from localStorage
+    restoreBotSettingsOnLoad();
 });
+
+/**
+ * Emergency stop all running bots
+ */
+function emergencyStopAllBots() {
+    console.log('🚨 EMERGENCY STOP TRIGGERED');
+    
+    let botsStopped = 0;
+    
+    // Stop Ghost AI Bot
+    if (typeof isBotRunning !== 'undefined' && isBotRunning) {
+        console.log('🛑 Emergency stopping Ghost AI Bot');
+        if (typeof stopGhostAiBot === 'function') {
+            stopGhostAiBot();
+            botsStopped++;
+        }
+    }
+    
+    // Stop Even/Odd Bot
+    if (typeof evenOddBotState !== 'undefined' && evenOddBotState.isTrading) {
+        console.log('🛑 Emergency stopping Even/Odd Bot');
+        if (typeof stopEvenOddBot === 'function') {
+            stopEvenOddBot();
+            botsStopped++;
+        }
+    }
+    
+    // Stop AI Strategy Bot
+    if (window.aiStrategyRunner && window.aiStrategyRunner.isActive) {
+        console.log('🛑 Emergency stopping AI Strategy Bot');
+        if (typeof window.aiStrategyRunner.stop === 'function') {
+            window.aiStrategyRunner.stop();
+            botsStopped++;
+        }
+    }
+    
+    // Clear all trade locks
+    if (typeof clearAllTradeLocks === 'function') {
+        clearAllTradeLocks();
+    }
+    
+    // Hide emergency button
+    updateEmergencyButtonVisibility();
+    
+    if (botsStopped > 0) {
+        showToast(`🚨 EMERGENCY STOP: ${botsStopped} bot(s) terminated!`, 'error', 5000);
+    } else {
+        showToast('No bots were running', 'info', 3000);
+    }
+}
+
+/**
+ * Update emergency button visibility based on running bots
+ */
+function updateEmergencyButtonVisibility() {
+    const emergencyButton = document.getElementById('emergency-stop-all');
+    if (!emergencyButton) return;
+    
+    const anyBotRunning = (typeof isBotRunning !== 'undefined' && isBotRunning) || 
+                         (typeof evenOddBotState !== 'undefined' && evenOddBotState.isTrading) || 
+                         (window.aiStrategyRunner && window.aiStrategyRunner.isActive);
+    
+    emergencyButton.style.display = anyBotRunning ? 'block' : 'none';
+}
+
+/**
+ * Restore bot settings from localStorage on page load
+ */
+function restoreBotSettingsOnLoad() {
+    console.log('📂 Attempting to restore bot settings from localStorage...');
+    
+    if (typeof window.botSettingsManager === 'undefined') {
+        console.warn('⚠️ Settings manager not available, skipping restoration');
+        return;
+    }
+    
+    // Give the page a moment to fully load DOM elements
+    setTimeout(() => {
+        // Restore Ghost AI settings
+        try {
+            window.botSettingsManager.restoreToUI('ghost_ai', {
+                initialStake: 'botInitialStake',
+                targetProfit: 'botTargetProfit',
+                payoutPercentage: 'botPayoutPercentage',
+                stopLoss: 'botStopLoss',
+                maxMartingale: 'botMaxMartingale',
+                analysisDigits: 'botAnalysisDigits',
+                s1UseDigitCheck: 'botS1UseDigitCheck',
+                s1CheckDigits: 'botS1CheckDigits',
+                s1MaxDigit: 'botS1MaxDigit',
+                s1UsePercentage: 'botS1UsePercentage',
+                s1Prediction: 'botS1Prediction',
+                s1Percentage: 'botS1Percentage',
+                s1PercentageOperator: 'botS1PercentageOperator',
+                s1MaxLosses: 'botS1MaxLosses',
+                s2UseDigitCheck: 'botS2UseDigitCheck',
+                s2CheckDigits: 'botS2CheckDigits',
+                s2MaxDigit: 'botS2MaxDigit',
+                s2UsePercentage: 'botS2UsePercentage',
+                s2Prediction: 'botS2Prediction',
+                s2Percentage: 'botS2Percentage',
+                s2PercentageOperator: 'botS2PercentageOperator'
+            });
+        } catch (error) {
+            console.error('Error restoring Ghost AI settings:', error);
+        }
+        
+        // Restore Ghost E/ODD settings
+        try {
+            window.botSettingsManager.restoreToUI('ghost_eodd', {
+                initialStake: 'eoddInitialStake',
+                targetProfit: 'eoddTargetProfit',
+                stopLoss: 'eoddStopLoss',
+                martingaleFactor: 'eoddMartingaleFactor',
+                martingaleLevel: 'eoddMartingaleLevel',
+                vHookEnabled: 'eoddVirtualHookEnabled',
+                vHookStartWhen: 'eoddVirtualHookStartWhen',
+                vHookTrigger: 'eoddVirtualHookTrigger',
+                vHookFixedStake: 'eoddVirtualHookFixedStake'
+            });
+        } catch (error) {
+            console.error('Error restoring Ghost E/ODD settings:', error);
+        }
+        
+        // Restore AI Strategy settings
+        try {
+            window.botSettingsManager.restoreToUI('ai_strategy', {
+                analysisCount: 'ai-analysis-period',
+                stake: 'ai-stake-input'
+            });
+        } catch (error) {
+            console.error('Error restoring AI Strategy settings:', error);
+        }
+    }, 500);
+}
 
 // Final Step: Call the functions to start the application when the script loads
 handleOAuthRedirectAndInit();
