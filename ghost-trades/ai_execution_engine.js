@@ -50,7 +50,7 @@ class AIStrategyRunner {
             this.log('No markets selected. Please select at least one market.', 'error');
             return false;
         }
-        
+
         // CRITICAL: Real account confirmation
         if (typeof confirmRealAccountBotStart === 'function') {
             if (!confirmRealAccountBotStart('AI Strategy Bot')) {
@@ -62,30 +62,30 @@ class AIStrategyRunner {
         this.allowedMarkets = markets;
         this.isActive = true;
         this.resetStats();
-        
+
         // Initialize Virtual Hook (if manager exists)
         if (typeof window.virtualHookManager !== 'undefined') {
             const vHookEnabled = document.getElementById('ai-virtual-hook-toggle')?.checked || false;
             const vHookTrigger = 'LOSS'; // Default for AI Strategy
             const vHookCount = 1;
-            
+
             window.virtualHookManager.enableForBot('ai_strategy', {
                 enabled: vHookEnabled,
                 triggerType: vHookTrigger,
                 triggerCount: vHookCount,
                 fixedStake: null
             });
-            
+
             if (vHookEnabled) {
                 this.log(`🪝 Virtual Hook ENABLED: Testing strategies virtually first`, 'warning');
             }
         }
-        
+
         // Update emergency button visibility
         if (typeof updateEmergencyButtonVisibility === 'function') {
             updateEmergencyButtonVisibility();
         }
-        
+
         this.log(`Strategy execution started on markets: ${markets.join(', ')}`, 'success');
         return true;
     }
@@ -96,17 +96,17 @@ class AIStrategyRunner {
     stop() {
         this.isActive = false;
         this.allowedMarkets = [];
-        
+
         // Clear virtual hook data
         if (typeof window.virtualHookManager !== 'undefined') {
             window.virtualHookManager.clearBot('ai_strategy');
         }
-        
+
         // Update emergency button visibility
         if (typeof updateEmergencyButtonVisibility === 'function') {
             updateEmergencyButtonVisibility();
         }
-        
+
         this.log('Strategy execution stopped.', 'warning');
     }
 
@@ -138,6 +138,47 @@ class AIStrategyRunner {
                 return;
             }
         }
+
+        // --- VIRTUAL HOOK EVALUATION ---
+        if (typeof window.virtualHookManager !== 'undefined') {
+            // Check if we have a pending virtual order for this symbol
+            if (window.virtualHookManager.hasPendingVirtualOrder('ai_strategy', tickContext.symbol)) {
+
+                // Evaluate it using the CURRENT tick (which is "next" relative to when order was placed)
+                const result = window.virtualHookManager.evaluateVirtualResult('ai_strategy', tickContext.symbol, tickContext.quote);
+
+                if (result) {
+                    // Log result to UI
+                    if (typeof window.updateAIHistoryTable === 'function') {
+                        const virtualContract = {
+                            symbol: tickContext.symbol,
+                            isVirtual: true,
+                            profit: result.isWin ? 1 : -1 // Dummy profit for display
+                        };
+                        window.updateAIHistoryTable(virtualContract, result.isWin ? 1 : -1);
+                    }
+
+                    const resultType = result.isWin ? 'WIN' : 'LOSS';
+                    this.log(`👻 Virtual Result: ${resultType} (Streak: ${result.currentStreak}/${result.required})`, result.isWin ? 'success' : 'warning');
+
+                    // If Trigger Met, Notify User
+                    if (window.virtualHookManager.shouldTradeReal('ai_strategy', tickContext.symbol)) {
+                        // Only if we just crossed the threshold
+                        const streak = window.virtualHookManager.getStreak('ai_strategy', tickContext.symbol);
+                        // Simple check: if streak matches requirement exactly, assume it just happened
+                        if ((result.resultType === 'LOSS' && streak.losses === result.required) ||
+                            (result.resultType === 'WIN' && streak.wins === result.required)) {
+                            this.log(`🪝 HOOK ACTIVATED on ${tickContext.symbol}! Next trade will be REAL.`, 'warning');
+                        }
+                    }
+                }
+
+                // Do NOT return here. We want to continue to execute the strategy to potentially place the NEXT trade (which might be real now)
+                // However, strategy execution usually relies on new ticks. If we just evaluated a virtual result, 
+                // the strategy logic below will run on this SAME tick. This is correct: we see the result, and decide what to do next.
+            }
+        }
+        // -------------------------------
 
         // Prepare safe API functions
         const signal = (type, stake, barrier) => this.handleSignal(type, stake, tickContext.symbol, barrier);
@@ -179,9 +220,28 @@ class AIStrategyRunner {
             return;
         }
 
-        // Rate limiting for trades is handled by app.js usually, but we check basic state
-        // Calls the global buy function from trading.js/app.js
-        // We assume sendPurchaseRequest or similar exists globally or we dispatch an event
+        // --- VIRTUAL HOOK LOGIC CHECK ---
+        let isRealTrade = true;
+
+        if (typeof window.virtualHookManager !== 'undefined') {
+            // Ask manager: Should we trade real or virtual?
+            isRealTrade = window.virtualHookManager.shouldTradeReal('ai_strategy', symbol);
+
+            if (!isRealTrade) {
+                // VIRTUAL MODE: Record the order and SKIP execution
+                // Get latest tick for recording purposes
+                let currentTick = 0;
+                if (window.marketTickHistory && window.marketTickHistory[symbol]) {
+                    const history = window.marketTickHistory[symbol];
+                    if (history.length > 0) currentTick = history[history.length - 1].quote;
+                }
+
+                window.virtualHookManager.recordVirtualOrder('ai_strategy', symbol, type, barrier, currentTick);
+                this.log(`👻 Virtual Order Recorded: ${type} on ${symbol}. Waiting for result...`, 'info');
+                return; // SKIP REAL TRADE
+            }
+        }
+        // --------------------------------
 
         let logMsg = `Signal Generated: ${type} $${stake} on ${symbol}`;
         if (barrier !== null) logMsg += ` (Barrier: ${barrier})`;
@@ -190,6 +250,12 @@ class AIStrategyRunner {
         // Trigger buy in the main app
         if (typeof window.executeAIStratTrade === 'function') {
             window.executeAIStratTrade(type, stake, symbol, barrier);
+
+            // RESET VIRTUAL HOOK FOR THIS SYMBOL AFTER REAL TRADE
+            if (typeof window.virtualHookManager !== 'undefined') {
+                window.virtualHookManager.resetSymbol('ai_strategy', symbol);
+            }
+
         } else {
             console.warn('executeAIStratTrade function not found in global scope');
             this.log('Error: Trade execution function missing.', 'error');

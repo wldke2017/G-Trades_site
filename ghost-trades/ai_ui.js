@@ -733,6 +733,13 @@ function updateAIHistoryTable(contract, profit) {
 
     const row = document.createElement('tr');
 
+    // Virtual Trade Styling
+    const isVirtual = contract.isVirtual;
+    if (isVirtual) {
+        row.style.background = 'rgba(255, 255, 255, 0.05)'; // Dimmed background for virtual
+        row.style.fontStyle = 'italic';
+    }
+
     // Time
     const timeCell = document.createElement('td');
     const date = new Date();
@@ -742,14 +749,27 @@ function updateAIHistoryTable(contract, profit) {
 
     // Symbol
     const symbolCell = document.createElement('td');
-    symbolCell.textContent = contract.symbol;
+    const symbolText = contract.symbol + (isVirtual ? ' (Virtual)' : '');
+    symbolCell.innerHTML = symbolText; // Allow HTML if needed? No, textContent is fine.
+    // Use innerHTML to style the (Virtual) tag if we wanted, but text is safer. 
+    // Let's use simple text but distinct color for virtual tag if we want.
+    if (isVirtual) {
+        symbolCell.innerHTML = `${contract.symbol} <span style="font-size:0.8em; opacity:0.7">(Virtual)</span>`;
+    } else {
+        symbolCell.textContent = contract.symbol;
+    }
+
     symbolCell.style.padding = '8px';
     symbolCell.style.borderBottom = '1px solid var(--glass-border)';
 
     // Result
     const resultCell = document.createElement('td');
     const isWin = profit > 0;
-    resultCell.textContent = isWin ? 'WIN' : 'LOSS';
+
+    let resultText = isWin ? 'WIN' : 'LOSS';
+    if (isVirtual) resultText = isWin ? 'V-WIN' : 'V-LOSS';
+
+    resultCell.textContent = resultText;
     resultCell.style.padding = '8px';
     resultCell.style.textAlign = 'center';
     resultCell.style.color = isWin ? '#2ecc71' : '#e74c3c';
@@ -758,7 +778,15 @@ function updateAIHistoryTable(contract, profit) {
 
     // Profit
     const profitCell = document.createElement('td');
-    profitCell.textContent = (profit > 0 ? '+' : '') + profit.toFixed(2);
+
+    // For virtual trades, profit is just +1 or -1 usually, or simulated status
+    if (isVirtual) {
+        profitCell.textContent = '---';
+        profitCell.style.opacity = '0.5';
+    } else {
+        profitCell.textContent = (profit > 0 ? '+' : '') + profit.toFixed(2);
+    }
+
     profitCell.style.padding = '8px';
     profitCell.style.textAlign = 'right';
     profitCell.style.color = isWin ? '#2ecc71' : '#e74c3c';

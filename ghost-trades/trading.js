@@ -9,20 +9,25 @@ function requestBalance() {
     // Cancel previous balance subscription if it exists
     if (currentBalanceSubscriptionId) {
         console.log('🔄 Cancelling previous balance subscription:', currentBalanceSubscriptionId);
-        sendAPIRequest({ "forget": currentBalanceSubscriptionId });
+        sendAPIRequest({ "forget": currentBalanceSubscriptionId }).catch(e => console.error("Forget Balance Error:", e));
         currentBalanceSubscriptionId = null;
     }
 
     const balanceRequest = { "balance": 1, "subscribe": 1 };
-    sendAPIRequest(balanceRequest);
+    sendAPIRequest(balanceRequest).catch(e => console.error("Balance Request Error:", e));
 }
 
 function requestActiveSymbols() {
     const symbolsRequest = { "active_symbols": "brief", "product_type": "basic" };
-    sendAPIRequest(symbolsRequest);
+    sendAPIRequest(symbolsRequest).catch(e => console.error("Active Symbols Error:", e));
 }
 
 function subscribeToAllVolatilities() {
+    if (typeof activeSymbols === 'undefined' || !activeSymbols || activeSymbols.length === 0) {
+        console.warn("⚠️ No active symbols available to subscribe to.");
+        return;
+    }
+
     console.log('🔍 Debugging activeSymbols array:', activeSymbols);
     console.log('🔍 Total symbols received:', activeSymbols.length);
 
@@ -75,9 +80,9 @@ function subscribeToAllVolatilities() {
     volatilitySymbols.forEach((symbol, index) => {
         // FIXED: Subscribe to real-time ticks (NOT ticks_history)
         console.log(`📡 Subscribing to real-time ticks for ${symbol}...`);
-        sendAPIRequest({ 
-            "ticks": symbol, 
-            "subscribe": 1 
+        sendAPIRequest({
+            "ticks": symbol,
+            "subscribe": 1
         });
 
         // Initialize market tick history
@@ -159,7 +164,7 @@ function requestMarketData(symbol) {
         "granularity": CHART_INTERVAL,
         "subscribe": 0
     };
-    sendAPIRequest(historyRequest);
+    sendAPIRequest(historyRequest).catch(e => console.error("Market Data Error:", e));
 
     tradeMessageContainer.textContent = `Loading data for ${symbol}...`;
 }
@@ -178,7 +183,7 @@ function fetchTickHistory(symbol, count = 1000) {
         "style": "ticks"
         // FIXED: Removed subscribe parameter - not valid for historical requests
     };
-    
+
     sendAPIRequest(tickHistoryRequest)
         .then(() => {
             console.log(`✅ Historical tick request sent for ${symbol}`);
@@ -334,7 +339,7 @@ function authorizeAndProceed(apiToken) {
         "authorize": apiToken,
         "passthrough": { "purpose": "initial_login" }
     };
-    
+
     sendAPIRequest(authRequest)
         .then(() => {
             console.log('✅ Authorization request sent successfully');
@@ -385,7 +390,7 @@ function handleLogin() {
         connectToDeriv();
         let connectionCheckAttempts = 0;
         const maxAttempts = 100; // 10 seconds (100 * 100ms)
-        
+
         const checkConnection = setInterval(() => {
             connectionCheckAttempts++;
             if (connection && connection.readyState === WebSocket.OPEN) {

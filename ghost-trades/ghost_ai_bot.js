@@ -313,10 +313,10 @@ async function startGhostAiBot() {
     addBotLog(`📉 S2: ${s2Conditions.join(' & ')} → ${s2ContractType} ${s2Prediction}`);
 
     addBotLog(`⏳ Waiting for valid entry conditions...`);
-    
+
     // Log initial market status
     const totalMarkets = Object.keys(marketTickHistory).length;
-    const readyMarkets = Object.keys(marketTickHistory).filter(s => 
+    const readyMarkets = Object.keys(marketTickHistory).filter(s =>
         marketTickHistory[s] && marketTickHistory[s].length >= 20
     ).length;
     addBotLog(`📊 Markets: ${totalMarkets} total, ${readyMarkets} ready (need 20+ ticks)`, 'info');
@@ -331,9 +331,9 @@ async function startGhostAiBot() {
     botLoopInterval = setInterval(() => {
         if (isBotRunning) {
             cleanupStaleContracts();
-            
+
             // Log market readiness every 30 seconds
-            const ready = Object.keys(marketTickHistory).filter(s => 
+            const ready = Object.keys(marketTickHistory).filter(s =>
                 marketTickHistory[s] && marketTickHistory[s].length >= 20
             ).length;
             const total = Object.keys(marketTickHistory).length;
@@ -506,15 +506,15 @@ function addBotLog(message, type = 'info') {
 
     const logEntry = document.createElement('div');
     logEntry.className = `log-entry log-${type}`;
-    
+
     const timestamp = new Date().toLocaleTimeString();
     logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> ${message}`;
-    
+
     botLogContainer.appendChild(logEntry);
-    
+
     // Auto-scroll to bottom
     botLogContainer.scrollTop = botLogContainer.scrollHeight;
-    
+
     // Limit log entries to prevent memory issues (keep last 100)
     while (botLogContainer.children.length > 100) {
         botLogContainer.removeChild(botLogContainer.firstChild);
@@ -622,13 +622,13 @@ function handleBotTick(tick) {
     if (!isScanning && now - lastScanTime > SCAN_COOLDOWN && now - lastTradeTime > TRADE_COOLDOWN) {
         isScanning = true;
         lastScanTime = now;
-        
+
         // Log scan attempt
-        const readyMarkets = Object.keys(marketTickHistory).filter(s => 
+        const readyMarkets = Object.keys(marketTickHistory).filter(s =>
             marketTickHistory[s] && marketTickHistory[s].length >= 20
         ).length;
         console.log(`🔍 Scan triggered - ${readyMarkets} markets ready`);
-        
+
         scanAndPlaceMultipleTrades();
         isScanning = false;
     }
@@ -636,15 +636,15 @@ function handleBotTick(tick) {
 
 function scanAndPlaceMultipleTrades() {
     const symbolsToScan = Object.keys(marketTickHistory).filter(isAllowedBotMarket);
-    
+
     // Debug: Log scan status
     if (symbolsToScan.length === 0) {
         console.log('⚠️ No symbols to scan - marketTickHistory is empty');
         return;
     }
-    
+
     console.log(`🔍 Scanning ${symbolsToScan.length} markets for trading opportunities...`);
-    
+
     let validS1Markets = [];
     let validS2Markets = [];
 
@@ -657,9 +657,9 @@ function scanAndPlaceMultipleTrades() {
         if (lastDigits.length < 20) {
             console.log(`⏳ ${symbol}: Only ${lastDigits.length}/20 ticks collected`);
         }
-        
+
         if (lastDigits.length < 20 || !percentages) continue;
-        
+
         console.log(`✅ ${symbol}: Ready with ${lastDigits.length} ticks`);
 
         // Check S1
@@ -688,7 +688,7 @@ function scanAndPlaceMultipleTrades() {
             if (Math.random() < 0.1) { // Log 10% of checks to avoid spam
                 console.log(`🔍 S1 Check ${symbol}: Digit=${digitCheckPassed}, Pct=${percentageCheckPassed}, Over${prediction}=${percentages[`over${prediction}`]}%`);
             }
-            
+
             if (digitCheckPassed && percentageCheckPassed) {
                 const fullDistribution = calculateFullDigitDistribution(symbol);
                 if (fullDistribution) {
@@ -1041,47 +1041,50 @@ function handleGhostTradeResult(result) {
     }
 }
 
+
 function addVirtualTradeHistory(result) {
-    const tableBody = document.getElementById('botHistoryTableBody');
+    const tableBody = document.querySelector('#bot-history-table tbody');
     if (!tableBody) return;
 
     const row = document.createElement('tr');
     const time = new Date().toLocaleTimeString();
-    const profitClass = result.isWin ? 'text-success' : 'text-danger';
+    const profitClass = result.isWin ? 'profit-positive' : 'profit-negative';
     const profitLabel = result.isWin ? 'VH WIN' : 'VH LOSS';
     const stakeLabel = 'Virtual';
     // User requested "CALL/PUT" style or similar, but for Digits it is OVER/UNDER
     const contractType = result.contract.contract_type ? result.contract.contract_type.replace('DIGIT', '') : '-';
-    const refId = result.contract.contract_id || result.passthrough.symbol;
+    // Use contract_id if available, otherwise fallback to symbol as reference
+    const refId = result.contract.contract_id || 'Virtual';
 
     // Layout matching standard Deriv tables: 
-    // Time | Reference | Type | Entry | Exit | Buy Price | Profit/Loss
-    row.innerHTML = `<td>${time}</td><td>${refId}</td><td>${contractType}</td><td>${result.contract.entry_tick || '-'}</td><td>${result.contract.exit_tick || '-'}</td><td>${stakeLabel}</td><td class="${profitClass} fw-bold">${profitLabel}</td>`;
+    // Time | Contract Info | P/L
+    // Note: The main table has Time, Contract, P/L columns.
+    // We need to match that structure.
+
+    // Cell 1: Time
+    const timeCell = document.createElement('td');
+    timeCell.textContent = time;
+    row.appendChild(timeCell);
+
+    // Cell 2: Contract Info
+    const contractCell = document.createElement('td');
+    contractCell.innerHTML = `
+        <div class="contract-info">
+            <span class="contract-symbol">${result.contract.symbol || result.passthrough.symbol}</span>
+            <span class="contract-type ${contractType.toLowerCase()}">${contractType} ${result.contract.barrier || ''}</span>
+            <span class="contract-stake">Stake: ${stakeLabel}</span>
+        </div>
+    `;
+    row.appendChild(contractCell);
+
+    // Cell 3: P/L
+    const plCell = document.createElement('td');
+    plCell.className = profitClass + ' fw-bold';
+    plCell.textContent = profitLabel;
+    row.appendChild(plCell);
 
     if (tableBody.firstChild) tableBody.insertBefore(row, tableBody.firstChild);
     else tableBody.appendChild(row);
 
     if (tableBody.children.length > 50) tableBody.removeChild(tableBody.lastChild);
 }
-
-// ===================================
-// DUAL SOCKET: REAL TRADE INTERCEPTOR
-// ===================================
-// Wrap the global addBotTradeHistory to intercept Real Trade completions
-
-setTimeout(() => {
-    if (typeof window.addBotTradeHistory === 'function') {
-        const originalAddBotTradeHistory = window.addBotTradeHistory;
-        window.addBotTradeHistory = function (tradeRecord) {
-            // Call original
-            originalAddBotTradeHistory(tradeRecord);
-
-            // INTERCEPT LOGIC
-            console.log('👻 Dual Socket: Intercepted Real Trade Result. Resetting to Ghost Mode.');
-            if (typeof botState !== 'undefined') {
-                botState.nextTradeReal = false;
-            }
-        };
-        console.log('👻 Ghost Service: Real Trade History Interceptor Active');
-    }
-}, 5000);
