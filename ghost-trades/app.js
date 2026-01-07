@@ -460,21 +460,22 @@ function handleIncomingMessage(msg) {
                         const entryTick = contractInfo.entry_tick_display_value ? parseInt(contractInfo.entry_tick_display_value.slice(-1)) : '?';
                         const contractType = (passthrough.barrier <= 4) ? 'OVER' : 'UNDER';
                         addLiveContract(contractInfo.contract_id, passthrough.symbol, entryTick, passthrough.barrier, contractType);
+                    } else {
+                        console.warn("⚠️ addLiveContract function not found. Live monitoring skipped.");
                     }
 
-                    sendAPIRequest({
-                        "proposal_open_contract": 1,
-                        "contract_id": contractInfo.contract_id,
-                        "subscribe": 1,
-                        "passthrough": {
-                            "purpose": "ghost_ai_trade",
-                            "run_id": botState.runId,
-                            "symbol": passthrough.symbol,
-                            "barrier": passthrough.barrier,
-                            "strategy": strategy,
-                            "stake": passthrough.stake
-                        }
-                    });
+                    // Update Main UI Message
+                    const payout = parseFloat(contractInfo.payout).toFixed(2);
+                    updateTradeMessageUI(`
+                        <svg class="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>👻 Ghost Trade: ${contractInfo.contract_id} | Payout: ${payout} USD</span>
+                    `);
+
+                    // NOTE: we do NOT send "proposal_open_contract" subscription here
+                    // because ghost_ai_bot.js sends "subscribe": 1 in the buy request itself.
                 }
             }
             // Check if this is a GHOST_E/ODD bot trade

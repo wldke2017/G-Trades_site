@@ -560,6 +560,66 @@ let postTradeTickMonitoring = {};
 // Live Contract Monitor
 let liveContractMonitor = {};
 
+
+function renderLiveContracts() {
+    const container = document.getElementById('live-contracts-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const contracts = Object.values(liveContractMonitor);
+
+    if (contracts.length === 0) {
+        container.innerHTML = '<div class="no-contracts">Waiting for active trades...</div>';
+        return;
+    }
+
+    contracts.forEach(contract => {
+        const card = document.createElement('div');
+        card.className = 'live-contract-card';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'contract-header';
+        header.innerHTML = `
+            <span class="symbol">${contract.symbol}</span>
+            <span class="type ${contract.contractType.toLowerCase()}">${contract.contractType} ${contract.barrier}</span>
+        `;
+        card.appendChild(header);
+
+        // Ticks visualization
+        const ticksContainer = document.createElement('div');
+        ticksContainer.className = 'ticks-visual';
+
+        contract.ticks.forEach(tick => {
+            const tickEl = document.createElement('div');
+            tickEl.className = 'tick-circle';
+            tickEl.textContent = tick.digit;
+
+            // Highlight entry tick
+            if (tick.type === 'entry') {
+                tickEl.classList.add('entry-tick');
+            } else if (tick.type === 'post') {
+                // Color based on win/loss logic (simplified: green if matches condition)
+                const isWin = (contract.contractType === 'OVER' && tick.digit > contract.barrier) ||
+                    (contract.contractType === 'UNDER' && tick.digit < contract.barrier);
+                tickEl.classList.add(isWin ? 'win-tick' : 'loss-tick');
+            }
+
+            ticksContainer.appendChild(tickEl);
+        });
+        card.appendChild(ticksContainer);
+
+        // Footer / Timer
+        const footer = document.createElement('div');
+        footer.className = 'contract-footer';
+        footer.innerHTML = `<span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>`;
+        card.appendChild(footer);
+
+        container.appendChild(card);
+    });
+}
+window.renderLiveContracts = renderLiveContracts;
+
 function updateLiveContractMonitor(contractId, symbol, currentPrice) {
     const lastDigit = parseInt(currentPrice.toString().slice(-1));
     const now = Date.now();
@@ -576,9 +636,11 @@ function updateLiveContractMonitor(contractId, symbol, currentPrice) {
         if (container) {
             // ... (Simplified redraw for brevity, in real file it's retained)
             // Re-using existing rendering logic implied by environment
+            renderLiveContracts(); // Assuming a render function exists or we add it
         }
     }
 }
+window.updateLiveContractMonitor = updateLiveContractMonitor;
 
 function addLiveContract(contractId, symbol, entryTick, barrier, contractType) {
     const history = marketTickHistory[symbol] || [];
@@ -598,15 +660,17 @@ function addLiveContract(contractId, symbol, entryTick, barrier, contractType) {
         postEntryCount: 0
     };
     addBotLog(`🔴 Live Monitor: Tracking ${symbol} (${contractType} ${barrier})`, 'info');
+    renderLiveContracts();
 }
+window.addLiveContract = addLiveContract;
 
 function removeLiveContract(contractId) {
     if (liveContractMonitor[contractId]) {
-        const contract = liveContractMonitor[contractId];
-        contract.postEntryCount = 5;
-        addBotLog(`⚪ Live Monitor: Finished ${contract.symbol}`, 'info');
+        delete liveContractMonitor[contractId];
+        renderLiveContracts();
     }
 }
+window.removeLiveContract = removeLiveContract;
 
 function handleBotTick(tick) {
     if (!isBotRunning) return;
