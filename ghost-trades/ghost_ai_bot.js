@@ -845,10 +845,26 @@ async function executeTradeWithTracking(marketData) {
     addBotLog(`🔍 PRE-TRADE SNAPSHOT for ${marketData.symbol}: Last 6 digits = [${last6Digits.join(', ')}]`, 'info');
     showComprehensiveDigitAnalysis(marketData.symbol, marketData.prediction);
 
+
+    // Helper to sanitize contract type
+    const normalizeContractType = (type) => {
+        if (!type) return 'DIGITOVER';
+        const upper = type.toString().toUpperCase();
+        if (upper === 'OVER') return 'DIGITOVER';
+        if (upper === 'UNDER') return 'DIGITUNDER';
+        if (upper === 'MATCH') return 'DIGITMATCH';
+        if (upper === 'DIFF') return 'DIGITDIFF';
+        if (upper === 'EVEN') return 'DIGITEVEN';
+        if (upper === 'ODD') return 'DIGITODD';
+        return upper;
+    };
+
     if (useReal) {
         // --- REAL TRADE ---
         // Reset flag immediately (consume the token)
         botState.nextTradeReal = false;
+
+        const requestContractType = normalizeContractType(marketData.contractType || (marketData.prediction <= 4 ? "DIGITOVER" : "DIGITUNDER"));
 
         const proposalReq = {
             "buy": 1,
@@ -856,7 +872,7 @@ async function executeTradeWithTracking(marketData) {
             "parameters": {
                 "amount": marketData.stake,
                 "basis": "stake",
-                "contract_type": marketData.contractType || (marketData.prediction <= 4 ? "DIGITOVER" : "DIGITUNDER"),
+                "contract_type": requestContractType,
                 "currency": "USD",
                 "duration": 1,
                 "duration_unit": "t",
@@ -873,18 +889,20 @@ async function executeTradeWithTracking(marketData) {
                 "stake": marketData.stake
             }
         };
-        addBotLog(`🚀 Sending Buy Request (REAL)...`, 'warning');
+        addBotLog(`🚀 Sending Buy Request (REAL) [${requestContractType}]...`, 'warning');
         if (typeof sendAPIRequest === 'function') sendAPIRequest(proposalReq);
 
     } else {
         // --- VIRTUAL TRADE (GHOST) ---
+        const requestContractType = normalizeContractType(marketData.contractType || (marketData.prediction <= 4 ? "DIGITOVER" : "DIGITUNDER"));
+
         const ghostReq = {
             "buy": 1,
             "price": 0.35,
             "parameters": {
                 "amount": 0.35,
                 "basis": "stake",
-                "contract_type": marketData.contractType || (marketData.prediction <= 4 ? "DIGITOVER" : "DIGITUNDER"),
+                "contract_type": requestContractType,
                 "currency": "USD",
                 "duration": 1,
                 "duration_unit": "t",
@@ -899,7 +917,7 @@ async function executeTradeWithTracking(marketData) {
             }
         };
 
-        addBotLog(`🚀 Sending Virtual Trade (Ghost)...`, 'info');
+        addBotLog(`🚀 Sending Virtual Trade (Ghost) [${requestContractType}]...`, 'info');
         if (window.ghostService) {
             window.ghostService.placeTrade(ghostReq);
         } else {
