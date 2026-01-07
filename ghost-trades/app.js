@@ -587,7 +587,9 @@ function handleIncomingMessage(msg) {
         case 'proposal_open_contract':
             const contract = data.proposal_open_contract;
 
-            if (contract.is_expired) {
+            // Updated check: Handle both expired and sold contracts
+            // Some contracts are "sold" but not "expired" immediately
+            if (contract.is_expired || contract.is_sold) {
                 const passthrough = data.echo_req.passthrough;
 
                 // Check if this is an AI Strategy trade (Result Handling)
@@ -727,135 +729,140 @@ function handleIncomingMessage(msg) {
                         console.log(`⚠️ Skipped duplicate history entry for contract ${contractIdToRemove}`);
                     }
 
-                    sendAPIRequest({ "forget": contract.id }); // Unsubscribe
+                    // CRITICAL: Only add to history if not already processed (prevents duplicates)
+                    // Use contract_id consistently
+                    if (!window.processedContracts.has(contractIdToRemove)) {
+                        addBotTradeHistory(contract, contract.profit);
+                        window.processedContracts.add(contractIdToRemove);
+                        console.log(`✅ Added contract ${contractIdToRemove} to trade history`);
 
-                    // Notification on win
-                    if (contract.profit > 0) {
-                        const strategyLabel = contract.strategy === 'S1' ? 'S1' : 'S2';
-                        showToast(`🎉 ${strategyLabel} Win: +$${contract.profit.toFixed(2)} on ${contract.symbol} `, 'success', 10000);
-                    }
+                        // --- Update P/L and Win/Loss counts ---
+                        // Only update stats ONCE per contract
+                        const profit = parseFloat(contract.profit);
+                        const isWin = profit > 0;
+                        const stake = parseFloat(passthrough.stake || 0);
 
-                    // --- Update P/L and Win/Loss counts immediately ---
-                    const profit = parseFloat(contract.profit);
-                    const isWin = profit > 0;
-                    const stake = parseFloat(passthrough.stake || 0);
+                        // Calculate payout correctly
+                        const payout = isWin ? stake + profit : 0;
 
-                    // Calculate payout correctly: for wins, payout = stake + profit; for losses, payout = 0
-                    const payout = isWin ? stake + profit : 0;
+                        // Debug log
+                        console.log(`📊 Trade Complete: Stake: $${stake.toFixed(2)} | Profit: $${profit.toFixed(2)} | Payout: $${payout.toFixed(2)} `);
 
-                    // Debug log to verify calculations
-                    console.log(`📊 Trade Complete: Stake: $${stake.toFixed(2)} | Profit: $${profit.toFixed(2)} | Payout: $${payout.toFixed(2)} `);
+                        // Update total P/L
+                        botState.totalPL += profit;
+                        botState.totalStake += stake;
+                        botState.totalPayout += payout;
 
-                    // Update total P/L
-                    botState.totalPL += profit;
+                        // Update win/loss counts
+                        if (isWin) {
+                            botState.winCount++;
+                        } else {
+                            botState.lossCount++;
+                        }
 
-                    // Update total stake and payout
-                    botState.totalStake += stake;
-                    botState.totalPayout += payout;
+                        // Update UI
+                        updateProfitLossDisplay();
+                        updateWinPercentage();
 
-                    // Verify the math
-                    console.log(`📊 Running Totals: Total Stake: $${botState.totalStake.toFixed(2)} | Total Payout: $${botState.totalPayout.toFixed(2)} | Total P / L: $${botState.totalPL.toFixed(2)} | Calculated P / L: $${(botState.totalPayout - botState.totalStake).toFixed(2)} `);
+                        // Notification
+                        if (contract.profit > 0) {
+                            const strategyLabel = contract.strategy === 'S1' ? 'S1' : 'S2';
+                            showToast(`🎉 ${strategyLabel} Win: +$${contract.profit.toFixed(2)} on ${contract.symbol} `, 'success', 10000);
+                        }
 
-                    // Update win/loss counts
-                    if (isWin) {
-                        botState.winCount++;
+                        // --- Strategy-Specific Logic (MOVED INSIDE DEDUPLICATION BLOCK) ---
+                        if (contract.strategy === 'S1') {
+                            if (!isWin) {
+                                // S1 Loss - Track consecutive losses
+                                botState.accumulatedStakesLost += passthrough.stake;
+                                botState.martingaleStepCount = 1; // Activate S2 recovery
+                                botState.s1LossSymbol = contract.symbol;
+                                botState.s1ConsecutiveLosses++;
+
+                                addBotLog(`❌ S1 Loss #${botState.s1ConsecutiveLosses}: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} `, 'loss');
+
+                                // Check if we should block S1
+                                if (botState.s1ConsecutiveLosses >= botState.s1MaxLosses) {
+                                    botState.s1Blocked = true;
+                                    addBotLog(`🚫 S1 BLOCKED after ${botState.s1ConsecutiveLosses} consecutive losses! Only S2 recovery trades allowed until losses recovered.`, 'error');
+                                }
+
+                                addBotLog(`🔄 S2 Recovery Mode Activated | Accumulated Loss: $${botState.accumulatedStakesLost.toFixed(2)} `, 'warning');
+                            } else {
+                                // S1 Win - Reset consecutive loss counter
+                                botState.s1ConsecutiveLosses = 0; // Reset on win
+                                addBotLog(`✅ S1 Win: +$${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Consecutive losses reset`, 'win');
+                            }
+                        } else {
+                            // S2 Recovery trades handle martingale
+                            // Note: S2 counter is already decremented in cleanup logic above
+
+                            if (!isWin) {
+                                botState.martingaleStepCount++;
+
+                                addBotLog(`❌ S2 Loss: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Martingale Step ${botState.martingaleStepCount} `, 'loss');
+
+                                // Check for Stop-Loss
+                                if (Math.abs(botState.totalPL) >= botState.stopLoss) {
+                                    addBotLog(`🛑 Stop - Loss Hit: -$${Math.abs(botState.totalPL).toFixed(2)} / $${botState.stopLoss.toFixed(2)} | Bot Stopped`, 'error');
+                                    stopGhostAiBot();
+                                    return;
+                                }
+
+                                // Accumulate stake amounts lost for martingale calculation
+                                botState.accumulatedStakesLost += passthrough.stake;
+                                const accumulatedLosses = botState.accumulatedStakesLost;
+                                const recoveryMultiplier = 100 / botState.payoutPercentage;
+                                const nextStake = accumulatedLosses * recoveryMultiplier;
+
+                                botState.currentStake = parseFloat(nextStake.toFixed(2));
+                                addBotLog(`📊 Accumulated Stakes Lost: $${botState.accumulatedStakesLost.toFixed(2)} | Next Stake: $${botState.currentStake.toFixed(2)}`, 'info');
+
+                                // Check for Max Martingale Steps after calculating stake
+                                if (botState.martingaleStepCount > botState.maxMartingaleSteps) {
+                                    addBotLog(`🛑 Max Martingale Steps (${botState.maxMartingaleSteps}) Reached | Bot Stopped`, 'error');
+                                    stopGhostAiBot();
+                                    return;
+                                }
+
+                                addBotLog(`⚠️ Recovery Mode: Stake → $${botState.currentStake.toFixed(2)} | Locked on ${botState.recoverySymbol}`, 'warning');
+                            } else {
+                                // S2 Win - Reset martingale
+                                addBotLog(`✅ S2 Win: +$${profit.toFixed(2)} on ${contract.symbol} | Total P/L: $${botState.totalPL.toFixed(2)} | Martingale reset`, 'win');
+
+                                // Reset martingale state and unblock S1
+                                botState.currentStake = botState.initialStake;
+                                botState.activeStrategy = 'S1';
+                                botState.martingaleStepCount = 0;
+                                botState.recoverySymbol = null;
+                                botState.s1LossSymbol = null;
+                                botState.accumulatedStakesLost = 0.0;
+                                botState.s1ConsecutiveLosses = 0; // Reset consecutive losses
+
+                                if (botState.s1Blocked) {
+                                    botState.s1Blocked = false;
+                                    addBotLog(`✅ S1 UNBLOCKED! Losses recovered. S1 trades now allowed again.`, 'win');
+                                }
+
+                                addBotLog(`🔄 S2 Recovery Successful! Martingale reset | Back to base stake: $${botState.currentStake.toFixed(2)}`, 'info');
+                            }
+                        }
+
+                        // Check for target profit
+                        if (botState.totalPL >= botState.targetProfit) {
+                            addBotLog(`🎉 Target Profit Reached: $${botState.totalPL.toFixed(2)} / $${botState.targetProfit.toFixed(2)}`, 'win');
+                            stopGhostAiBot();
+                        }
+
                     } else {
-                        botState.lossCount++;
+                        console.log(`⚠️ Skipped duplicate history/stats entry for contract ${contractIdToRemove}`);
                     }
+
+                    sendAPIRequest({ "forget": contract.id }); // Unsubscribe
 
                     // Request fresh balance
                     if (typeof requestBalance === 'function') {
                         requestBalance();
-                    }
-
-                    // Update win percentage immediately for all trades
-                    updateWinPercentage();
-
-                    // Update UI immediately after counts change
-                    updateProfitLossDisplay();
-
-                    // --- Strategy-Specific Logic ---
-                    if (contract.strategy === 'S1') {
-                        if (!isWin) {
-                            // S1 Loss - Track consecutive losses
-                            botState.accumulatedStakesLost += passthrough.stake;
-                            botState.martingaleStepCount = 1; // Activate S2 recovery
-                            botState.s1LossSymbol = contract.symbol;
-                            botState.s1ConsecutiveLosses++;
-
-                            addBotLog(`❌ S1 Loss #${botState.s1ConsecutiveLosses}: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} `, 'loss');
-
-                            // Check if we should block S1
-                            if (botState.s1ConsecutiveLosses >= botState.s1MaxLosses) {
-                                botState.s1Blocked = true;
-                                addBotLog(`🚫 S1 BLOCKED after ${botState.s1ConsecutiveLosses} consecutive losses! Only S2 recovery trades allowed until losses recovered.`, 'error');
-                            }
-
-                            addBotLog(`🔄 S2 Recovery Mode Activated | Accumulated Loss: $${botState.accumulatedStakesLost.toFixed(2)} `, 'warning');
-                        } else {
-                            // S1 Win - Reset consecutive loss counter
-                            botState.s1ConsecutiveLosses = 0; // Reset on win
-                            addBotLog(`✅ S1 Win: +$${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Consecutive losses reset`, 'win');
-                        }
-                    } else {
-                        // S2 Recovery trades handle martingale
-                        // Note: S2 counter is already decremented in cleanup logic above
-
-                        if (!isWin) {
-                            botState.martingaleStepCount++;
-
-                            addBotLog(`❌ S2 Loss: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Martingale Step ${botState.martingaleStepCount} `, 'loss');
-
-                            // Check for Stop-Loss
-                            if (Math.abs(botState.totalPL) >= botState.stopLoss) {
-                                addBotLog(`🛑 Stop - Loss Hit: -$${Math.abs(botState.totalPL).toFixed(2)} / $${botState.stopLoss.toFixed(2)} | Bot Stopped`, 'error');
-                                stopGhostAiBot();
-                                return;
-                            }
-
-                            // Accumulate stake amounts lost for martingale calculation
-                            botState.accumulatedStakesLost += passthrough.stake;
-                            const accumulatedLosses = botState.accumulatedStakesLost;
-                            const recoveryMultiplier = 100 / botState.payoutPercentage;
-                            const nextStake = accumulatedLosses * recoveryMultiplier;
-
-                            botState.currentStake = parseFloat(nextStake.toFixed(2));
-                            addBotLog(`📊 Accumulated Stakes Lost: $${botState.accumulatedStakesLost.toFixed(2)} | Next Stake: $${botState.currentStake.toFixed(2)}`, 'info');
-
-                            // Check for Max Martingale Steps after calculating stake
-                            if (botState.martingaleStepCount > botState.maxMartingaleSteps) {
-                                addBotLog(`🛑 Max Martingale Steps (${botState.maxMartingaleSteps}) Reached | Bot Stopped`, 'error');
-                                stopGhostAiBot();
-                                return;
-                            }
-
-                            addBotLog(`⚠️ Recovery Mode: Stake → $${botState.currentStake.toFixed(2)} | Locked on ${botState.recoverySymbol}`, 'warning');
-                        } else {
-                            // S2 Win - Reset martingale
-                            addBotLog(`✅ S2 Win: +$${profit.toFixed(2)} on ${contract.symbol} | Total P/L: $${botState.totalPL.toFixed(2)} | Martingale reset`, 'win');
-
-                            // Reset martingale state and unblock S1
-                            botState.currentStake = botState.initialStake;
-                            botState.activeStrategy = 'S1';
-                            botState.martingaleStepCount = 0;
-                            botState.recoverySymbol = null;
-                            botState.s1LossSymbol = null;
-                            botState.accumulatedStakesLost = 0.0;
-                            botState.s1ConsecutiveLosses = 0; // Reset consecutive losses
-
-                            if (botState.s1Blocked) {
-                                botState.s1Blocked = false;
-                                addBotLog(`✅ S1 UNBLOCKED! Losses recovered. S1 trades now allowed again.`, 'win');
-                            }
-
-                            addBotLog(`🔄 S2 Recovery Successful! Martingale reset | Back to base stake: $${botState.currentStake.toFixed(2)}`, 'info');
-                        }
-                    }
-
-                    // Check for target profit
-                    if (botState.totalPL >= botState.targetProfit) {
-                        addBotLog(`🎉 Target Profit Reached: $${botState.totalPL.toFixed(2)} / $${botState.targetProfit.toFixed(2)}`, 'win');
-                        stopGhostAiBot();
                     }
                 }
                 // Check if it's a GHOST_E/ODD bot trade
