@@ -604,10 +604,10 @@ function handleIncomingMessage(msg) {
                 }
 
                 // Check if this is a Ghost AI bot trade that we need to process
-                else if (passthrough && passthrough.purpose === 'ghost_ai_trade' && passthrough.run_id === botState.runId) {
+                else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
 
                     // CRITICAL FIX: Improved contract cleanup logic
-                    console.log(`🤖 Ghost AI Trade Result: ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id} `);
+                    console.log(`🤖 Ghost AI Trade Result (Log Check): ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
                     console.log(`🔍 Active contracts before cleanup: `, Object.keys(window.activeContracts));
 
                     // Add symbol and barrier info to the contract for history logging
