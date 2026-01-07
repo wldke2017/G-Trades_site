@@ -2569,6 +2569,7 @@ h4 {
         padding: 0 !important;
         overflow: visible !important;
         background: var(--bg-primary) !important;
+        min-height: 48px !important;
     }
 
     .header-container {
@@ -2576,54 +2577,35 @@ h4 {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        align-items: flex-start !important;
-        padding: 8px 8px 4px !important;
-        gap: 0 !important;
+        align-items: center !important;
+        padding: 4px 8px !important;
+        gap: 6px !important;
         overflow: visible !important;
         width: 100% !important;
     }
 
-    .header-left,
-    .header-right {
-        display: contents !important;
+    .header-left {
+        display: flex !important;
+        align-items: center !important;
+        flex: 0 1 auto !important;
     }
 
-    /* 1. Left Slot: Actions (Dot + 🚨) */
-    .header-actions-group {
-        order: 1 !important;
-        flex: 1 !important;
+    .header-right {
         display: flex !important;
-        align-items: flex-start !important;
-        justify-content: flex-start !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        flex: 1 !important;
         gap: 6px !important;
         overflow: visible !important;
-        padding-top: 2px !important;
     }
 
-    /* 2. Center Slot: Logo */
+    /* Branding - Compact */
     .site-branding {
-        order: 2 !important;
-        flex: 0 0 auto !important;
         display: flex !important;
         flex-direction: column !important;
-        align-items: flex-start !important;
         justify-content: center !important;
-        text-align: center !important;
-        overflow: visible !important;
     }
 
-    /* 3. Right Slot: Balance */
-    .account-switcher-container {
-        order: 3 !important;
-        flex: 1 !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        justify-content: flex-end !important;
-        overflow: visible !important;
-        padding-top: 2px !important;
-    }
-
-    /* Branding - Ultra Compact */
     .logo-wrapper {
         display: flex !important;
         align-items: center !important;
@@ -2636,17 +2618,21 @@ h4 {
     }
 
     .site-branding h1 {
-        font-size: 0.8rem !important;
-        white-space: nowrap !important;
+        font-size: 0.85rem !important;
+        line-height: 1 !important;
         margin: 0 !important;
-        line-height: 1.2 !important;
+        white-space: nowrap !important;
     }
 
     .powered-by {
-        display: none !important;
+        display: block !important;
+        font-size: 0.45rem !important;
+        margin-top: 1px !important;
+        white-space: nowrap !important;
+        opacity: 0.7 !important;
     }
 
-    /* Connection Dot */
+    /* Connection Status */
     .connection-status {
         margin: 0 !important;
     }
@@ -2660,7 +2646,7 @@ h4 {
         display: none !important;
     }
 
-    /* Emergency Stop - Tiny Icon */
+    /* Emergency Stop */
     #emergency-stop-all {
         padding: 0 !important;
         width: 30px !important;
@@ -2677,12 +2663,79 @@ h4 {
     #emergency-stop-all .stop-text {
         display: none !important;
     }
+
+    /* Navigation - Compact */
+    .nav-bar {
+        padding: 0 4px !important;
+        height: 40px !important;
+        min-height: auto !important;
+        gap: 2px !important;
+    }
+
+    .nav-item {
+        padding: 4px 6px !important;
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+
+    .nav-icon {
+        width: 12px !important;
+        height: 12px !important;
+    }
 }
 
-/* Dashboard Ultra-Compact Enhancements */
-.dashboard-grid {
-    gap: var(--spacing-sm) !important;
-    margin-top: var(--spacing-sm) !important;
+/* Desktop styles for the new group */
+.header-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.site-branding {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.site-branding h1 {
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    white-space: nowrap;
+}
+
+.powered-by {
+    display: block !important;
+    font-size: 0.5rem !important;
+    margin-top: 1px !important;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.logo-wrapper {
+    gap: 4px !important;
+}
+
+.logo-icon {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+/* Squeeze Navigation Bar */
+.nav-bar {
+    padding: 0 4px !important;
+    height: 40px !important;
+    min-height: auto !important;
+}
+
+.nav-item {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+}
+
+.nav-icon {
+    width: 14px !important;
+    height: 14px !important;
 }
 
 
