@@ -973,7 +973,6 @@ async function executeTradeWithTracking(marketData) {
                 "symbol": marketData.symbol,
                 "barrier": marketData.prediction
             },
-            "subscribe": 1,
             "passthrough": {
                 "purpose": "ghost_ai_trade",
                 "run_id": botState.runId,
