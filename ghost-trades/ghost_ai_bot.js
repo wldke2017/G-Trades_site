@@ -14,15 +14,12 @@ let currentMarketIndex = 0;
 let botStartTime = null;
 
 // Initialize global tracking variables
-if (typeof window.activeContracts === 'undefined') {
-    window.activeContracts = {};
-}
-if (typeof window.activeS1Symbols === 'undefined') {
-    window.activeS1Symbols = new Set();
-}
-if (typeof window.processedContracts === 'undefined') {
-    window.processedContracts = new Set();
-}
+// Global State for Ghost AI
+window.activeContracts = {};
+window.activeS1Symbols = new Map(); // Changed from Set to Map for timestamp tracking
+window.processedContracts = new Set();
+// Track last trade time per symbol to prevent double entry
+window.lastTradeTimes = {};
 
 // Bot State Object - Tracks current strategy state
 const botState = {
@@ -392,27 +389,48 @@ async function stopGhostAiBot() {
  */
 function cleanupStaleContracts() {
     const now = Date.now();
-    const STALE_TIMEOUT = 300000; // 5 minutes
+    const STALE_TIMEOUT = 300000; // 5 minutes (for active contracts)
+    const ORPHAN_TIMEOUT = 20000; // 20 seconds (for symbols stuck in "checking" state without contract)
 
     if (typeof window.activeContracts !== 'undefined') {
+        // 1. Cleanup Stale Contracts (existing logic)
         Object.keys(window.activeContracts).forEach(contractId => {
             const contract = window.activeContracts[contractId];
             if (contract && contract.startTime && (now - contract.startTime > STALE_TIMEOUT)) {
                 console.log(`🧹 Cleaning up stale contract: ${contractId}`);
 
-                // Release lock if symbol exists
                 if (contract.symbol && typeof releaseTradeLock === 'function') {
                     releaseTradeLock(contract.symbol, 'ghost_ai');
                 }
 
-                // Remove from active lists
-                if (contract.symbol && typeof window.activeS1Symbols !== 'undefined') {
+                if (contract.symbol && window.activeS1Symbols instanceof Map) {
+                    window.activeS1Symbols.delete(contract.symbol);
+                } else if (contract.symbol && window.activeS1Symbols instanceof Set) {
                     window.activeS1Symbols.delete(contract.symbol);
                 }
 
                 delete window.activeContracts[contractId];
             }
         });
+
+        // 2. Cleanup Orphaned S1 Locks (New Logic)
+        if (window.activeS1Symbols instanceof Map) {
+            for (const [symbol, timestamp] of window.activeS1Symbols.entries()) {
+                // If symbol has been locked for > 20s
+                if (now - timestamp > ORPHAN_TIMEOUT) {
+                    // Check if there is actually an active contract for this symbol
+                    const hasActiveContract = Object.values(window.activeContracts).some(c => c.symbol === symbol);
+
+                    if (!hasActiveContract) {
+                        console.warn(`🧟 Cleaning up ZOMBIE lock for ${symbol} (orphaned for ${(now - timestamp) / 1000}s)`);
+                        window.activeS1Symbols.delete(symbol);
+                        if (typeof releaseTradeLock === 'function') {
+                            releaseTradeLock(symbol, 'ghost_ai');
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -869,7 +887,7 @@ function scanAndPlaceMultipleTrades() {
 
         recordPendingStake(selectedMarket.symbol, selectedMarket.stake, 'ghost_ai');
         recordTradeSignature(selectedMarket.symbol, selectedMarket.prediction, selectedMarket.stake, 'ghost_ai');
-        activeS1Symbols.add(selectedMarket.symbol);
+        activeS1Symbols.set(selectedMarket.symbol, Date.now()); // Store timestamp for stale cleanup
 
         addBotLog(`✓ S1 Entry: ${selectedMarket.symbol} | Stake: $${selectedMarket.stake.toFixed(2)}`, 'info');
         executeTradeWithTracking(selectedMarket);
