@@ -765,3 +765,60 @@
         max-height: 60vh !important;
     }
 }
+
+/* --- Keen Mobile Fixes --- */
+
+@media (max-width: 768px) {
+
+    /* Flex/Grid Reset */
+    .ai-workspace,
+    .ai-container,
+    .ai-parameters-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    /* Icon Scaling */
+    .ai-header h3 span,
+    .ai-header h3::before,
+    .ai-card-header h4 span,
+    .ai-icon,
+    svg.bot-icon {
+        max-width: 60px !important;
+        height: auto !important;
+    }
+
+    /* Text Alignment */
+    .ai-header,
+    .ai-card-header,
+    .bot-header-section {
+        text-align: center !important;
+        justify-content: center !important;
+    }
+
+    .ai-header h3,
+    .ai-subtitle,
+    .ai-card-header h4 {
+        text-align: center !important;
+        width: 100% !important;
+    }
+}
+
+/* Z-Index Assurance */
+#ai-strategy-interface,
+.ai-controls,
+.control-buttons,
+.ai-prompt-box {
+    position: relative;
+    z-index: 10 !important;
+    /* Ensure they sit above background decorations */
+}
+
+/* Chatbot visibility assurance */
+@media (max-width: 600px) {
+    #ai-strategy-interface {
+        z-index: 10000 !important;
+        /* Always on top of cards */
+    }
+}
