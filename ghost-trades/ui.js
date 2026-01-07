@@ -426,8 +426,20 @@ function addBotTradeHistory(contract, profit) {
 
     const tableBody = document.querySelector('#bot-history-table tbody');
     console.log(`📜 Table body found:`, !!tableBody);
+    console.log(`📜 Table body element:`, tableBody);
+    console.log(`📜 Document ready state:`, document.readyState);
+    console.log(`📜 All tables in document:`, document.querySelectorAll('table').length);
+    console.log(`📜 Bot history table:`, document.querySelector('#bot-history-table'));
+
     if (!tableBody) {
         console.warn('⚠️ Bot history table not found!');
+        console.warn('⚠️ Trying alternative selector...');
+        const altTable = document.getElementById('bot-history-table');
+        console.warn('⚠️ Alternative table:', altTable);
+        if (altTable) {
+            const altTbody = altTable.querySelector('tbody');
+            console.warn('⚠️ Alternative tbody:', altTbody);
+        }
         return;
     }
 
