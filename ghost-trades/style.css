@@ -2569,8 +2569,6 @@ h4 {
         padding: 0 !important;
         overflow: visible !important;
         background: var(--bg-primary) !important;
-        height: auto !important;
-        min-height: 48px !important;
     }
 
     .header-container {
@@ -2580,36 +2578,50 @@ h4 {
         justify-content: space-between !important;
         align-items: center !important;
         padding: 4px 8px !important;
-        gap: 4px !important;
+        gap: 0 !important;
         overflow: visible !important;
         width: 100% !important;
     }
 
-    .header-left {
-        display: flex !important;
-        align-items: center !important;
-        flex: 0 0 auto !important;
-        overflow: visible !important;
-        min-width: 0 !important;
+    .header-left,
+    .header-right {
+        display: contents !important;
     }
 
-    .header-right {
+    /* 1. Left Slot: Actions (Dot + 🚨) */
+    .header-actions-group {
+        order: 1 !important;
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 6px !important;
+        overflow: visible !important;
+    }
+
+    /* 2. Center Slot: Logo */
+    .site-branding {
+        order: 2 !important;
+        flex: 0 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        overflow: visible !important;
+    }
+
+    /* 3. Right Slot: Balance */
+    .account-switcher-container {
+        order: 3 !important;
+        flex: 1 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
-        flex: 1 1 auto !important;
-        gap: 4px !important;
         overflow: visible !important;
-        min-width: 0 !important;
     }
 
     /* Branding - Ultra Compact */
-    .site-branding {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-    }
-
     .logo-wrapper {
         display: flex !important;
         align-items: center !important;
@@ -2623,8 +2635,6 @@ h4 {
 
     .site-branding h1 {
         font-size: 0.8rem !important;
-        line-height: 1 !important;
-        margin: 0 !important;
         white-space: nowrap !important;
     }
 
@@ -2639,19 +2649,15 @@ h4 {
     /* Connection Dot */
     .connection-status {
         margin: 0 !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-
-    .connection-status .status-text {
-        display: none !important;
     }
 
     .status-dot {
         width: 10px !important;
         height: 10px !important;
-        margin-right: 2px !important;
+    }
+
+    .connection-status .status-text {
+        display: none !important;
     }
 
     /* Emergency Stop - Tiny Icon */
@@ -2671,125 +2677,114 @@ h4 {
     #emergency-stop-all .stop-text {
         display: none !important;
     }
+}
 
-    /* Navigation - Squeezed */
-    .nav-bar {
-        padding: 0 4px !important;
-        height: 40px !important;
-        min-height: auto !important;
-        gap: 2px !important;
-    }
+/* Desktop styles for the new group */
+.header-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-    .nav-item {
-        padding: 4px 6px !important;
-        font-size: 0.75rem !important;
-        white-space: nowrap !important;
-    }
+.site-branding {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 
-    .nav-icon {
-        width: 12px !important;
-        height: 12px !important;
-    }
+.site-branding h1 {
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    white-space: nowrap;
+}
 
-    .site-branding {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
+.powered-by {
+    display: block !important;
+    font-size: 0.5rem !important;
+    margin-top: 1px !important;
+    white-space: nowrap;
+    opacity: 0.7;
+}
 
-    .site-branding h1 {
-        font-size: 0.9rem !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        white-space: nowrap;
-    }
+.logo-wrapper {
+    gap: 4px !important;
+}
 
-    .powered-by {
-        display: block !important;
-        font-size: 0.5rem !important;
-        margin-top: 1px !important;
-        white-space: nowrap;
-        opacity: 0.7;
-    }
+.logo-icon {
+    width: 18px !important;
+    height: 18px !important;
+}
 
-    .logo-wrapper {
-        gap: 4px !important;
-    }
+/* Squeeze Navigation Bar */
+.nav-bar {
+    padding: 0 4px !important;
+    height: 40px !important;
+    min-height: auto !important;
+}
 
-    .logo-icon {
-        width: 18px !important;
-        height: 18px !important;
-    }
+.nav-item {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+}
 
-    /* Squeeze Navigation Bar */
-    .nav-bar {
-        padding: 0 4px !important;
-        height: 40px !important;
-        min-height: auto !important;
-    }
-
-    .nav-item {
-        padding: 4px 8px !important;
-        font-size: 0.8rem !important;
-    }
-
-    .nav-icon {
-        width: 14px !important;
-        height: 14px !important;
-    }
+.nav-icon {
+    width: 14px !important;
+    height: 14px !important;
+}
 
 
 
 
-    .section-header h2 {
-        font-size: 1.25rem;
-    }
+.section-header h2 {
+    font-size: 1.25rem;
+}
 
-    .trade-actions {
-        flex-direction: column;
-    }
+.trade-actions {
+    flex-direction: column;
+}
 
-    /* Dashboard Ultra-Compact Enhancements */
-    .dashboard-grid {
-        gap: var(--spacing-sm) !important;
-        margin-top: var(--spacing-sm) !important;
-    }
+/* Dashboard Ultra-Compact Enhancements */
+.dashboard-grid {
+    gap: var(--spacing-sm) !important;
+    margin-top: var(--spacing-sm) !important;
+}
 
-    .dashboard-card {
-        padding: var(--spacing-sm) var(--spacing-md) !important;
-        gap: var(--spacing-sm) !important;
-        min-height: auto !important;
-        border-radius: var(--radius-md) !important;
-    }
+.dashboard-card {
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    gap: var(--spacing-sm) !important;
+    min-height: auto !important;
+    border-radius: var(--radius-md) !important;
+}
 
-    .card-icon {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 1rem !important;
-    }
+.card-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1rem !important;
+}
 
-    .card-content h3 {
-        font-size: 0.75rem !important;
-        margin-bottom: 0 !important;
-        color: var(--text-muted) !important;
-    }
+.card-content h3 {
+    font-size: 0.75rem !important;
+    margin-bottom: 0 !important;
+    color: var(--text-muted) !important;
+}
 
-    .card-value {
-        font-size: 1rem !important;
-    }
+.card-value {
+    font-size: 1rem !important;
+}
 
-    .account-overview-header {
-        margin-bottom: var(--spacing-xs) !important;
-        margin-top: var(--spacing-sm) !important;
-    }
+.account-overview-header {
+    margin-bottom: var(--spacing-xs) !important;
+    margin-top: var(--spacing-sm) !important;
+}
 
-    .account-overview-header h2 {
-        font-size: 1rem !important;
-    }
+.account-overview-header h2 {
+    font-size: 1rem !important;
+}
 
-    .main-content {
-        margin-top: var(--spacing-sm) !important;
-    }
+.main-content {
+    margin-top: var(--spacing-sm) !important;
+}
 }
 
 /* ===================================
