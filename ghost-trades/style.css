@@ -2565,9 +2565,12 @@ h4 {
 @media (max-width: 768px) {
     header {
         position: relative !important;
-        z-index: 5000 !important;
+        z-index: 9999 !important;
         padding: 0 !important;
         overflow: visible !important;
+        background: var(--bg-primary) !important;
+        height: auto !important;
+        min-height: 48px !important;
     }
 
     .header-container {
@@ -2576,37 +2579,35 @@ h4 {
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 4px !important;
         padding: 4px 8px !important;
-        min-height: 44px !important;
-        height: auto !important;
+        gap: 4px !important;
         overflow: visible !important;
+        width: 100% !important;
     }
 
     .header-left {
-        flex: 0 0 auto !important;
         display: flex !important;
         align-items: center !important;
+        flex: 0 0 auto !important;
         overflow: visible !important;
-        max-width: 40% !important;
+        min-width: 0 !important;
     }
 
     .header-right {
-        flex: 1 1 auto !important;
         display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
+        flex: 1 1 auto !important;
         gap: 4px !important;
         overflow: visible !important;
         min-width: 0 !important;
     }
 
-    /* Minimize Branding */
+    /* Branding - Ultra Compact */
     .site-branding {
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
-        line-height: 1 !important;
     }
 
     .logo-wrapper {
@@ -2621,7 +2622,7 @@ h4 {
     }
 
     .site-branding h1 {
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         line-height: 1 !important;
         margin: 0 !important;
         white-space: nowrap !important;
@@ -2648,49 +2649,46 @@ h4 {
     }
 
     .status-dot {
-        width: 8px !important;
-        height: 8px !important;
+        width: 10px !important;
+        height: 10px !important;
+        margin-right: 2px !important;
     }
 
-    /* Minimize Emergency Stop */
+    /* Emergency Stop - Tiny Icon */
     #emergency-stop-all {
         padding: 0 !important;
-        width: 28px !important;
-        height: 28px !important;
-        min-width: 28px !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         margin: 0 !important;
-        font-size: 13px !important;
-        border-radius: 5px !important;
+        font-size: 14px !important;
+        border-radius: 6px !important;
     }
 
     #emergency-stop-all .stop-text {
         display: none !important;
     }
 
-    /* Navigation Bar Ultra-Compact */
+    /* Navigation - Squeezed */
     .nav-bar {
         padding: 0 4px !important;
-        height: 36px !important;
+        height: 40px !important;
         min-height: auto !important;
-        gap: 4px !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
+        gap: 2px !important;
     }
 
     .nav-item {
-        padding: 2px 6px !important;
+        padding: 4px 6px !important;
         font-size: 0.75rem !important;
         white-space: nowrap !important;
-        height: 28px !important;
     }
 
     .nav-icon {
         width: 12px !important;
         height: 12px !important;
-        margin-right: 2px !important;
     }
 
     .site-branding {
