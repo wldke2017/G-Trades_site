@@ -477,35 +477,49 @@ window.addBotTradeHistory = addBotTradeHistory;
 window.updateProfitLossDisplay = updateProfitLossDisplay;
 
 // ===================================
-// WHATSAPP POPUP LOGIC
+// COMMUNITY POPUP LOGIC
 // ===================================
 
 /**
- * Close the WhatsApp popup modal
+ * Close the Community popup modal
+ * @param {string} action - 'later' (standard close) or 'never' (permanent opt-out)
  */
-function closeWhatsAppPopup() {
-    const modal = document.getElementById('whatsapp-modal');
+function closeCommunityPopup(action) {
+    const modal = document.getElementById('community-modal');
     if (modal) {
         modal.style.display = 'none';
-        console.log('✅ WhatsApp popup closed');
+
+        if (action === 'never') {
+            localStorage.setItem('community_popup_opt_out', 'true');
+            console.log('✅ User opted out of community popup permanently');
+        } else {
+            console.log('✅ Community popup dismissed (later)');
+        }
     }
 }
 
 /**
- * Show the WhatsApp popup modal with a delay
+ * Show the Community popup modal with a delay
  */
-function showWhatsAppPopup() {
-    const modal = document.getElementById('whatsapp-modal');
+function showCommunityPopup() {
+    // Check for permanent opt-out
+    if (localStorage.getItem('community_popup_opt_out') === 'true') {
+        return;
+    }
+
+    const modal = document.getElementById('community-modal');
     if (modal) {
         modal.style.display = 'flex';
-        console.log('📱 WhatsApp popup shown');
+        console.log('📱 Community popup shown');
     }
 }
 
-// Initial show delay (5 seconds after page loads)
+// Initial show delay (10 seconds after page loads)
+// Increased delay slightly to not annoy users immediately
 window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(showWhatsAppPopup, 5000);
+    setTimeout(showCommunityPopup, 10000);
 });
 
-// Make close function globally available for the inline onclick handler
-window.closeWhatsAppPopup = closeWhatsAppPopup;
+// Ensure functions are globally available
+window.closeCommunityPopup = closeCommunityPopup;
+window.showCommunityPopup = showCommunityPopup;
