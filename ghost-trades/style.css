@@ -2578,26 +2578,41 @@ h4 {
     }
 
     .header-left {
-        display: flex;
-        align-items: center;
-        min-width: 0;
+        flex: 0 1 auto;
     }
 
     .header-right {
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        min-width: 0;
+        gap: 6px !important;
     }
 
-    /* Connection dot in the middle area to save space */
-    .connection-status {
-        justify-self: center;
-        margin: 0 !important;
+    /* Minimize Emergency Stop on mobile */
+    #emergency-stop-all {
+        padding: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: 0 !important;
+        font-size: 14px !important;
     }
 
+    #emergency-stop-all .stop-text {
+        display: none !important;
+    }
+
+    /* Hide connection text on mobile to save space */
     .connection-status .status-text {
         display: none !important;
+    }
+
+    .connection-status {
+        margin: 0 !important;
     }
 
     .site-branding {
