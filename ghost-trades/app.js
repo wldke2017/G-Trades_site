@@ -21,6 +21,10 @@ let currentContractId = null;
 // Prevents showing the same error toast multiple times
 let recentErrors = new Map(); // { errorCode: timestamp }
 const ERROR_TOAST_COOLDOWN = 5000; // Don't show same error within 5 seconds
+
+// --- PROCESSED CONTRACTS HISTORY ---
+// Deduplication Set for Trade History
+window.processedContracts = new Set();
 // ----------------------------------------
 
 // --- Chart Setup ---
@@ -542,6 +546,15 @@ function handleIncomingMessage(msg) {
                         "subscribe": 1,
                         "passthrough": passthrough
                     });
+                }
+            }
+            // Check if this is a Ghost AI trade (Prevent double subscription)
+            else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
+                if (contractInfo) {
+                    const payout = parseFloat(contractInfo.payout).toFixed(2);
+                    showToast(`👻 Ghost AI Trade: ${contractInfo.contract_id}`, 'success');
+                    // Do NOT re-subscribe here, as ghost_ai_bot.js sends subscribe:1 in the buy request
+                    console.log(`👻 Ghost AI Trade placed (Auto-subscribed): ${contractInfo.contract_id}`);
                 }
             }
             else if (contractInfo) {

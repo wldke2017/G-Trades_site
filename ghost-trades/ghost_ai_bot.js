@@ -387,6 +387,36 @@ async function stopGhostAiBot() {
 }
 
 /**
+ * Remove stale contracts from activeContracts to prevent memory leaks
+ * and ensure clean state.
+ */
+function cleanupStaleContracts() {
+    const now = Date.now();
+    const STALE_TIMEOUT = 300000; // 5 minutes
+
+    if (typeof window.activeContracts !== 'undefined') {
+        Object.keys(window.activeContracts).forEach(contractId => {
+            const contract = window.activeContracts[contractId];
+            if (contract && contract.startTime && (now - contract.startTime > STALE_TIMEOUT)) {
+                console.log(`🧹 Cleaning up stale contract: ${contractId}`);
+
+                // Release lock if symbol exists
+                if (contract.symbol && typeof releaseTradeLock === 'function') {
+                    releaseTradeLock(contract.symbol, 'ghost_ai');
+                }
+
+                // Remove from active lists
+                if (contract.symbol && typeof window.activeS1Symbols !== 'undefined') {
+                    window.activeS1Symbols.delete(contract.symbol);
+                }
+
+                delete window.activeContracts[contractId];
+            }
+        });
+    }
+}
+
+/**
  * Helper function to compare values using operator
  */
 function compareWithOperator(actual, operator, expected) {
