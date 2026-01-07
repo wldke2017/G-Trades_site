@@ -1,0 +1,363 @@
+/* ===================================
+   ACCOUNT SWITCHER - DERIV STYLE
+   =================================== */
+
+.account-switcher-container {
+    position: relative;
+    display: none;
+    margin-right: 15px;
+}
+
+.account-switcher-container.visible {
+    display: block;
+}
+
+/* Header Button */
+.account-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: all var(--transition-base);
+    min-width: 180px;
+}
+
+.account-header:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--primary-color);
+}
+
+.account-header:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 68, 79, 0.3);
+}
+
+.account-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.account-type-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.account-balance {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+    transition: transform var(--transition-base);
+}
+
+.account-header.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.account-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 280px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-base);
+    max-height: 0;
+    overflow: hidden;
+}
+
+.account-dropdown-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for Dropdown */
+.account-dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.account-dropdown-menu::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+.account-dropdown-menu::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+/* Account List */
+.account-list {
+    padding: 8px 0;
+}
+
+/* Account Item */
+.account-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border-left: 3px solid transparent;
+}
+
+.account-item:hover {
+    background: var(--glass-bg);
+}
+
+.account-item.active {
+    background: rgba(255, 68, 79, 0.1);
+    border-left-color: var(--primary-color);
+}
+
+.account-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.account-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary);
+}
+
+.account-item.active .account-icon {
+    background: var(--primary-color);
+}
+
+.account-item.active .account-icon svg {
+    color: white;
+}
+
+.account-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.account-id {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.account-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 6px;
+}
+
+.account-type-badge.real {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error-color);
+}
+
+.account-type-badge.demo {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.account-item:not(.active) .checkmark {
+    opacity: 0;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+    height: 1px;
+    background: var(--glass-border);
+    margin: 8px 0;
+}
+
+/* Dropdown Items (Actions) */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+}
+
+.dropdown-item:hover {
+    background: var(--glass-bg);
+    color: var(--text-primary);
+}
+
+.dropdown-item.help-item {
+    color: #fbbf24;
+}
+
+.dropdown-item.help-item:hover {
+    color: #f59e0b;
+}
+
+.dropdown-item.refresh-item {
+    color: #60a5fa;
+}
+
+.dropdown-item.refresh-item:hover {
+    color: #3b82f6;
+}
+
+.dropdown-item.signout-item {
+    color: var(--error-color);
+}
+
+.dropdown-item.signout-item:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dropdown-item:disabled:hover {
+    background: none;
+}
+
+/* Item Icons */
+.item-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .account-switcher-container {
+        margin-right: 10px;
+    }
+
+    .account-header {
+        min-width: 140px;
+        padding: 6px 10px;
+    }
+
+    .account-type-label {
+        font-size: 10px;
+    }
+
+    .account-balance {
+        font-size: 13px;
+    }
+
+    .account-dropdown-menu {
+        min-width: 260px;
+        right: -10px;
+    }
+
+    .account-item {
+        padding: 10px 12px;
+    }
+
+    .account-id {
+        font-size: 13px;
+    }
+
+    .account-meta {
+        font-size: 11px;
+    }
+}
+
+/* Animation for new account items */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.account-item {
+    animation: slideInDown var(--transition-base) ease-out;
+}
+
+/* Loading state */
+.account-switcher-loading {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--glass-border);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

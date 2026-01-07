@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ai_strategy_mobile.css">
     <link rel="stylesheet" href="tutorial_modal.css">
+    <link rel="stylesheet" href="account_switcher.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -240,12 +241,50 @@
                     🚨 EMERGENCY STOP
                 </button>
 
-                <!-- Account Switcher -->
-                <div class="account-switcher" id="accountSwitcher" style="display: none;">
-                    <label for="active-account-select" style="margin-right: 8px; font-size: 14px;">Account:</label>
-                    <select id="active-account-select" class="account-select">
-                        <option value="">--.--</option>
-                    </select>
+                <!-- Account Switcher - New Deriv Style -->
+                <div class="account-switcher-container" id="accountSwitcherContainer">
+                    <button class="account-header" id="accountDropdownToggle" aria-label="Account Switcher">
+                        <div class="account-info">
+                            <span class="account-type-label" id="accountTypeLabel">Demo account</span>
+                            <span class="account-balance" id="accountBalance">$ 0</span>
+                        </div>
+                        <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    
+                    <div class="account-dropdown-menu" id="accountDropdownMenu">
+                        <!-- Account list will be populated here -->
+                        <div class="account-list" id="accountList"></div>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- Help link -->
+                        <a href="#" class="dropdown-item help-item" id="accountNotShowingHelp">
+                            <span class="item-icon">⚠️</span>
+                            <span>Account not showing?</span>
+                        </a>
+                        
+                        <!-- Refresh demo account -->
+                        <button class="dropdown-item refresh-item" id="refreshDemoAccount" style="display: none;">
+                            <span class="item-icon">🔄</span>
+                            <span>Refresh demo account</span>
+                        </button>
+                        
+                        <!-- Hide details toggle -->
+                        <button class="dropdown-item toggle-item" id="hideDetailsToggle">
+                            <span class="item-icon">👁️</span>
+                            <span>Hide Details</span>
+                        </button>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- Sign out -->
+                        <button class="dropdown-item signout-item" id="signOutBtn">
+                            <span class="item-icon">🚪</span>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="balance-display" id="headerBalance" style="display: none;">
                     <svg class="balance-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1781,6 +1820,7 @@
     <script src="virtual_hook_manager.js"></script>
     <script src="settings_manager.js"></script>
     <script src="utils.js"></script>
+    <script src="account_switcher.js"></script>
     <script src="connection.js"></script>
     <script src="trading.js"></script>
     <script src="navigation.js"></script>

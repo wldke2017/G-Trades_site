@@ -288,6 +288,11 @@ function updateBalanceUI(balance, currency) {
     // Update localStorage
     localStorage.setItem('deriv_balance', balance);
     localStorage.setItem('deriv_currency', currency);
+    
+    // Update account switcher header
+    if (typeof updateAccountHeader === 'function') {
+        updateAccountHeader();
+    }
 }
 
 /**

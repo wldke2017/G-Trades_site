@@ -322,6 +322,20 @@ function handleOAuthCallback() {
  * Populates the account switcher dropdown with available accounts
  */
 function populateAccountSwitcher(accounts) {
+    // Use new UI if available, fallback to old implementation
+    if (typeof populateAccountSwitcherUI === 'function') {
+        populateAccountSwitcherUI(accounts);
+        
+        // Also update refresh demo button visibility
+        if (typeof updateRefreshDemoVisibility === 'function') {
+            updateRefreshDemoVisibility();
+        }
+        return;
+    }
+
+    // Fallback: Old implementation
+    console.warn('Using legacy account switcher');
+    
     // If no accounts provided, try to load from storage
     if (!accounts || accounts.length === 0) {
         const storedAccounts = localStorage.getItem('deriv_all_accounts');
