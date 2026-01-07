@@ -289,14 +289,16 @@
 @media (max-width: 768px) {
     .account-switcher-container {
         margin-right: 0;
+        overflow: visible !important;
+        position: relative !important;
     }
 
     .account-header {
         min-width: auto;
-        padding: 2px 6px;
-        gap: 3px;
-        height: 30px;
-        border-radius: 6px;
+        padding: 2px 4px;
+        gap: 2px;
+        height: 28px;
+        border-radius: 4px;
     }
 
     .account-info {
@@ -308,22 +310,22 @@
     }
 
     .account-balance {
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 700;
         white-space: nowrap;
     }
 
     .dropdown-arrow {
         display: block !important;
-        width: 10px !important;
-        height: 10px !important;
+        width: 8px !important;
+        height: 8px !important;
         color: var(--text-secondary);
     }
 
     .account-dropdown-menu {
         min-width: 260px;
         right: 0;
-        top: calc(100% + 2px);
+        top: calc(100% + 1px);
         z-index: 10000 !important;
         position: absolute;
     }
@@ -334,6 +336,7 @@
         opacity: 1 !important;
         max-height: 85vh !important;
         overflow-y: auto !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
     }
 
     .account-item {
