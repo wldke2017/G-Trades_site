@@ -417,6 +417,8 @@ function updateProfitLossDisplay() {
  * @param {number} profit - The profit/loss amount
  */
 function addBotTradeHistory(contract, profit) {
+    console.log(`📜 addBotTradeHistory called for ${contract.contract_id || 'unknown'} | Profit: ${profit}`);
+    console.log('Contract Data:', contract);
     const tableBody = document.querySelector('#bot-history-table tbody');
     if (!tableBody) {
         console.warn('⚠️ Bot history table not found!');

@@ -593,6 +593,11 @@ function handleIncomingMessage(msg) {
             if (contract.is_expired || contract.is_sold) {
                 const passthrough = data.echo_req.passthrough;
 
+                // DIAGNOSTIC LOG
+                if (passthrough && passthrough.purpose) {
+                    console.log(`POC Received for ${contract.contract_id} | Purpose: ${passthrough.purpose} | Status: ${contract.status}`);
+                }
+
                 // Check if this is an AI Strategy trade (Result Handling)
                 if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
                     // Check contract result
@@ -608,6 +613,9 @@ function handleIncomingMessage(msg) {
 
                 // Check if this is a Ghost AI bot trade that we need to process
                 else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
+
+                    console.log(`👻 MATCHED Ghost AI Trade: ${contract.contract_id}`);
+
 
                     // CRITICAL FIX: Improved contract cleanup logic
                     console.log(`🤖 Ghost AI Trade Result (Log Check): ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
