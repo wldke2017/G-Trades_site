@@ -475,3 +475,37 @@ function addBotTradeHistory(contract, profit) {
 // Ensure globally available
 window.addBotTradeHistory = addBotTradeHistory;
 window.updateProfitLossDisplay = updateProfitLossDisplay;
+
+// ===================================
+// WHATSAPP POPUP LOGIC
+// ===================================
+
+/**
+ * Close the WhatsApp popup modal
+ */
+function closeWhatsAppPopup() {
+    const modal = document.getElementById('whatsapp-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        console.log('✅ WhatsApp popup closed');
+    }
+}
+
+/**
+ * Show the WhatsApp popup modal with a delay
+ */
+function showWhatsAppPopup() {
+    const modal = document.getElementById('whatsapp-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        console.log('📱 WhatsApp popup shown');
+    }
+}
+
+// Initial show delay (5 seconds after page loads)
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(showWhatsAppPopup, 5000);
+});
+
+// Make close function globally available for the inline onclick handler
+window.closeWhatsAppPopup = closeWhatsAppPopup;

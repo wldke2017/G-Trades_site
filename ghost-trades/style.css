@@ -3969,3 +3969,74 @@ h4 {
         /* Hide desktop highlight line */
     }
 }
+
+/* ===================================
+   WHATSAPP POPUP MODAL
+   =================================== */
+.whatsapp-modal-content {
+    max-width: 480px !important;
+    background: linear-gradient(135deg, #0a150f 0%, #050a07 100%) !important;
+    border: 1px solid rgba(37, 211, 102, 0.2) !important;
+    box-shadow: 0 0 50px rgba(37, 211, 102, 0.15) !important;
+}
+
+.whatsapp-header {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.1) 0%, rgba(18, 140, 126, 0.05) 100%) !important;
+    padding: 50px 30px !important;
+    border: none !important;
+}
+
+.whatsapp-header h2 {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 0 30px rgba(37, 211, 102, 0.3) !important;
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+}
+
+.whatsapp-icon-large {
+    color: #25D366;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(37, 211, 102, 0.4));
+    animation: whatsappFloat 3s ease-in-out infinite;
+}
+
+@keyframes whatsappFloat {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.btn-whatsapp-join {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 36px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: white !important;
+    font-weight: 700;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-whatsapp-join:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(37, 211, 102, 0.5);
+    opacity: 0.9;
+}
