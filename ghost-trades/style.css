@@ -4287,3 +4287,58 @@ h4 {
     opacity: 0.9;
     transform: scale(1.02);
 }
+
+/* --- Responsive Landing Page Adjustments --- */
+
+/* Navigation Bar Responsive */
+@media (max-width: 768px) {
+
+    .navbar,
+    .nav-bar {
+        flex-direction: column !important;
+        padding: 15px !important;
+        height: auto !important;
+    }
+
+    .nav-links,
+    .nav-items {
+        display: none;
+        /* Hide links on mobile or toggle with a menu icon */
+        flex-direction: column;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Stack Hero and Content Sections */
+@media (max-width: 768px) {
+
+    .hero-container,
+    .features-grid,
+    .footer-content,
+    .bot-stats,
+    .ai-parameters-grid {
+        flex-direction: column !important;
+        text-align: center !important;
+        display: flex !important;
+    }
+
+    .hero-image,
+    .feature-card,
+    .stat-item,
+    .ai-param-group {
+        width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+        /* Reduce large heading sizes for small screens */
+    }
+}
+
+/* Image Scaling */
+img {
+    max-width: 100%;
+    height: auto;
+}
