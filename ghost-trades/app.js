@@ -474,8 +474,21 @@ function handleIncomingMessage(msg) {
                         <span>👻 Ghost Trade: ${contractInfo.contract_id} | Payout: ${payout} USD</span>
                     `);
 
-                    // NOTE: we do NOT send "proposal_open_contract" subscription here
-                    // because ghost_ai_bot.js sends "subscribe": 1 in the buy request itself.
+                    // CRITICAL: Subscribe to contract updates WITH passthrough data
+                    // This ensures when the result comes back, we can identify it as a ghost_ai_trade
+                    sendAPIRequest({
+                        "proposal_open_contract": 1,
+                        "contract_id": contractInfo.contract_id,
+                        "subscribe": 1,
+                        "passthrough": {
+                            "purpose": "ghost_ai_trade",
+                            "run_id": botState.runId,
+                            "symbol": passthrough.symbol,
+                            "barrier": passthrough.barrier,
+                            "strategy": strategy,
+                            "stake": passthrough.stake
+                        }
+                    });
                 }
             }
             // Check if this is a GHOST_E/ODD bot trade
