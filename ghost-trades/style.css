@@ -2568,21 +2568,33 @@ h4 {
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 6px !important;
+        gap: 8px !important;
         padding: 6px 12px !important;
         min-height: 54px;
+        overflow: hidden;
     }
 
     .header-left {
-        flex: 1 1 auto;
+        flex: 0 1 auto;
         min-width: 0;
     }
 
     .header-right {
-        flex: 0 0 auto;
+        flex: 1 1 auto;
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: flex-end;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    /* Hide connection text on mobile to save space */
+    .connection-status .status-text {
+        display: none !important;
+    }
+
+    .connection-status {
+        margin-right: 4px;
     }
 
     .site-branding {
@@ -2614,6 +2626,7 @@ h4 {
         width: 20px !important;
         height: 20px !important;
     }
+
 
 
     .section-header h2 {
