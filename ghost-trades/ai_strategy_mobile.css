@@ -639,6 +639,7 @@
         grid-template-columns: repeat(6, 1fr);
     }
 }
+
 /* Strategy List Styles */
 .ai-strategy-item {
     display: flex;
@@ -691,7 +692,76 @@
 }
 
 #ai-strategies-list::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1); 
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
 }
 
+/* --- Mobile Chatbot Responsive Refactor --- */
+
+@media (max-width: 600px) {
+    #ai-strategy-interface {
+        position: fixed !important;
+        bottom: 10px !important;
+        right: 10px !important;
+        width: 95vw !important;
+        max-width: 400px !important;
+        z-index: 9999 !important;
+        padding: 0 !important;
+    }
+
+    .ai-container {
+        padding: 10px !important;
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 15px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+        max-height: 90vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    /* Message Area (Logs) - Prevent keyboard overlap */
+    .ai-logs {
+        max-height: 50vh !important;
+        overflow-y: auto !important;
+        flex: 1 !important;
+    }
+
+    /* Input Group - Ensure visibility */
+    .ai-input-group {
+        margin-top: auto !important;
+        padding-top: 10px !important;
+        border-top: 1px solid var(--glass-border) !important;
+    }
+
+    .ai-prompt-box {
+        min-height: 80px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Mobile Fullscreen Mode */
+@media (max-width: 480px) {
+    #ai-strategy-interface {
+        width: 100vw !important;
+        height: 100vh !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+
+    .ai-container {
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        padding-bottom: constant(safe-area-inset-bottom) !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    .ai-logs {
+        max-height: 60vh !important;
+    }
+}
