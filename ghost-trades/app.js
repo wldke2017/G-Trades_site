@@ -443,10 +443,14 @@ function handleIncomingMessage(msg) {
 
                     // CRITICAL FIX: Track contract with actual contract_id from API
                     // This is the ONLY place we add to activeContracts for Ghost AI
+                    // Store detailed metadata to use as fallback if POC passthrough is missing
                     window.activeContracts[contractInfo.contract_id] = {
                         symbol: passthrough.symbol,
                         strategy: strategy,
                         stake: passthrough.stake,
+                        barrier: passthrough.barrier,
+                        run_id: passthrough.run_id,
+                        purpose: 'ghost_ai_trade',
                         startTime: Date.now()
                     };
 
@@ -598,8 +602,21 @@ function handleIncomingMessage(msg) {
                     console.log(`POC Received for ${contract.contract_id} | Purpose: ${passthrough.purpose} | Status: ${contract.status}`);
                 }
 
+                // FALLBACK LOGIC: If passthrough is missing/malformed, check local activeContracts
+                let effectivePassthrough = passthrough;
+                if ((!effectivePassthrough || !effectivePassthrough.purpose) && window.activeContracts[contract.contract_id]) {
+                    const localData = window.activeContracts[contract.contract_id];
+                    if (localData.purpose === 'ghost_ai_trade') {
+                        console.log(`⚠️ API Missing Passthrough for ${contract.contract_id}. Using LOCAL fallback.`);
+                        effectivePassthrough = localData;
+                    }
+                }
+
+                // Use effectivePassthrough for logic below
+                const currentPassthrough = effectivePassthrough;
+
                 // Check if this is an AI Strategy trade (Result Handling)
-                if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
+                if (currentPassthrough && currentPassthrough.purpose === 'ai_strategy_trade') {
                     // Check contract result
                     console.log(`🤖 AI Strategy Trade Result: ${contract.symbol} | Profit: ${contract.profit} `);
 
@@ -612,29 +629,19 @@ function handleIncomingMessage(msg) {
                 }
 
                 // Check if this is a Ghost AI bot trade that we need to process
-                else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
+                else if (currentPassthrough && currentPassthrough.purpose === 'ghost_ai_trade') {
 
                     console.log(`👻 MATCHED Ghost AI Trade: ${contract.contract_id}`);
 
 
                     // CRITICAL FIX: Improved contract cleanup logic
-                    console.log(`🤖 Ghost AI Trade Result (Log Check): ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
+                    console.log(`🤖 Ghost AI Trade Result (Log Check): ${contract.symbol} | Strategy: ${currentPassthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
                     console.log(`🔍 Active contracts before cleanup: `, Object.keys(window.activeContracts));
 
                     // Add symbol and barrier info to the contract for history logging
                     contract.symbol = passthrough.symbol;
                     contract.barrier = passthrough.barrier;
                     contract.strategy = passthrough.strategy || 'S1';
-
-                    // CRITICAL: Ensure fields required by addBotTradeHistory are present
-                    // ui.js expects: contract_type, buy_price
-                    if (!contract.contract_type) {
-                        contract.contract_type = (passthrough.barrier <= 4) ? 'DIGITOVER' : 'DIGITUNDER';
-                    }
-                    if (!contract.buy_price) {
-                        contract.buy_price = passthrough.stake;
-                    }
-
                     // Remove from active contracts tracking and release trade lock
                     // Use contract.contract_id as primary, fallback to contract.id
                     const contractIdToRemove = contract.contract_id || contract.id;
@@ -651,13 +658,13 @@ function handleIncomingMessage(msg) {
                             console.log(`🗑️ Removed expected stake for ${contractInfo.symbol}`);
 
                             // Also clear the trade signature
-                            clearTradeSignature(contractInfo.symbol, passthrough.barrier, stake, 'ghost_ai');
+                            clearTradeSignature(contractInfo.symbol, currentPassthrough.barrier, stake, 'ghost_ai');
                         }
 
                         // Remove from S1 symbols tracking if it was an S1 trade
                         if (contractInfo.strategy === 'S1') {
-                            console.log(`🔓 Removing ${contractInfo.symbol} from activeS1Symbols`);
                             window.activeS1Symbols.delete(contractInfo.symbol);
+                            console.log(`🔓 Released S1 Lock for ${contractInfo.symbol}`);
                         }
 
                         // Decrement S2 counter if it was an S2 trade
@@ -677,7 +684,7 @@ function handleIncomingMessage(msg) {
 
                         // Fallback: Clean up by symbol AND strategy to prevent stuck state
                         let foundAndRemoved = false;
-                        const targetStrategy = passthrough.strategy || 'S1';
+                        const targetStrategy = currentPassthrough.strategy || 'S1';
 
                         for (const [id, info] of Object.entries(window.activeContracts)) {
                             if (info.symbol === contract.symbol && info.strategy === targetStrategy) {
