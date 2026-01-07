@@ -2576,8 +2576,8 @@ h4 {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        align-items: center !important;
-        padding: 4px 8px !important;
+        align-items: flex-start !important;
+        padding: 8px 8px 4px !important;
         gap: 0 !important;
         overflow: visible !important;
         width: 100% !important;
@@ -2593,10 +2593,11 @@ h4 {
         order: 1 !important;
         flex: 1 !important;
         display: flex !important;
-        align-items: center !important;
+        align-items: flex-start !important;
         justify-content: flex-start !important;
         gap: 6px !important;
         overflow: visible !important;
+        padding-top: 2px !important;
     }
 
     /* 2. Center Slot: Logo */
@@ -2605,7 +2606,7 @@ h4 {
         flex: 0 0 auto !important;
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important;
+        align-items: flex-start !important;
         justify-content: center !important;
         text-align: center !important;
         overflow: visible !important;
@@ -2616,9 +2617,10 @@ h4 {
         order: 3 !important;
         flex: 1 !important;
         display: flex !important;
-        align-items: center !important;
+        align-items: flex-start !important;
         justify-content: flex-end !important;
         overflow: visible !important;
+        padding-top: 2px !important;
     }
 
     /* Branding - Ultra Compact */
@@ -2636,14 +2638,12 @@ h4 {
     .site-branding h1 {
         font-size: 0.8rem !important;
         white-space: nowrap !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
     }
 
     .powered-by {
-        display: block !important;
-        font-size: 0.45rem !important;
-        margin-top: 1px !important;
-        white-space: nowrap !important;
-        opacity: 0.7 !important;
+        display: none !important;
     }
 
     /* Connection Dot */
@@ -2679,58 +2679,10 @@ h4 {
     }
 }
 
-/* Desktop styles for the new group */
-.header-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.site-branding {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.site-branding h1 {
-    font-size: 0.9rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    white-space: nowrap;
-}
-
-.powered-by {
-    display: block !important;
-    font-size: 0.5rem !important;
-    margin-top: 1px !important;
-    white-space: nowrap;
-    opacity: 0.7;
-}
-
-.logo-wrapper {
-    gap: 4px !important;
-}
-
-.logo-icon {
-    width: 18px !important;
-    height: 18px !important;
-}
-
-/* Squeeze Navigation Bar */
-.nav-bar {
-    padding: 0 4px !important;
-    height: 40px !important;
-    min-height: auto !important;
-}
-
-.nav-item {
-    padding: 4px 8px !important;
-    font-size: 0.8rem !important;
-}
-
-.nav-icon {
-    width: 14px !important;
-    height: 14px !important;
+/* Dashboard Ultra-Compact Enhancements */
+.dashboard-grid {
+    gap: var(--spacing-sm) !important;
+    margin-top: var(--spacing-sm) !important;
 }
 
 
