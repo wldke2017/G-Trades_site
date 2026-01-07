@@ -288,25 +288,39 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .account-switcher-container {
-        margin-right: 10px;
+        margin-right: 0;
     }
 
     .account-header {
-        min-width: 140px;
-        padding: 6px 10px;
+        min-width: 100px;
+        padding: 4px 8px;
+        gap: 6px;
+    }
+
+    .account-info {
+        gap: 0;
     }
 
     .account-type-label {
-        font-size: 10px;
+        font-size: 9px;
+        display: none;
+        /* Hide label on mobile to save space, balance is enough */
     }
 
     .account-balance {
         font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .dropdown-arrow {
+        width: 14px;
+        height: 14px;
     }
 
     .account-dropdown-menu {
-        min-width: 260px;
-        right: -10px;
+        min-width: 280px;
+        right: 0;
+        top: calc(100% + 12px);
     }
 
     .account-item {
@@ -328,6 +342,7 @@
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

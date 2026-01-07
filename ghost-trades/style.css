@@ -2564,74 +2564,42 @@ h4 {
 
 @media (max-width: 640px) {
     .header-container {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        padding: var(--spacing-md);
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+        min-height: 60px;
     }
 
-    .balance-display {
-        width: 100%;
-        justify-content: center;
+    .header-left {
+        flex: 0 1 auto;
     }
 
-    .nav-bar {
-        padding: 0 var(--spacing-md);
-        overflow-x: auto;
+    .header-right {
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
     }
 
-    .nav-item {
-        padding: var(--spacing-md);
+    .site-branding h1 {
+        font-size: 1.1rem !important;
         white-space: nowrap;
     }
 
-    .main-content {
-        padding: 0 var(--spacing-md);
-        margin: var(--spacing-md) auto;
+    .powered-by {
+        display: none !important;
+        /* Hide to save space on mobile row */
     }
 
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .connection-status {
-        top: 60px;
-        right: 10px;
-        font-size: 0.75rem;
-    }
-
-    .toast-container {
-        right: 10px;
-        left: 10px;
-        max-width: none;
-    }
-
-    .trading-interface {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-    }
-
-    .trading-controls {
-        padding: var(--spacing-md);
-    }
-
-    .trading-main-area {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-    }
-
-    .chart-container {
-        min-height: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .site-branding h1 {
-        font-size: 1.25rem;
+    .logo-wrapper {
+        gap: 6px !important;
     }
 
     .logo-icon {
-        width: 24px;
-        height: 24px;
+        width: 22px !important;
+        height: 22px !important;
     }
 
     .section-header h2 {
@@ -2640,6 +2608,40 @@ h4 {
 
     .trade-actions {
         flex-direction: column;
+    }
+
+    /* Dashboard Compact Enhancements */
+    .dashboard-grid {
+        gap: var(--spacing-md) !important;
+    }
+
+    .dashboard-card {
+        padding: var(--spacing-md) !important;
+        gap: var(--spacing-md) !important;
+        min-height: auto !important;
+    }
+
+    .card-icon {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .card-content h3 {
+        font-size: 0.8rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    .card-value {
+        font-size: 1.15rem !important;
+    }
+
+    .account-overview-header {
+        margin-bottom: var(--spacing-md) !important;
+    }
+
+    .account-overview-header h2 {
+        font-size: 1.15rem !important;
     }
 }
 
