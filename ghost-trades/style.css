@@ -2684,6 +2684,99 @@ h4 {
     }
 }
 
+/* --- Mobile Top Bar & Nav Refactor (Screens < 600px) --- */
+@media (max-width: 600px) {
+
+    /* Header Tier - Flex Wrap for Logo/Balance */
+    .header-container {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        padding: 10px !important;
+        gap: 10px !important;
+    }
+
+    .header-left {
+        flex: 1 1 auto !important;
+    }
+
+    .header-right {
+        flex: 0 0 auto !important;
+        justify-content: flex-end !important;
+    }
+
+    /* Logo Size Reduction (20%) */
+    .site-branding h1 {
+        font-size: 0.68rem !important;
+        /* 0.85rem * 0.8 */
+    }
+
+    .powered-by {
+        font-size: 0.36rem !important;
+        /* 0.45rem * 0.8 */
+    }
+
+    .logo-icon {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    /* Balance Size Reduction (20%) */
+    .account-balance {
+        font-size: 8.4px !important;
+        /* 10.5px * 0.8 */
+    }
+
+    /* Navigation Tier - Horizontal Scrolling */
+    .nav-bar {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        gap: 15px !important;
+        padding: 10px 5px !important;
+        height: auto !important;
+        border-bottom: 1px solid #333 !important;
+        -webkit-overflow-scrolling: touch !important;
+        /* Smooth scroll */
+        background: var(--bg-secondary) !important;
+    }
+
+    /* Hide scrollbar but keep functionality */
+    .nav-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-item {
+        flex: 0 0 auto !important;
+        /* Prevents items from shrinking */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        font-size: 10px !important;
+        padding: 5px 8px !important;
+        gap: 4px !important;
+        position: relative !important;
+    }
+
+    .nav-icon {
+        margin: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    /* Active State Styling */
+    .nav-item.active {
+        color: var(--primary-color) !important;
+        border-bottom: 2px solid var(--primary-color) !important;
+        text-shadow: 0 0 8px rgba(255, 68, 79, 0.4) !important;
+    }
+
+    .nav-text {
+        font-size: 10px !important;
+    }
+}
+
 /* Desktop styles for the new group */
 .header-actions-group {
     display: flex;
@@ -2789,7 +2882,6 @@ h4 {
 
 .main-content {
     margin-top: var(--spacing-sm) !important;
-}
 }
 
 /* ===================================
