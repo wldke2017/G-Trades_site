@@ -618,6 +618,15 @@ function handleIncomingMessage(msg) {
                     contract.barrier = passthrough.barrier;
                     contract.strategy = passthrough.strategy || 'S1';
 
+                    // CRITICAL: Ensure fields required by addBotTradeHistory are present
+                    // ui.js expects: contract_type, buy_price
+                    if (!contract.contract_type) {
+                        contract.contract_type = (passthrough.barrier <= 4) ? 'DIGITOVER' : 'DIGITUNDER';
+                    }
+                    if (!contract.buy_price) {
+                        contract.buy_price = passthrough.stake;
+                    }
+
                     // Remove from active contracts tracking and release trade lock
                     // Use contract.contract_id as primary, fallback to contract.id
                     const contractIdToRemove = contract.contract_id || contract.id;
