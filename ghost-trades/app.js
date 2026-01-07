@@ -593,6 +593,9 @@ function handleIncomingMessage(msg) {
             if (contract.is_expired || contract.is_sold) {
                 const passthrough = data.echo_req.passthrough;
 
+                console.log(`🔔 POC Update: ${contract.contract_id} | is_expired: ${contract.is_expired} | is_sold: ${contract.is_sold} | status: ${contract.status}`);
+                console.log(`🔍 Passthrough:`, passthrough);
+
                 // Check if this is an AI Strategy trade (Result Handling)
                 if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
                     // Check contract result
@@ -608,9 +611,10 @@ function handleIncomingMessage(msg) {
 
                 // Check if this is a Ghost AI bot trade that we need to process
                 else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
+                    console.log(`✅ MATCHED Ghost AI Trade: ${contract.contract_id}`);
 
                     // CRITICAL FIX: Improved contract cleanup logic
-                    console.log(`🤖 Ghost AI Trade Result (Log Check): ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
+                    console.log(`🤖 Ghost AI Trade Result: ${contract.symbol} | Strategy: ${passthrough.strategy || 'S1'} | Profit: ${contract.profit} | Contract ID: ${contract.contract_id}`);
                     console.log(`🔍 Active contracts before cleanup: `, Object.keys(window.activeContracts));
 
                     // Add symbol and barrier info to the contract for history logging
@@ -725,23 +729,17 @@ function handleIncomingMessage(msg) {
                     console.log(`🔍 Active contracts after cleanup: `, Object.keys(window.activeContracts));
                     console.log(`🔍 Active S1 symbols after cleanup: `, Array.from(window.activeS1Symbols));
 
+
                     // STOP LIVE CONTRACT MONITORING - Remove from live tracker
                     if (typeof removeLiveContract === 'function') {
                         removeLiveContract(contractIdToRemove);
                     }
 
                     // CRITICAL: Only add to history if not already processed (prevents duplicates)
-                    if (!window.processedContracts.has(contractIdToRemove)) {
-                        addBotTradeHistory(contract, contract.profit);
-                        window.processedContracts.add(contractIdToRemove);
-                        console.log(`✅ Added contract ${contractIdToRemove} to trade history`);
-                    } else {
-                        console.log(`⚠️ Skipped duplicate history entry for contract ${contractIdToRemove}`);
-                    }
-
-                    // CRITICAL: Only add to history if not already processed (prevents duplicates)
                     // Use contract_id consistently
                     if (!window.processedContracts.has(contractIdToRemove)) {
+                        console.log(`📝 About to call addBotTradeHistory for ${contractIdToRemove}`);
+                        console.log(`📝 Contract data:`, { symbol: contract.symbol, contract_type: contract.contract_type, buy_price: contract.buy_price, profit: contract.profit });
                         addBotTradeHistory(contract, contract.profit);
                         window.processedContracts.add(contractIdToRemove);
                         console.log(`✅ Added contract ${contractIdToRemove} to trade history`);
