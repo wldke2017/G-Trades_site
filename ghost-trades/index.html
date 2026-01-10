@@ -200,9 +200,9 @@
     </div>
 
     <header>
-        <div class="header-container">
+        <div class="header-container glass-premium">
             <div class="header-left">
-                <div class="site-branding">
+                <div class="site-branding shimmer-effect">
                     <div class="logo-wrapper">
                         <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
@@ -212,7 +212,7 @@
                             <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" />
                         </svg>
-                        <h1>Ghost_Trades</h1>
+                        <h1 class="gradient-text">Ghost_Trades</h1>
                     </div>
                     <span class="powered-by">powered by <span class="deriv-red">deriv</span></span>
                 </div>
@@ -290,7 +290,7 @@
             </div>
         </div>
 
-        <nav class="nav-bar">
+        <nav class="nav-bar glass-premium">
             <a href="#" id="dashboard-nav" class="nav-item active">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
@@ -492,15 +492,20 @@
                 </div>
             </div>
 
-            <!-- Tutorial Button -->
-            <div style="margin-top: 30px; text-align: center;">
-                <button onclick="openTutorial()" class="btn-secondary" style="padding: 12px 24px; font-size: 16px;">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                        style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-                        <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                    <span>📚 Quick Start Guide</span>
+            <!-- Premium Quick Start Button -->
+            <div style="margin-top: 40px; text-align: center;">
+                <button onclick="openTutorial()" class="btn-quick-start glow-pulse">
+                    <div class="btn-quick-content">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="btn-quick-icon">
+                            <path
+                                d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path
+                                d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83701 4.26339 3.20112 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="btn-quick-text">MASTER THE GHOST: QUICK START GUIDE</span>
+                    </div>
                 </button>
             </div>
         </section>
