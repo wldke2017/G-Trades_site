@@ -1159,24 +1159,23 @@ h4 {
     gap: var(--spacing-lg);
 }
 
-.card {
+.stat-card {
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    transition: var(--transition-bounce);
+    border: 1px solid var(--glass-border);
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
     box-shadow: var(--shadow-md);
-    transition: all var(--transition-base);
 }
 
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-}
-
-.stat-card {
-    display: flex;
-    gap: var(--spacing-lg);
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(255, 68, 79, 0.3);
+    box-shadow: var(--shadow-xl), 0 0 20px rgba(255, 68, 79, 0.1);
 }
 
 .stat-card.highlight {
