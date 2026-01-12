@@ -1,0 +1,170 @@
+/* ===================================
+   GHOST_TRADES - MARKET SUMMARY
+   Signal Grids, Market Analysis, and Bot Stats
+   =================================== */
+
+/* --- Market Summary Interface --- */
+.market-summary-interface {
+    display: none;
+    animation: fadeInUp 0.5s ease;
+}
+
+.market-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.market-summary-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.market-summary-controls {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.bot-parameters-section {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.bot-parameters-section h4 {
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.125rem;
+}
+
+.parameters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.signals-grid-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    overflow-x: auto;
+}
+
+.signals-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.signals-table th {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+.signals-table td {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap;
+}
+
+.market-col {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.digit-signal {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+}
+
+.over-prob,
+.under-prob {
+    font-weight: 600;
+}
+
+.market-summary-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    min-height: 300px;
+}
+
+.bot-stats-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.bot-stats-panel h4 {
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.125rem;
+}
+
+.bot-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.bot-stats-item {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.bot-stats-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.bot-stats-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- Market Summary Responsive --- */
+@media (max-width: 1024px) {
+    .market-summary-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .market-summary-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .parameters-grid {
+        grid-template-columns: 1fr;
+    }
+}

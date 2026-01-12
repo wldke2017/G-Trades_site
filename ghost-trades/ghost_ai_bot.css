@@ -1,0 +1,273 @@
+/* ===================================
+   GHOST_TRADES - GHOST AI BOT
+   Bot Interface, Controls, Logs, and History
+   =================================== */
+
+/* --- Ghost AI Interface --- */
+.ghostai-interface {
+    display: none;
+    animation: fadeInUp 0.5s ease;
+}
+
+.bot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) 0;
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 2px solid var(--glass-border);
+}
+
+.bot-title-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.bot-title-section h2 {
+    font-size: 1.75rem;
+}
+
+.bot-strategy-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bot-profit-display {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.profit-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profit-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    transition: color var(--transition-base);
+}
+
+.profit-value.pl-win {
+    color: var(--success-color);
+}
+
+.profit-value.pl-loss {
+    color: var(--error-color);
+}
+
+.bot-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 1fr;
+    grid-template-areas: "controls status history";
+    gap: var(--spacing-lg);
+    min-height: 600px;
+}
+
+.bot-controls {
+    grid-area: controls;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.bot-controls h4 {
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-bot {
+    padding: var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-top: auto;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, var(--success-color), var(--success-light));
+    color: white;
+}
+
+.btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+.btn-stop {
+    background: linear-gradient(135deg, var(--error-color), var(--error-light));
+    color: white;
+}
+
+.btn-stop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+}
+
+.bot-status-container {
+    grid-area: status;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.bot-status {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.bot-log {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    height: 400px;
+    max-height: 400px;
+    min-height: 200px;
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    overflow-y: auto;
+    font-size: 0.8125rem;
+    line-height: 1.8;
+}
+
+.log-win {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.log-loss {
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+.log-trade {
+    color: #3b82f6;
+}
+
+.bot-history {
+    grid-area: history;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+/* --- Bot Control Panel (Deriv Style) --- */
+.bot-control-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 15px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bot-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.indicator-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #666;
+}
+
+.bot-running .indicator-dot {
+    background: var(--success-color);
+    box-shadow: 0 0 10px var(--success-glow);
+}
+
+/* --- Bot Interface Responsive --- */
+@media (max-width: 1400px) {
+    .bot-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "controls status"
+            "controls history";
+    }
+}
+
+@media (max-width: 1024px) {
+    .bot-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "controls"
+            "status"
+            "history";
+    }
+}
+
+@media (max-width: 768px) {
+    .bot-header-section {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .bot-profit-display {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .bot-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 640px) {
+    .bot-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .bot-controls,
+    .bot-status,
+    .bot-history {
+        padding: var(--spacing-lg);
+    }
+}

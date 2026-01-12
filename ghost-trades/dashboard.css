@@ -1,0 +1,296 @@
+/* ===================================
+   GHOST_TRADES - DASHBOARD & HOME
+   Stats Grid, Cards, and Tutorials Launcher
+   =================================== */
+
+/* --- Dashboard Section --- */
+.dashboard {
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    animation: fadeInUp 0.5s ease;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+}
+
+.btn-refresh {
+    width: 40px;
+    height: 40px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+}
+
+.btn-refresh:hover {
+    background: var(--bg-secondary);
+    transform: rotate(180deg);
+}
+
+.btn-refresh svg {
+    width: 20px;
+    height: 20px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.stat-card {
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    transition: var(--transition-bounce);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(255, 68, 79, 0.3);
+    box-shadow: var(--shadow-xl), 0 0 20px rgba(255, 68, 79, 0.1);
+}
+
+.stat-card.highlight {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border-color: var(--success-color);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color);
+}
+
+.stat-card.highlight .card-icon svg {
+    color: var(--success-color);
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-content h3 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.balance-large {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--success-color);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- Tutorials Launcher Card --- */
+.tutorial-launcher-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 60px 40px;
+    margin-bottom: 40px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--glass-shadow);
+}
+
+.tutorial-launcher-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
+
+.tutorial-launcher-card::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.tutorial-launcher-card::after {
+    content: '🐂';
+    position: absolute;
+    font-size: 180px;
+    opacity: 0.05;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    filter: blur(2px);
+    pointer-events: none;
+    transition: all 0.4s ease;
+}
+
+.tutorial-launcher-card:hover::after {
+    opacity: 0.08;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.launcher-title {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 16px 0;
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    text-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+}
+
+.launcher-description {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 32px 0;
+    font-size: 1.2rem;
+    color: #cbd5e1;
+    max-width: 550px;
+    line-height: 1.6;
+}
+
+.btn-launcher-start {
+    position: relative;
+    z-index: 1;
+    padding: 16px 48px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    overflow: hidden;
+    outline: none;
+}
+
+.btn-launcher-start::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-launcher-start:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.6);
+}
+
+.btn-launcher-start:hover::before {
+    left: 100%;
+}
+
+/* --- Dashboard Responsive --- */
+@media (max-width: 1400px) {
+    .dashboard-card {
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .card-icon svg {
+        width: 35px;
+        height: 35px;
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+    }
+
+    .balance-large {
+        font-size: 1.5rem;
+    }
+
+    .tutorial-launcher-card {
+        padding: 40px 20px;
+    }
+
+    .launcher-title {
+        font-size: 2.2rem;
+    }
+
+    .launcher-description {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .dashboard-grid {
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+}
