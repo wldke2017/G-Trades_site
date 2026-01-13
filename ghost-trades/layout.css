@@ -220,6 +220,8 @@ header {
     position: relative;
     border-radius: 30px;
     border: 1px solid transparent;
+    overflow: hidden;
+    /* Fix: Contain sweep animation */
 }
 
 .nav-item::before {
@@ -232,6 +234,8 @@ header {
     background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
     transition: width var(--transition-base);
     box-shadow: 0 0 10px var(--primary-glow);
+    pointer-events: none;
+    /* Fix: Don't capture clicks */
 }
 
 .nav-item::after {
@@ -243,6 +247,8 @@ header {
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 68, 79, 0.1), transparent);
     transition: left var(--transition-slow);
+    pointer-events: none;
+    /* Fix: Don't capture clicks */
 }
 
 .nav-item:hover {
@@ -529,6 +535,32 @@ header {
         border-radius: 8px !important;
         border: none !important;
         margin: 0 !important;
+        overflow: hidden !important;
+        /* Fix for click overlap */
+    }
+
+    /* Reset desktop hover effects on mobile */
+    .nav-item::before,
+    .nav-item::after {
+        display: none !important;
+    }
+
+    /* Restore active state indicator for mobile */
+    .nav-item.active::after {
+        display: block !important;
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: var(--primary-color);
+        box-shadow: 0 0 8px var(--primary-color);
+        border-radius: 2px;
+        width: auto !important;
+        /* Override desktop width */
+        top: auto !important;
+        /* Override desktop top */
     }
 
     .nav-icon {

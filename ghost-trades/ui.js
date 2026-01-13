@@ -288,7 +288,7 @@ function updateBalanceUI(balance, currency) {
     // Update localStorage
     localStorage.setItem('deriv_balance', balance);
     localStorage.setItem('deriv_currency', currency);
-    
+
     // Update account switcher header
     if (typeof updateAccountHeader === 'function') {
         updateAccountHeader();
@@ -358,7 +358,7 @@ function updateGhostAIButtonStates(isRunning) {
         if (button) {
             if (isRunning) {
                 button.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="6" y="6" width="12" height="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span>Stop Bot</span>
@@ -367,7 +367,7 @@ function updateGhostAIButtonStates(isRunning) {
                 button.classList.add('btn-stop', 'stop-button');
             } else {
                 button.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span>Start Bot</span>

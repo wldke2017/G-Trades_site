@@ -156,11 +156,11 @@ function handleIncomingMessage(msg) {
         // Update trade message if it's a purchase error
         if (data.msg_type === 'buy') {
             tradeMessageContainer.innerHTML = `
-    < svg class="message-icon" viewBox = "0 0 24 24" fill = "none" xmlns = "http://www.w3.org/2000/svg" >
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg >
+     < svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
+                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                     <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                     <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                 </svg >
     <span>❌ ${userMessage}</span>
 `;
         }
@@ -467,7 +467,7 @@ function handleIncomingMessage(msg) {
                     // Update Main UI Message
                     const payout = parseFloat(contractInfo.payout).toFixed(2);
                     updateTradeMessageUI(`
-                        <svg class="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -578,7 +578,7 @@ function handleIncomingMessage(msg) {
                 showToast(`Trade placed successfully! Contract ID: ${contractInfo.contract_id} `, 'success');
 
                 updateTradeMessageUI(`
-    < svg class="message-icon" viewBox = "0 0 24 24" fill = "none" xmlns = "http://www.w3.org/2000/svg" >
+    < svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg >
