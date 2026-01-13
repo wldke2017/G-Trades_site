@@ -757,7 +757,7 @@ function handleBotTick(tick) {
     }
     isScanning = false;
 }
-}
+
 
 function scanAndPlaceMultipleTrades() {
     const symbolsToScan = Object.keys(marketTickHistory).filter(isAllowedBotMarket);
