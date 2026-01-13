@@ -200,6 +200,8 @@ header {
     border-radius: 50px;
     height: 60px;
     align-items: center;
+    position: relative;
+    z-index: 100;
 }
 
 .nav-item {
