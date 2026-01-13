@@ -330,11 +330,13 @@
     }
 
     .account-dropdown-menu {
-        min-width: 260px;
-        right: 0;
-        top: calc(100% + 1px);
+        min-width: 240px;
+        max-width: calc(100vw - 20px);
+        right: 10px;
+        left: auto;
+        top: calc(100% + 4px);
         z-index: 10000 !important;
-        position: absolute;
+        position: fixed;
     }
 
     .account-dropdown-menu.open {
@@ -352,10 +354,16 @@
 
     .account-id {
         font-size: 13px;
+        word-break: break-all;
     }
 
     .account-meta {
         font-size: 11px;
+    }
+
+    .dropdown-item {
+        font-size: 13px;
+        padding: 10px 12px;
     }
 }
 
