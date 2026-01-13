@@ -6,8 +6,10 @@
     position: relative;
     display: none;
     margin-right: 15px;
+    z-index: 1001;
 }
 
+/* Show container when visible class is added (after login) */
 .account-switcher-container.visible {
     display: block;
 }
@@ -65,6 +67,10 @@
     height: 16px;
     color: var(--text-secondary);
     transition: transform var(--transition-base);
+    display: block;
+    /* Ensure arrow is always visible */
+    flex-shrink: 0;
+    /* Prevent arrow from shrinking */
 }
 
 .account-header.open .dropdown-arrow {
@@ -81,7 +87,7 @@
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl);
-    z-index: 1000;
+    z-index: 1002;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
