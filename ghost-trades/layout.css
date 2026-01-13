@@ -82,6 +82,8 @@ header {
     align-items: center;
     border-radius: var(--radius-lg);
     border: 1px solid var(--glass-border);
+    position: relative;
+    z-index: 200;
     overflow: visible;
 }
 

@@ -73,6 +73,13 @@ class GhostBackgroundService {
             if (passthrough) {
                 this.activeContracts.set(contractId, passthrough);
                 console.log(`👻 Ghost Trade Placed: ID ${contractId} (${passthrough.strategy})`);
+
+                // ADD TO LIVE MONITOR
+                if (typeof window.addLiveContract === 'function') {
+                    const entryTick = data.buy.entry_tick_display_value ? parseInt(data.buy.entry_tick_display_value.slice(-1)) : '?';
+                    const contractType = (passthrough.barrier <= 4) ? 'OVER' : 'UNDER';
+                    window.addLiveContract(contractId, passthrough.symbol, entryTick, passthrough.barrier, contractType);
+                }
             }
 
             // Subscribe to this contract specifically?
@@ -87,6 +94,11 @@ class GhostBackgroundService {
             if (contract.is_sold) {
                 const isWin = contract.status === 'won';
                 const profit = parseFloat(contract.profit);
+
+                // REMOVE FROM LIVE MONITOR
+                if (typeof window.removeLiveContract === 'function') {
+                    window.removeLiveContract(contractId);
+                }
 
                 // Retrieve metadata
                 const metadata = this.activeContracts.get(contractId);
@@ -103,6 +115,11 @@ class GhostBackgroundService {
 
                     // Cleanup
                     this.activeContracts.delete(contractId);
+                }
+            } else {
+                // UPDATE LIVE MONITOR
+                if (typeof window.updateLiveContractMonitor === 'function' && contract.current_spot_display_value) {
+                    window.updateLiveContractMonitor(contractId, contract.symbol, contract.current_spot_display_value);
                 }
             }
         }

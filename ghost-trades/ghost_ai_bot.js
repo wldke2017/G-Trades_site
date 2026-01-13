@@ -679,6 +679,16 @@ function addLiveContract(contractId, symbol, entryTick, barrier, contractType) {
     };
     addBotLog(`🔴 Live Monitor: Tracking ${symbol} (${contractType} ${barrier})`, 'info');
     renderLiveContracts();
+
+    // Auto-expand monitor section
+    const monitorContent = document.getElementById('live-contract-monitor');
+    const monitorArrow = document.getElementById('arrow-live-contract-monitor');
+    const placeholder = document.getElementById('placeholder-live-contract-monitor');
+    if (monitorContent && monitorContent.classList.contains('collapsed')) {
+        monitorContent.classList.remove('collapsed');
+        if (monitorArrow) monitorArrow.classList.remove('collapsed');
+        if (placeholder) placeholder.style.display = 'none';
+    }
 }
 window.addLiveContract = addLiveContract;
 
@@ -731,19 +741,22 @@ function handleBotTick(tick) {
         }
     });
 
-    if (!isScanning && now - lastScanTime > SCAN_COOLDOWN && now - lastTradeTime > TRADE_COOLDOWN) {
-        isScanning = true;
-        lastScanTime = now;
+    // Log scan status with more detail
+    const total = Object.keys(marketTickHistory).length;
+    const ready = Object.keys(marketTickHistory).filter(s =>
+        marketTickHistory[s] && marketTickHistory[s].length >= 20
+    ).length;
 
-        // Log scan attempt
-        const readyMarkets = Object.keys(marketTickHistory).filter(s =>
-            marketTickHistory[s] && marketTickHistory[s].length >= 20
-        ).length;
-        console.log(`🔍 Scan triggered - ${readyMarkets} markets ready`);
-
+    if (ready > 0) {
+        console.log(`🔍 Scanning ${ready}/${total} ready markets...`);
         scanAndPlaceMultipleTrades();
-        isScanning = false;
+    } else {
+        if (now - lastScanTime > 30000) { // Log warning every 30s
+            addBotLog(`⏳ Waiting for markets: ${ready}/${total} ready`, 'info');
+        }
     }
+    isScanning = false;
+}
 }
 
 function scanAndPlaceMultipleTrades() {
@@ -902,7 +915,10 @@ function scanAndPlaceMultipleTrades() {
         const accumulatedLosses = botState.accumulatedStakesLost;
         const recoveryMultiplier = 100 / botState.payoutPercentage;
         const calculatedStake = parseFloat((accumulatedLosses * recoveryMultiplier).toFixed(2));
-        selected.stake = calculatedStake;
+        selected.stake = Math.max(calculatedStake, botState.initialStake); // Ensure minimum stake
+        selected.stake = parseFloat(selected.stake.toFixed(2));
+
+        addBotLog(`🎯 [S2] Recovery selected: ${selected.symbol} | Stake: $${selected.stake} (Recovers: $${accumulatedLosses.toFixed(2)})`, 'warning');
 
         recordPendingStake(selected.symbol, calculatedStake, 'ghost_ai');
         recordTradeSignature(selected.symbol, selected.prediction, calculatedStake, 'ghost_ai');

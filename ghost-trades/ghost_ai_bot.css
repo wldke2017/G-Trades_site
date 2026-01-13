@@ -271,3 +271,108 @@
         padding: var(--spacing-lg);
     }
 }
+
+/* --- Live Contract Monitor --- */
+#live-contracts-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+}
+
+.no-contracts {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+    padding: var(--spacing-xl) 0;
+    font-style: italic;
+}
+
+.live-contract-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: all var(--transition-base);
+}
+
+.live-contract-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--primary-color);
+}
+
+.contract-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.contract-header .symbol {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.contract-header .type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.contract-header .type.over {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success-color);
+}
+
+.contract-header .type.under {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error-color);
+}
+
+.ticks-visual {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin: var(--spacing-sm) 0;
+}
+
+.tick-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+
+.tick-circle.entry-tick {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.tick-circle.win-tick {
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.tick-circle.loss-tick {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+.contract-footer {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}

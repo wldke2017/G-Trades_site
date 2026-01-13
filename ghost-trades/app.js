@@ -1005,20 +1005,27 @@ function handleIncomingMessage(msg) {
                     sendAPIRequest({ "forget": contract.id });
                     currentContractId = null;
                 }
-            } else if (contract.contract_id === currentContractId) {
-                const pnl = parseFloat(contract.profit).toFixed(2);
-                const pnlClass = pnl >= 0 ? 'price-up' : 'price-down';
-
-                // Show real-time technical indicators during trade
-                let techIndicatorText = '';
-                if (emaValue !== null || smaValue !== null) {
-                    techIndicatorText = ` | EMA: ${emaValue ? emaValue.toFixed(2) : 'N/A'} SMA: ${smaValue ? smaValue.toFixed(2) : 'N/A'}`;
+            } else {
+                // UPDATE LIVE MONITOR FOR ALL OPEN CONTRACTS
+                if (typeof window.updateLiveContractMonitor === 'function' && contract.current_spot_display_value) {
+                    window.updateLiveContractMonitor(contract.contract_id, contract.symbol, contract.current_spot_display_value);
                 }
 
-                updateTradeMessageUI(`
-                    Contract Open: Running P/L: <span class="${pnlClass}">${pnl} ${contract.currency}</span>
-                    (Entry: ${contract.entry_tick_display_value})${techIndicatorText}
-                `);
+                if (contract.contract_id === currentContractId) {
+                    const pnl = parseFloat(contract.profit).toFixed(2);
+                    const pnlClass = pnl >= 0 ? 'price-up' : 'price-down';
+
+                    // Show real-time technical indicators during trade
+                    let techIndicatorText = '';
+                    if (emaValue !== null || smaValue !== null) {
+                        techIndicatorText = ` | EMA: ${emaValue ? emaValue.toFixed(2) : 'N/A'} SMA: ${smaValue ? smaValue.toFixed(2) : 'N/A'}`;
+                    }
+
+                    updateTradeMessageUI(`
+                        Contract Open: Running P/L: <span class="${pnlClass}">${pnl} ${contract.currency}</span>
+                        (Entry: ${contract.entry_tick_display_value})${techIndicatorText}
+                    `);
+                }
             }
             break;
 
