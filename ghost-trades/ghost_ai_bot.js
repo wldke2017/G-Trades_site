@@ -1232,6 +1232,36 @@ document.addEventListener('DOMContentLoaded', () => {
 // DUAL SOCKET HANDLERS
 // ===================================
 
+function handleGhostTradeResult(result) {
+    const profitText = result.isWin ? 'WIN' : 'LOSS';
+    const profitColor = result.isWin ? 'win' : 'loss';
+    addBotLog(`👻 [Virtual] ${result.passthrough.strategy}: ${profitText} ($${result.profit.toFixed(2)})`, profitColor);
+
+    addVirtualTradeHistory(result);
+
+    if (!result.isWin) {
+        if (result.passthrough.strategy === 'S1') {
+            if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
+        }
+
+        const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
+        const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
+        const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
+        const hookEnabled = enabledInput && enabledInput.checked;
+
+        if (hookEnabled && botState.s1ConsecutiveLosses >= hookTrigger) {
+            addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveLosses} Losses). Next Trade on REAL Account.`, 'warning');
+            botState.nextTradeReal = true;
+        }
+    } else {
+        if (result.passthrough.strategy === 'S1') {
+            botState.s1ConsecutiveLosses = 0;
+        }
+        // Ensure we stay on Ghost (default)
+        botState.nextTradeReal = false;
+    }
+}
+
 function addVirtualTradeHistory(result) {
     console.log(`📜 addVirtualTradeHistory called for ${result.passthrough.symbol}`);
     const tableBody = document.querySelector('#bot-history-table tbody');
@@ -1293,78 +1323,4 @@ function addVirtualTradeHistory(result) {
     if (tableBody.rows.length > 50) {
         tableBody.deleteRow(50);
     }
-}
-if (result.passthrough.strategy === 'S1') {
-    if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
-}
-
-const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
-const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
-const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
-const hookEnabled = enabledInput && enabledInput.checked;
-
-if (hookEnabled && botState.s1ConsecutiveLosses >= hookTrigger) {
-    addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveLosses} Losses). Next Trade on REAL Account.`, 'warning');
-    botState.nextTradeReal = true;
-}
-    } else {
-    if (result.passthrough.strategy === 'S1') {
-        botState.s1ConsecutiveLosses = 0;
-    }
-    // Ensure we stay on Ghost (default)
-    botState.nextTradeReal = false;
-}
-}
-
-
-function addVirtualTradeHistory(result) {
-    console.log(`📜 addVirtualTradeHistory called for ${result.passthrough.symbol}`);
-    const tableBody = document.querySelector('#bot-history-table tbody');
-    if (!tableBody) {
-        console.error('❌ addVirtualTradeHistory: Table body #bot-history-table tbody NOT FOUND');
-        return;
-    }
-    console.log('✅ addVirtualTradeHistory: Table body found, adding row...');
-
-    const row = document.createElement('tr');
-    const time = new Date().toLocaleTimeString();
-    const profitClass = result.isWin ? 'profit-positive' : 'profit-negative';
-    const profitLabel = result.isWin ? 'VH WIN' : 'VH LOSS';
-    const stakeLabel = 'Virtual';
-    // User requested "CALL/PUT" style or similar, but for Digits it is OVER/UNDER
-    const contractType = result.contract.contract_type ? result.contract.contract_type.replace('DIGIT', '') : '-';
-    // Use contract_id if available, otherwise fallback to symbol as reference
-    const refId = result.contract.contract_id || 'Virtual';
-
-    // Layout matching standard Deriv tables: 
-    // Time | Contract Info | P/L
-    // Note: The main table has Time, Contract, P/L columns.
-    // We need to match that structure.
-
-    // Cell 1: Time
-    const timeCell = document.createElement('td');
-    timeCell.textContent = time;
-    row.appendChild(timeCell);
-
-    // Cell 2: Contract Info
-    const contractCell = document.createElement('td');
-    contractCell.innerHTML = `
-        <div class="contract-info">
-            <span class="contract-symbol">${result.contract.symbol || result.passthrough.symbol}</span>
-            <span class="contract-type ${contractType.toLowerCase()}">${contractType} ${result.contract.barrier || ''}</span>
-            <span class="contract-stake">Stake: ${stakeLabel}</span>
-        </div>
-    `;
-    row.appendChild(contractCell);
-
-    // Cell 3: P/L
-    const plCell = document.createElement('td');
-    plCell.className = profitClass + ' fw-bold';
-    plCell.textContent = profitLabel;
-    row.appendChild(plCell);
-
-    if (tableBody.firstChild) tableBody.insertBefore(row, tableBody.firstChild);
-    else tableBody.appendChild(row);
-
-    if (tableBody.children.length > 50) tableBody.removeChild(tableBody.lastChild);
 }
