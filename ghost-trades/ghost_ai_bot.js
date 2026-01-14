@@ -648,8 +648,6 @@ function renderLiveContracts() {
         card.appendChild(footer);
 
         container.appendChild(card);
-
-        container.appendChild(card);
     });
 }
 window.renderLiveContracts = renderLiveContracts;
