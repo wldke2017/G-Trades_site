@@ -96,11 +96,14 @@ class GhostBackgroundService {
                 const profit = parseFloat(contract.profit);
 
                 // FINALIZE IN LIVE MONITOR
-                if (typeof window.finalizeLiveContract === 'function') {
-                    window.finalizeLiveContract(contractId, isWin, profit);
-                } else if (typeof window.removeLiveContract === 'function') {
-                    // Fallback if finalize not available
-                    window.removeLiveContract(contractId);
+                try {
+                    if (typeof window.finalizeLiveContract === 'function') {
+                        window.finalizeLiveContract(contractId, isWin, profit);
+                    } else if (typeof window.removeLiveContract === 'function') {
+                        window.removeLiveContract(contractId);
+                    }
+                } catch (e) {
+                    console.error("error finalizing live contract:", e);
                 }
 
                 // Retrieve metadata
@@ -108,13 +111,17 @@ class GhostBackgroundService {
 
                 if (metadata && this.onTradeResult) {
                     // Send result back to bot
-                    this.onTradeResult({
-                        isWin: isWin,
-                        profit: profit,
-                        contract: contract,
-                        passthrough: metadata,
-                        isVirtual: true // Flag for history
-                    });
+                    try {
+                        this.onTradeResult({
+                            isWin: isWin,
+                            profit: profit,
+                            contract: contract,
+                            passthrough: metadata,
+                            isVirtual: true // Flag for history
+                        });
+                    } catch (e) {
+                        console.error("error in onTradeResult callback:", e);
+                    }
 
                     // Cleanup
                     this.activeContracts.delete(contractId);

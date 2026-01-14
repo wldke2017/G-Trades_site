@@ -627,6 +627,10 @@ function renderLiveContracts() {
         });
         card.appendChild(ticksContainer);
 
+        // Footer / Timer
+        const footer = document.createElement('div');
+        footer.className = 'contract-footer';
+
         // Check if finalized
         if (contract.isFinalized) {
             const resultClass = contract.isWin ? 'profit-positive' : 'profit-negative';
@@ -642,6 +646,8 @@ function renderLiveContracts() {
             footer.innerHTML = `<span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>`;
         }
         card.appendChild(footer);
+
+        container.appendChild(card);
 
         container.appendChild(card);
     });
