@@ -1116,6 +1116,7 @@ function toggleBot() {
 
 function clearGhostAIHistory() {
     if (confirm('Are you sure you want to clear the trade history?')) {
+        const botHistoryTableBody = document.querySelector('#bot-history-table tbody');
         if (botHistoryTableBody) {
             botHistoryTableBody.innerHTML = '';
         }
