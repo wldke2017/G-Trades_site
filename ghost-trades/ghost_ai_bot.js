@@ -627,10 +627,20 @@ function renderLiveContracts() {
         });
         card.appendChild(ticksContainer);
 
-        // Footer / Timer
-        const footer = document.createElement('div');
-        footer.className = 'contract-footer';
-        footer.innerHTML = `<span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>`;
+        // Check if finalized
+        if (contract.isFinalized) {
+            const resultClass = contract.isWin ? 'profit-positive' : 'profit-negative';
+            const resultText = contract.isWin ? 'WIN' : 'LOSS';
+            footer.innerHTML = `
+                <span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>
+                <span class="${resultClass}" style="font-weight: bold; margin-left: 10px;">
+                    ${resultText} $${parseFloat(contract.profit).toFixed(2)}
+                </span>
+            `;
+            card.style.border = contract.isWin ? '1px solid #10b981' : '1px solid #ff444f';
+        } else {
+            footer.innerHTML = `<span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>`;
+        }
         card.appendChild(footer);
 
         container.appendChild(card);
@@ -699,6 +709,16 @@ function removeLiveContract(contractId) {
     }
 }
 window.removeLiveContract = removeLiveContract;
+
+function finalizeLiveContract(contractId, isWin, profit) {
+    if (liveContractMonitor[contractId]) {
+        liveContractMonitor[contractId].isFinalized = true;
+        liveContractMonitor[contractId].isWin = isWin;
+        liveContractMonitor[contractId].profit = profit;
+        renderLiveContracts();
+    }
+}
+window.finalizeLiveContract = finalizeLiveContract;
 
 function handleBotTick(tick) {
     if (!isBotRunning) return;
@@ -1100,11 +1120,26 @@ function clearGhostAIHistory() {
             botHistoryTableBody.innerHTML = '';
         }
         liveContractMonitor = {};
+        renderLiveContracts();
+
+        // Reset stats
+        botState.totalProfit = 0;
+        botState.totalLoss = 0;
+        botState.totalPL = 0;
+        botState.winCount = 0;
+        botState.lossCount = 0;
+        botState.totalStake = 0;
+        botState.totalPayout = 0;
+
+        updateProfitLossDisplay();
+        updateBotStats();
+        updateWinPercentage();
+
         const container = document.getElementById('live-contracts-container');
         if (container) {
             container.innerHTML = '<div class="log-info">No active contracts</div>';
         }
-        addBotLog('📋 Trade history cleared', 'info');
+        addBotLog('🧹 Trade history and live monitor cleared', 'info');
         showToast('Trade history cleared', 'success');
     }
 }

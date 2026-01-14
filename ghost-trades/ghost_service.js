@@ -95,8 +95,11 @@ class GhostBackgroundService {
                 const isWin = contract.status === 'won';
                 const profit = parseFloat(contract.profit);
 
-                // REMOVE FROM LIVE MONITOR
-                if (typeof window.removeLiveContract === 'function') {
+                // FINALIZE IN LIVE MONITOR
+                if (typeof window.finalizeLiveContract === 'function') {
+                    window.finalizeLiveContract(contractId, isWin, profit);
+                } else if (typeof window.removeLiveContract === 'function') {
+                    // Fallback if finalize not available
                     window.removeLiveContract(contractId);
                 }
 
