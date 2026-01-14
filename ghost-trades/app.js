@@ -743,8 +743,13 @@ function handleIncomingMessage(msg) {
                     console.log(`🔍 Active S1 symbols after cleanup: `, Array.from(window.activeS1Symbols));
 
 
-                    // STOP LIVE CONTRACT MONITORING - Remove from live tracker
-                    if (typeof removeLiveContract === 'function') {
+                    // FINALIZE IN LIVE MONITOR - Persist
+                    if (typeof finalizeLiveContract === 'function') {
+                        // Calculate isWin and profit
+                        const isWin = contract.status === 'won';
+                        const profit = parseFloat(contract.profit);
+                        finalizeLiveContract(contractIdToRemove, isWin, profit);
+                    } else if (typeof removeLiveContract === 'function') {
                         removeLiveContract(contractIdToRemove);
                     }
 
