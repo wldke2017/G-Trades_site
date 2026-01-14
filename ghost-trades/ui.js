@@ -455,6 +455,7 @@ function addBotTradeHistory(contract, profit) {
 
     const isWin = profit > 0;
     const time = new Date().toLocaleTimeString();
+    timeCell.textContent = time;
 
     const symbol = contract.symbol || 'Unknown';
     const type = contract.contract_type || 'Unknown';
