@@ -139,3 +139,11 @@ class GhostBackgroundService {
 // Export global instance
 window.ghostService = new GhostBackgroundService();
 window.ghostService.connect();
+
+// Heartbeat / Connection Watchdog
+setInterval(() => {
+    if (window.ghostService && !window.ghostService.isConnected) {
+        console.warn("💓 Ghost Service Heartbeat: Disconnected. Attempting reconnect...");
+        window.ghostService.connect();
+    }
+}, 5000);

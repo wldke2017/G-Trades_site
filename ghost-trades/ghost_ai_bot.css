@@ -288,6 +288,31 @@
     font-style: italic;
 }
 
+@media (max-width: 480px) {
+    .live-contract-card {
+        padding: 8px;
+        margin-bottom: 6px;
+    }
+
+    .contract-header {
+        font-size: 0.8rem;
+    }
+
+    .ticks-visual {
+        gap: 2px;
+    }
+
+    .tick-circle {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
+    .contract-footer {
+        font-size: 0.75rem;
+    }
+}
+
 .live-contract-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
