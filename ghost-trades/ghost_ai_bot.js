@@ -784,6 +784,17 @@ function handleBotTick(tick) {
 
 
 function scanAndPlaceMultipleTrades() {
+    // === GLOBAL SILENCE ===
+    // If ANY trade is active or pending, stop scanning immediately.
+    const activeContractCount = Object.keys(window.activeContracts).length;
+    const pendingStakeCount = Object.keys(expectedStakes).length;
+
+    if (activeContractCount > 0 || pendingStakeCount > 0) {
+        console.log(`🤫 Global Silence: Active (${activeContractCount}) or Pending (${pendingStakeCount}) trades. Scanning paused.`);
+        return;
+    }
+    // ======================
+
     // 1. Get List of Enabled Markets from UI
     const enabledMarkets = new Set();
     const marketCheckboxes = document.querySelectorAll('.ghost-market-checkbox');
