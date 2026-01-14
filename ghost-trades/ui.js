@@ -464,7 +464,9 @@ function addBotTradeHistory(contract, profit) {
 
     // 4. Type
     const typeCell = row.insertCell(3);
-    typeCell.textContent = contract.contract_type || '-';
+    const symbolStr = contract.symbol ? contract.symbol.toUpperCase() : '';
+    const typeStr = contract.contract_type || '-';
+    typeCell.innerHTML = `<strong>${symbolStr}</strong> <span style="font-size: 0.85em;">${typeStr}</span>`;
 
     // 5. Entry Spot
     const entryCell = row.insertCell(4);

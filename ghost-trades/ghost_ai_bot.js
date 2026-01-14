@@ -1232,34 +1232,88 @@ document.addEventListener('DOMContentLoaded', () => {
 // DUAL SOCKET HANDLERS
 // ===================================
 
-function handleGhostTradeResult(result) {
-    const profitText = result.isWin ? 'WIN' : 'LOSS';
-    const profitColor = result.isWin ? 'win' : 'loss';
-    addBotLog(`👻 [Virtual] ${result.passthrough.strategy}: ${profitText} ($${result.profit.toFixed(2)})`, profitColor);
-
-    addVirtualTradeHistory(result);
-
-    if (!result.isWin) {
-        if (result.passthrough.strategy === 'S1') {
-            if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
-        }
-
-        const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
-        const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
-        const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
-        const hookEnabled = enabledInput && enabledInput.checked;
-
-        if (hookEnabled && botState.s1ConsecutiveLosses >= hookTrigger) {
-            addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveLosses} Losses). Next Trade on REAL Account.`, 'warning');
-            botState.nextTradeReal = true;
-        }
-    } else {
-        if (result.passthrough.strategy === 'S1') {
-            botState.s1ConsecutiveLosses = 0;
-        }
-        // Ensure we stay on Ghost (default)
-        botState.nextTradeReal = false;
+function addVirtualTradeHistory(result) {
+    console.log(`📜 addVirtualTradeHistory called for ${result.passthrough.symbol}`);
+    const tableBody = document.querySelector('#bot-history-table tbody');
+    if (!tableBody) {
+        console.error('❌ addVirtualTradeHistory: Table body #bot-history-table tbody NOT FOUND');
+        return;
     }
+
+    const row = document.createElement('tr');
+
+    // 1. Status Icon (Checkmark)
+    const statusCell = document.createElement('td');
+    statusCell.innerHTML = `<span style="color: #10b981;">✔</span>`;
+    row.appendChild(statusCell);
+
+    // 2. Timestamp
+    const timeCell = document.createElement('td');
+    timeCell.textContent = new Date().toLocaleString();
+    row.appendChild(timeCell);
+
+    // 3. Reference
+    const refCell = document.createElement('td');
+    refCell.textContent = result.contract.contract_id || 'Virtual';
+    row.appendChild(refCell);
+
+    // 4. Type (Symbol + Type)
+    const typeCell = document.createElement('td');
+    const symbolStr = result.passthrough.symbol ? result.passthrough.symbol.toUpperCase() : '';
+    const typeStr = result.contract.contract_type || '-';
+    typeCell.innerHTML = `<strong>${symbolStr}</strong> <span style="font-size: 0.85em;">${typeStr}</span>`;
+    row.appendChild(typeCell);
+
+    // 5. Entry Spot
+    const entryCell = document.createElement('td');
+    entryCell.textContent = result.contract.entry_spot || '-';
+    row.appendChild(entryCell);
+
+    // 6. Exit Spot
+    const exitCell = document.createElement('td');
+    exitCell.textContent = result.contract.exit_spot || '-';
+    row.appendChild(exitCell);
+
+    // 7. Buy Price
+    const buyPriceCell = document.createElement('td');
+    buyPriceCell.textContent = result.contract.buy_price ? parseFloat(result.contract.buy_price).toFixed(2) : '0.00';
+    row.appendChild(buyPriceCell);
+
+    // 8. Profit/Loss
+    const plCell = document.createElement('td');
+    const profit = parseFloat(result.profit);
+    plCell.textContent = profit.toFixed(2);
+    plCell.className = result.isWin ? 'profit-positive' : 'profit-negative';
+    row.appendChild(plCell);
+
+    // Prepend row
+    tableBody.insertBefore(row, tableBody.firstChild);
+
+    // Limit rows
+    if (tableBody.rows.length > 50) {
+        tableBody.deleteRow(50);
+    }
+}
+if (result.passthrough.strategy === 'S1') {
+    if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
+}
+
+const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
+const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
+const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
+const hookEnabled = enabledInput && enabledInput.checked;
+
+if (hookEnabled && botState.s1ConsecutiveLosses >= hookTrigger) {
+    addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveLosses} Losses). Next Trade on REAL Account.`, 'warning');
+    botState.nextTradeReal = true;
+}
+    } else {
+    if (result.passthrough.strategy === 'S1') {
+        botState.s1ConsecutiveLosses = 0;
+    }
+    // Ensure we stay on Ghost (default)
+    botState.nextTradeReal = false;
+}
 }
 
 
