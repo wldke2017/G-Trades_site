@@ -784,7 +784,32 @@ function handleBotTick(tick) {
 
 
 function scanAndPlaceMultipleTrades() {
-    const symbolsToScan = Object.keys(marketTickHistory).filter(isAllowedBotMarket);
+    // 1. Get List of Enabled Markets from UI
+    const enabledMarkets = new Set();
+    const marketCheckboxes = document.querySelectorAll('.ghost-market-checkbox');
+
+    if (marketCheckboxes.length > 0) {
+        marketCheckboxes.forEach(cb => {
+            if (cb.checked) {
+                enabledMarkets.add(cb.value);
+            }
+        });
+    } else {
+        // Fallback: Enable all if checkboxes missing (e.g. during load)
+        enabledMarkets.add('ALL');
+    }
+
+    // 2. Filter available markets
+    const symbolsToScan = Object.keys(marketTickHistory).filter(symbol => {
+        // Must be a valid bot market AND enabled in UI
+        if (!isAllowedBotMarket(symbol)) return false;
+
+        // If checkboxes exist, check strict equality. 
+        // Note: 'ALL' fallback allows everything if UI not ready.
+        if (enabledMarkets.has('ALL')) return true;
+
+        return enabledMarkets.has(symbol);
+    });
 
     // Debug: Log scan status
     if (symbolsToScan.length === 0) {

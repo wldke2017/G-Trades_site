@@ -1064,6 +1064,65 @@
                             </div>
                         </div>
 
+                        <!-- Active Markets Configuration -->
+                        <h4 class="collapsible-header" style="margin-top: 15px;"
+                            onclick="toggleSection('ghost-market-selector')">
+                            <span>Active Markets</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-ghost-market-selector" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h4>
+                        <div class="collapsible-content collapsed" id="ghost-market-selector">
+                            <div class="market-grid-selector"
+                                style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_100" checked> Vol 100
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_10" checked> Vol 10
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_25" checked> Vol 25
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_50" checked> Vol 50
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_75" checked> Vol 75
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ10V" checked> Vol 10
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ25V" checked> Vol 25
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ50V" checked> Vol 50
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ75V" checked> Vol 75
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ100V" checked> Vol
+                                    100 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_DBYE" checked> Bear
+                                    Market
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_DBULL" checked> Bull
+                                    Market
+                                </label>
+                            </div>
+                        </div>
+
                         <button id="ghost-ai-toggle-button-bottom" class="btn-bot btn-start">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
