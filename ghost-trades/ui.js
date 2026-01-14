@@ -449,27 +449,39 @@ function addBotTradeHistory(contract, profit) {
     }
 
     const row = tableBody.insertRow(0);
-    const timeCell = row.insertCell(0);
-    const contractCell = row.insertCell(1);
-    const plCell = row.insertCell(2);
 
+    // 1. Status Icon
+    const statusCell = row.insertCell(0);
+    statusCell.innerHTML = `<span style="color: #10b981;">✔</span>`;
+
+    // 2. Timestamp
+    const timeCell = row.insertCell(1);
+    timeCell.textContent = new Date().toLocaleString();
+
+    // 3. Reference
+    const refCell = row.insertCell(2);
+    refCell.textContent = contract.transaction_id || contract.contract_id || '-';
+
+    // 4. Type
+    const typeCell = row.insertCell(3);
+    typeCell.textContent = contract.contract_type || '-';
+
+    // 5. Entry Spot
+    const entryCell = row.insertCell(4);
+    entryCell.textContent = contract.entry_spot || '-';
+
+    // 6. Exit Spot
+    const exitCell = row.insertCell(5);
+    exitCell.textContent = contract.exit_tick || contract.exit_spot || '-';
+
+    // 7. Buy Price
+    const buyPriceCell = row.insertCell(6);
+    buyPriceCell.textContent = contract.buy_price ? parseFloat(contract.buy_price).toFixed(2) : '0.00';
+
+    // 8. Profit/Loss
+    const plCell = row.insertCell(7);
     const isWin = profit > 0;
-    const time = new Date().toLocaleTimeString();
-    timeCell.textContent = time;
-
-    const symbol = contract.symbol || 'Unknown';
-    const type = contract.contract_type || 'Unknown';
-    const stake = contract.buy_price || 0;
-
-    contractCell.innerHTML = `
-        <div class="contract-info">
-            <span class="contract-symbol">${symbol}</span>
-            <span class="contract-type ${type.toLowerCase()}">${type}</span>
-            <span class="contract-stake">Stake: $${parseFloat(stake).toFixed(2)}</span>
-        </div>
-    `;
-
-    plCell.textContent = (isWin ? '+' : '') + `$${parseFloat(profit).toFixed(2)}`;
+    plCell.textContent = parseFloat(profit).toFixed(2);
     plCell.className = isWin ? 'profit-positive' : 'profit-negative';
 
     // Limit rows to 50
