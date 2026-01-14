@@ -92,9 +92,9 @@ async function startGhostAiBot() {
         if (!window.ghostService.isConnected) {
             window.ghostService.connect();
         }
-        // Attach Result Handler
+        // Attach Result Handler - Force re-attach
+        console.log("👻 Attaching handleGhostTradeResult to ghostService");
         window.ghostService.onTradeResult = handleGhostTradeResult;
-        console.log("👻 Ghost AI: Background Service Linked");
     } else {
         console.warn("⚠️ Ghost AI: Ghost Service not found! Virtual Hook may fail.");
     }
@@ -1224,8 +1224,13 @@ function handleGhostTradeResult(result) {
 
 
 function addVirtualTradeHistory(result) {
+    console.log(`📜 addVirtualTradeHistory called for ${result.passthrough.symbol}`);
     const tableBody = document.querySelector('#bot-history-table tbody');
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.error('❌ addVirtualTradeHistory: Table body #bot-history-table tbody NOT FOUND');
+        return;
+    }
+    console.log('✅ addVirtualTradeHistory: Table body found, adding row...');
 
     const row = document.createElement('tr');
     const time = new Date().toLocaleTimeString();
