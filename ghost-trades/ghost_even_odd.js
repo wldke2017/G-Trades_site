@@ -850,8 +850,10 @@ function handleEvenOddTick(tick) {
         // Check if this is a new pattern or enough time has passed since last trade
         const isNewPattern = tradeDecision.pattern !== lastPattern.pattern;
         const enoughTimePassed = timeSinceLastTrade > 1000; // Reduced from 3000ms to 1000ms
+        const isHookTriggered = evenOddBotState.virtualHook.isRealTradeTriggered[symbol];
 
-        if (isNewPattern || enoughTimePassed) {
+        // Allow trade if: New Pattern OR Timeout Passed OR Hook Just Triggered (Essential to override pattern stale check)
+        if (isNewPattern || enoughTimePassed || isHookTriggered) {
 
             // CRITICAL: Acquire lock BEFORE any trade execution
             if (!acquireTradeLock(symbol, 'ghost_eodd')) {
