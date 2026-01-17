@@ -949,26 +949,20 @@ function handleIncomingMessage(msg) {
 
                     sendAPIRequest({ "forget": contract.id }); // Unsubscribe
 
-                    // Remove from active contracts and release trade lock
+                    // Remove from active contracts
                     const contractIdToRemove = contract.contract_id || contract.id;
-
                     if (evenOddBotState.activeContracts[contractIdToRemove]) {
                         delete evenOddBotState.activeContracts[contractIdToRemove];
+                    }
 
-                        // Release trade lock for this symbol
-                        releaseTradeLock(contract.symbol, 'ghost_eodd');
+                    // CENTRALIZED CLEANUP: Release locks, Update Martingale, Handle Option B
+                    if (typeof window.clearGhostEvenOddTradeTracking === 'function') {
+                        const isWin = contract.profit > 0;
+                        window.clearGhostEvenOddTradeTracking(contract.symbol, contract.profit, isWin);
                     } else {
-                        console.error(`❌ E/ODD Contract ${contractIdToRemove} NOT found in activeContracts!`);
-
-                        // Fallback cleanup by symbol
-                        for (const [id, info] of Object.entries(evenOddBotState.activeContracts)) {
-                            if (info.symbol === contract.symbol) {
-                                console.log(`🔧 Fallback: Removing E/ODD contract ${id} for ${contract.symbol}`);
-                                delete evenOddBotState.activeContracts[id];
-                                releaseTradeLock(contract.symbol, 'ghost_eodd');
-                                break;
-                            }
-                        }
+                        // Fallback if function missing
+                        console.warn("⚠️ clearGhostEvenOddTradeTracking not found. Using fallback cleanup.");
+                        releaseTradeLock(contract.symbol, 'ghost_eodd');
                     }
 
                     // Notification on win
@@ -977,6 +971,7 @@ function handleIncomingMessage(msg) {
                     }
                     // Check if it's a Market Summary bot trade
                     else if (passthrough && passthrough.purpose === 'market_summary_trade' && passthrough.run_id === window.marketSummaryBotState.runId) {
+                        contract.symbol = passthrough.symbol;
                         contract.symbol = passthrough.symbol;
                         contract.barrier = passthrough.barrier;
                         contract.type = passthrough.type;
@@ -1325,7 +1320,11 @@ function restoreBotSettingsOnLoad() {
                 vHookEnabled: 'eoddVirtualHookEnabled',
                 vHookStartWhen: 'eoddVirtualHookStartWhen',
                 vHookTrigger: 'eoddVirtualHookTrigger',
-                vHookFixedStake: 'eoddVirtualHookFixedStake'
+                vHookFixedStake: 'eoddVirtualHookFixedStake',
+                // New Advanced Settings
+                vHookEnabledS1: 'eoddVHEnabledS1',
+                vHookEnabledS2: 'eoddVHEnabledS2',
+                postLossBehavior: 'eoddPostLossBehavior'
             });
         } catch (error) {
             console.error('Error restoring Ghost E/ODD settings:', error);

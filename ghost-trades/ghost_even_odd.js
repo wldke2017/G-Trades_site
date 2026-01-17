@@ -25,7 +25,10 @@ let evenOddBotState = {
         triggerCount: 1,
         fixedStake: null, // Override stake if set
         currentStreak: {}, // { symbol: count }
-        isRealTradeTriggered: {} // { symbol: boolean }
+        isRealTradeTriggered: {}, // { symbol: boolean }
+        vhEnabledS1: true,
+        vhEnabledS2: true,
+        postLossBehavior: 'OPTION_A'
     }
 };
 
@@ -67,6 +70,16 @@ function initializeMoneyManagement() {
     evenOddBotState.virtualHook.triggerType = vHookStartWhenInput ? vHookStartWhenInput.value : 'LOSS';
     evenOddBotState.virtualHook.triggerCount = vHookTriggerInput ? parseInt(vHookTriggerInput.value) : 1;
     evenOddBotState.virtualHook.fixedStake = vHookFixedStakeInput && vHookFixedStakeInput.value ? parseFloat(vHookFixedStakeInput.value) : null;
+
+    // Advanced Settings
+    const vhEnabledS1Input = document.getElementById('eoddVHEnabledS1');
+    const vhEnabledS2Input = document.getElementById('eoddVHEnabledS2');
+    const postLossBehaviorInput = document.getElementById('eoddPostLossBehavior');
+
+    evenOddBotState.virtualHook.vhEnabledS1 = vhEnabledS1Input ? vhEnabledS1Input.checked : true;
+    evenOddBotState.virtualHook.vhEnabledS2 = vhEnabledS2Input ? vhEnabledS2Input.checked : true;
+    evenOddBotState.virtualHook.postLossBehavior = postLossBehaviorInput ? postLossBehaviorInput.value : 'OPTION_A';
+
     evenOddBotState.virtualHook.currentStreak = {};
     evenOddBotState.virtualHook.isRealTradeTriggered = {};
 
@@ -581,7 +594,11 @@ async function startEvenOddBot() {
             vHookEnabled: evenOddBotState.virtualHook.enabled,
             vHookStartWhen: evenOddBotState.virtualHook.triggerType,
             vHookTrigger: evenOddBotState.virtualHook.triggerCount,
-            vHookFixedStake: evenOddBotState.virtualHook.fixedStake
+            vHookFixedStake: evenOddBotState.virtualHook.fixedStake,
+            // New Advanced Settings
+            vHookEnabledS1: evenOddBotState.virtualHook.vhEnabledS1,
+            vHookEnabledS2: evenOddBotState.virtualHook.vhEnabledS2,
+            postLossBehavior: evenOddBotState.virtualHook.postLossBehavior
         };
         window.botSettingsManager.saveSettings('ghost_eodd', settings);
     }
@@ -647,8 +664,12 @@ async function stopEvenOddBot() {
 
     evenOddBotState.isTrading = false;
 
-    // Clear all trade locks when stopping
-    clearAllTradeLocks();
+    // Clear trade locks specific to Ghost E/ODD
+    if (typeof releaseAllTradeLocks === 'function') {
+        releaseAllTradeLocks('ghost_eodd');
+    } else {
+        clearAllTradeLocks(); // Fallback
+    }
 
     // Clear virtual hook data
     if (typeof window.virtualHookManager !== 'undefined') {
@@ -838,8 +859,26 @@ function handleEvenOddTick(tick) {
                 return;
             }
 
-            // CHECK VIRTUAL HOOK ENTRY
-            if (evenOddBotState.virtualHook.enabled && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
+            // CHECK VIRTUAL HOOK ENTRIES
+            // Determine if this is S1 (Initial) or S2 (Recovery/Martingale)
+            // If valid martingale exists and step > 0, it's S2. Otherwise S1.
+            const currentMartingale = evenOddBotState.symbolMartingale[symbol];
+            const isRecovery = currentMartingale && currentMartingale.step > 0;
+            const strategy = isRecovery ? 'S2' : 'S1';
+
+            // Check Granular Settings
+            const applyVH = evenOddBotState.virtualHook.enabled && (
+                (strategy === 'S1' && evenOddBotState.virtualHook.vhEnabledS1) ||
+                (strategy === 'S2' && evenOddBotState.virtualHook.vhEnabledS2)
+            );
+
+            // Log if VH is bypassed
+            if (evenOddBotState.virtualHook.enabled && !applyVH && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
+                addEvenOddBotLog(`🛠️ VH Granularity: VH bypassed for ${strategy}. Executing on REAL.`, 'info');
+                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true; // Temporary bypass just for this trade cycle logic
+            }
+
+            if (applyVH && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
                 // Register a "Virtual Order" to be checked on the next tick
                 if (!evenOddBotState.virtualOrders) evenOddBotState.virtualOrders = {};
 
@@ -985,11 +1024,23 @@ function executePatternTrade(action, symbol, pattern, stake) {
 
     addEvenOddBotLog(`💰 ${symbol}: ${action} | Stake: $${stake.toFixed(2)} | Pattern: ${pattern}`, 'trade');
 
+    // CRITICAL: Record Pending Stake for GLOBAL SILENCE
+    // This blocks Ghost AI and other bots from trading while this one is attempting
+    if (typeof recordPendingStake === 'function') {
+        recordPendingStake(symbol, stake);
+    }
+
     sendAPIRequest(purchaseRequest).then(() => {
         console.log(`executePatternTrade: ${symbol} request sent successfully`);
     }).catch(error => {
         console.error(`executePatternTrade: ${symbol} request failed:`, error);
         addEvenOddBotLog(`❌ ${symbol} Trade request failed: ${error.message}`, 'error');
+
+        // Immediate cleanup on failure
+        releaseTradeLock(symbol, 'ghost_eodd');
+        if (typeof clearPendingStake === 'function') {
+            clearPendingStake(symbol);
+        }
     });
 }
 
@@ -1098,3 +1149,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// --- CENTRALIZED CLEANUP & LOCK MANAGEMENT ---
+function clearGhostEvenOddTradeTracking(symbol, profit, isWin) {
+    // 1. Update Martingale State
+    updateSymbolMartingale(symbol, isWin, profit);
+    updateGlobalMartingale(symbol, isWin, profit);
+    updateMoneyManagement(isWin, profit);
+
+    // 2. Release Locks & Clear Pending Stakes (GLOBAL SILENCE)
+    releaseTradeLock(symbol, 'ghost_eodd');
+    if (typeof clearPendingStake === 'function') {
+        clearPendingStake(symbol);
+    }
+
+    // 3. Option B: Post-Loss Behavior (Return to Virtual)
+    if (!isWin) {
+        const postLossBehavior = evenOddBotState.virtualHook.postLossBehavior || 'OPTION_A';
+        if (postLossBehavior === 'OPTION_B' && evenOddBotState.virtualHook.enabled) {
+            evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = false;
+            evenOddBotState.virtualHook.currentStreak[symbol] = 0; // Reset virtual streak
+            addEvenOddBotLog(`🛡️ Option B: Real loss on ${symbol}. Returning to Virtual for next trigger.`, 'info');
+        }
+    }
+
+    // 4. Update UI
+    updateEvenOddProfitLossDisplay();
+}

@@ -1438,7 +1438,7 @@
                         <!-- Virtual Hook Configuration -->
                         <h5 class="collapsible-header" style="margin-top: 20px; color: var(--accent-color);"
                             onclick="toggleSection('virtual-hook-config')">
-                            <span>Virtual Hook Configuration</span>
+                            <span>Virtual Hook Configuration (Advanced)</span>
                             <svg class="collapse-arrow collapsed" id="arrow-virtual-hook-config" viewBox="0 0 24 24"
                                 fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -1452,6 +1452,30 @@
                                         style="width: auto;">
                                     <span>Enable Virtual Hook</span>
                                 </label>
+                            </div>
+
+                            <!-- Granular VH Controls -->
+                            <div class="control-group"
+                                style="margin-left: 20px; border-left: 2px solid var(--border-color); padding-left: 10px;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9em;">
+                                    <input type="checkbox" id="eoddVHEnabledS1" name="eoddVHEnabledS1" checked
+                                        style="width: auto;">
+                                    <span>Apply VH to Initial Entry (S1)</span>
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 10px; font-size: 0.9em; margin-top: 5px;">
+                                    <input type="checkbox" id="eoddVHEnabledS2" name="eoddVHEnabledS2" checked
+                                        style="width: auto;">
+                                    <span>Apply VH to Recovery (S2)</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="eoddPostLossBehavior">After REAL Loss Behavior</label>
+                                <select id="eoddPostLossBehavior" name="eoddPostLossBehavior" class="control-select">
+                                    <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)</option>
+                                    <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
+                                </select>
                             </div>
 
                             <div class="control-group">
