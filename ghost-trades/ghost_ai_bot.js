@@ -805,6 +805,15 @@ function scanAndPlaceMultipleTrades() {
         console.log(`🤫 Global Silence: Active (${activeContractCount}) or Pending (${pendingStakeCount}) trades. Scanning paused.`);
         return;
     }
+
+    // === SERIAL MODE COOLDOWN ===
+    const serialModeEnabled = document.getElementById('ghostaiSerialMode')?.checked;
+    if (serialModeEnabled && Date.now() < serialModeCooldownTill) {
+        const remaining = Math.ceil((serialModeCooldownTill - Date.now()) / 1000);
+        console.log(`⏳ Serial Mode: Cooldown active. Resuming in ${remaining}s...`);
+        return;
+    }
+    // ============================
     // ======================
 
     // 1. Get List of Enabled Markets from UI
@@ -1009,6 +1018,9 @@ async function executeTradeWithTracking(marketData) {
     let useReal = false;
     const hookEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked;
 
+    // Show Progress Tracker
+    updateTradeProgressUI('attempting');
+
     if (!hookEnabled) {
         useReal = true; // Support standard mode
     } else {
@@ -1139,6 +1151,7 @@ async function executeTradeWithTracking(marketData) {
         if (window.ghostService) {
             try {
                 window.ghostService.placeTrade(ghostReq);
+                updateTradeProgressUI('succeeded');
             } catch (err) {
                 console.error("❌ Ghost AI: Exception in placeTrade:", err);
                 clearGhostAITradeTracking(marketData.symbol, marketData.prediction, 0.35, marketData.mode);
@@ -1189,6 +1202,28 @@ function clearGhostAITradeTracking(symbol, barrier, stake, strategy, restoreHook
     if (restoreHookToken && botState && document.getElementById('ghostaiVirtualHookEnabled')?.checked) {
         console.log(`🪝 Token Restored for ${symbol}`);
         botState.nextTradeReal = true;
+        // Hide progress tracker on failure
+        updateTradeProgressUI('reset');
+    } else {
+        // Progress Tracker: Closed
+        updateTradeProgressUI('closed');
+
+        // Serial Mode Cooldown
+        const serialModeEnabled = document.getElementById('ghostaiSerialMode')?.checked;
+        if (serialModeEnabled) {
+            serialModeCooldownTill = Date.now() + 2000; // 2 second delay
+            console.log(`🛡️ Serial Mode: Cooldown started (2s) for ${symbol}`);
+
+            // Auto-hide progress tracker after 3 seconds
+            setTimeout(() => {
+                if (Date.now() >= (serialModeCooldownTill - 500)) { // Small buffer
+                    updateTradeProgressUI('reset');
+                }
+            }, 3000);
+        } else {
+            // If not in serial mode, just hide after a short delay
+            setTimeout(() => updateTradeProgressUI('reset'), 2000);
+        }
     }
 }
 window.clearGhostAITradeTracking = clearGhostAITradeTracking;
@@ -1483,6 +1518,77 @@ function resetBotLocks() {
     addBotLog("🧹 All bot locks and pending trades have been manually reset.", "info");
     showToast("Bot locks reset successfully.", "success");
 }
+
+// Serial Trading State
+let ghostAISerialModeActive = false;
+let serialModeCooldownTill = 0;
+
+/**
+ * Updates the visual Trade Progress Tracker timeline.
+ * @param {string} step - 'attempting', 'succeeded', 'closed', or 'reset'
+ */
+function updateTradeProgressUI(step) {
+    const container = document.getElementById('ghostai-progress-container');
+    if (!container) return;
+
+    // Show container if any step is active
+    if (step === 'reset') {
+        container.style.display = 'none';
+        resetTimelineUI();
+        return;
+    }
+
+    container.style.display = 'block';
+
+    const steps = ['attempting', 'succeeded', 'closed'];
+    const currentIdx = steps.indexOf(step);
+
+    steps.forEach((s, idx) => {
+        const el = document.getElementById(`step-${s}`);
+        const lineBefore = document.getElementById(`line-${idx}`);
+
+        if (el) {
+            el.classList.remove('active', 'completed');
+            if (idx < currentIdx) {
+                el.classList.add('completed');
+            } else if (idx === currentIdx) {
+                el.classList.add('active');
+            }
+        }
+
+        if (lineBefore) {
+            lineBefore.classList.remove('active');
+            if (idx <= currentIdx && idx > 0) {
+                lineBefore.classList.add('active');
+            }
+        }
+    });
+
+    // Special case for line connectivity
+    const line1 = document.getElementById('line-1');
+    const line2 = document.getElementById('line-2');
+
+    if (step === 'succeeded' || step === 'closed') {
+        if (line1) line1.classList.add('active');
+    }
+    if (step === 'closed') {
+        if (line2) line2.classList.add('active');
+    }
+}
+
+function resetTimelineUI() {
+    ['attempting', 'succeeded', 'closed'].forEach(s => {
+        const el = document.getElementById(`step-${s}`);
+        if (el) el.classList.remove('active', 'completed');
+    });
+    ['line-1', 'line-2'].forEach(l => {
+        const el = document.getElementById(l);
+        if (el) el.classList.remove('active');
+    });
+}
+
+// Export for access from other scripts
+window.updateTradeProgressUI = updateTradeProgressUI;
 
 // Export to window for access from index.html or other scripts
 window.resetBotLocks = resetBotLocks;

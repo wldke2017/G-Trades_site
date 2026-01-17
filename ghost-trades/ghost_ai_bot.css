@@ -401,3 +401,99 @@
     color: var(--text-muted);
     margin-top: var(--spacing-xs);
 }
+
+/* --- Trade Progress Tracker --- */
+.progress-tracker-container {
+    transition: all 0.3s ease;
+}
+
+.progress-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    padding: 10px 0;
+}
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #455a64;
+    border: 2px solid #546e7a;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+
+.timeline-line {
+    height: 3px;
+    background: #455a64;
+    flex-grow: 1;
+    margin: 0 -10px;
+    position: relative;
+    top: -14px;
+    /* Align with circles */
+    transition: background 0.4s ease;
+}
+
+/* --- Active & Completed States --- */
+.timeline-step.active .step-circle {
+    background: #00bcd4;
+    border-color: #00e5ff;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+    transform: scale(1.2);
+}
+
+.timeline-step.active .step-label {
+    color: #00e5ff;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+}
+
+.timeline-step.completed .step-circle {
+    background: #00bcd4;
+    border-color: #00bcd4;
+}
+
+.timeline-step.completed .step-label {
+    color: var(--text-primary);
+}
+
+.timeline-line.active {
+    background: #00bcd4;
+}
+
+/* Pulse animation for active step */
+@keyframes stepPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 229, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+    }
+}
+
+.timeline-step.active .step-circle {
+    animation: stepPulse 2s infinite;
+}

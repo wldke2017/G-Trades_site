@@ -1153,6 +1153,32 @@
                                     Index
                                 </label>
                             </div>
+
+                            <!-- Serial Mode Toggle -->
+                            <h5 class="collapsible-header" style="margin-top: 20px; color: #4caf50;"
+                                onclick="toggleSection('ghostai-safety-config')">
+                                <span>🛡️ Safety Settings</span>
+                                <svg class="collapse-arrow" id="arrow-ghostai-safety-config" viewBox="0 0 24 24"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </h5>
+                            <div class="collapsible-content" id="ghostai-safety-config">
+                                <div class="control-group">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiSerialMode" name="ghostaiSerialMode"
+                                            style="width: auto;">
+                                        <span style="font-weight: 600;">Serial Trading Mode</span>
+                                    </label>
+                                    <small
+                                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 5px; line-height: 1.4;">
+                                        One trade at a time. Waits 2s after closure before new signal.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px;"></div>
                         </div>
 
                         <button id="ghost-ai-toggle-button-bottom" class="btn-bot btn-start">
@@ -1188,6 +1214,27 @@
                                     stroke-linejoin="round" />
                             </svg>
                         </h4>
+
+                        <!-- Trade Progress Tracker (Timeline Style) -->
+                        <div id="ghostai-progress-container" class="progress-tracker-container"
+                            style="display: none; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px;">
+                            <div class="progress-timeline">
+                                <div class="timeline-step" id="step-attempting">
+                                    <div class="step-circle"></div>
+                                    <span class="step-label">Attempting to Buy</span>
+                                </div>
+                                <div class="timeline-line" id="line-1"></div>
+                                <div class="timeline-step" id="step-succeeded">
+                                    <div class="step-circle"></div>
+                                    <span class="step-label">Buy Succeeded</span>
+                                </div>
+                                <div class="timeline-line" id="line-2"></div>
+                                <div class="timeline-step" id="step-closed">
+                                    <div class="step-circle"></div>
+                                    <span class="step-label">Contract Closed</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai"
                             style="display: block;">
                             <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">

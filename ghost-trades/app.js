@@ -506,6 +506,11 @@ function handleIncomingMessage(msg) {
                         <span>👻 Ghost Trade: ${contractInfo.contract_id} | Payout: ${payout} USD</span>
                     `);
 
+                    // Update Progress Tracker: Succeeded
+                    if (typeof window.updateTradeProgressUI === 'function') {
+                        window.updateTradeProgressUI('succeeded');
+                    }
+
                     // CRITICAL: Subscribe to contract updates WITH passthrough data
                     // This ensures when the result comes back, we can identify it as a ghost_ai_trade
                     sendAPIRequest({
@@ -685,26 +690,18 @@ function handleIncomingMessage(msg) {
 
                         console.log(`✅ Found and removing contract ${contractIdToRemove} from activeContracts`);
 
-                        // CRITICAL: Remove expected stake and trade signature for this symbol
-                        if (expectedStakes[contractInfo.symbol] !== undefined) {
-                            const stake = expectedStakes[contractInfo.symbol];
-                            delete expectedStakes[contractInfo.symbol];
-                            console.log(`🗑️ Removed expected stake for ${contractInfo.symbol}`);
-
-                            // Also clear the trade signature
-                            clearTradeSignature(contractInfo.symbol, passthrough.barrier, stake, 'ghost_ai');
-                        }
-
-                        // Remove from S1 symbols tracking if it was an S1 trade
-                        if (contractInfo.strategy === 'S1') {
-                            console.log(`🔓 Removing ${contractInfo.symbol} from activeS1Symbols`);
-                            window.activeS1Symbols.delete(contractInfo.symbol);
-                        }
-
-                        // Decrement S2 counter if it was an S2 trade
-                        if (contractInfo.strategy === 'S2' && botState.activeS2Count > 0) {
-                            botState.activeS2Count--;
-                            console.log(`📉 S2 count decremented to ${botState.activeS2Count} `);
+                        // Standardize cleanup using centralized function
+                        if (typeof window.clearGhostAITradeTracking === 'function') {
+                            window.clearGhostAITradeTracking(contractInfo.symbol, passthrough.barrier, passthrough.stake, contractInfo.strategy);
+                        } else {
+                            // Fallback if bot script not fully loaded
+                            if (expectedStakes[contractInfo.symbol] !== undefined) {
+                                delete expectedStakes[contractInfo.symbol];
+                                clearTradeSignature(contractInfo.symbol, passthrough.barrier, passthrough.stake, 'ghost_ai');
+                            }
+                            if (contractInfo.strategy === 'S1') window.activeS1Symbols.delete(contractInfo.symbol);
+                            if (contractInfo.strategy === 'S2' && botState.activeS2Count > 0) botState.activeS2Count--;
+                            releaseTradeLock(contract.symbol, 'ghost_ai');
                         }
 
                         delete window.activeContracts[contractIdToRemove];
