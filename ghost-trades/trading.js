@@ -59,7 +59,7 @@ function subscribeToAllVolatilities() {
 
     // Filter for ALLOWED synthetic indices (Volatility, Jump, Daily Reset)
     const volatilitySymbols = activeSymbols
-        .filter(symbol => symbol.market === 'synthetic_index' && isAllowedBotMarket(symbol.symbol))
+        .filter(symbol => isAllowedBotMarket(symbol.symbol))
         .map(symbol => symbol.symbol);
 
     console.log(`✅ Subscribing to ${volatilitySymbols.length} synthetic indices:`, volatilitySymbols);
@@ -417,7 +417,7 @@ function populateMarketSelector() {
     console.log('📊 Populating market selector with symbols...');
 
     const volatilitySymbols = activeSymbols
-        .filter(symbol => symbol.market === 'synthetic_index')
+        .filter(symbol => symbol.market === 'synthetic_index' || isAllowedBotMarket(symbol.symbol))
         .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
     console.log(`📊 Found ${volatilitySymbols.length} symbols for market selector`);

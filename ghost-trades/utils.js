@@ -144,6 +144,24 @@ function clearAllTradeLocks() {
 }
 
 /**
+ * Releases all trade locks held by a specific bot type
+ * @param {string} botType - The bot type to clear locks for
+ */
+function releaseAllTradeLocks(botType) {
+    let clearedCount = 0;
+    for (const [key, lock] of Object.entries(globalTradeLocks)) {
+        if (lock.botType === botType) {
+            delete globalTradeLocks[key];
+            clearedCount++;
+        }
+    }
+    if (clearedCount > 0) {
+        console.log(`🔓 Cleared ${clearedCount} trade locks for ${botType}`);
+    }
+    return clearedCount;
+}
+
+/**
  * Check if a trade can be placed (no active contracts + no locks)
  * @param {string} symbol - The symbol to check
  * @param {string} botType - Type of bot
@@ -181,7 +199,8 @@ function isAllowedBotMarket(symbol) {
         symbol.startsWith('1HZ') ||
         symbol.startsWith('JD') ||
         symbol === 'RDBEAR' ||
-        symbol === 'RDBULL';
+        symbol === 'RDBULL' ||
+        symbol === 'STPIDX';
 }
 
 // ===================================
@@ -202,7 +221,8 @@ let activeTradeSignatures = new Set(); // Set of "symbol|prediction|stake" strin
  * @returns {boolean} - True if trade is allowed, false if duplicate
  */
 function canPlaceStakeBasedTrade(symbol, stake, botType = 'ghost_ai') {
-    const existingStake = expectedStakes[symbol];
+    const existingEntry = expectedStakes[symbol];
+    const existingStake = existingEntry ? (typeof existingEntry === 'object' ? existingEntry.stake : existingEntry) : undefined;
 
     console.log(`🔍 [${botType}] canPlaceStakeBasedTrade called: ${symbol}, stake=$${stake}, existing=${existingStake}`);
 
@@ -224,7 +244,11 @@ function canPlaceStakeBasedTrade(symbol, stake, botType = 'ghost_ai') {
  * @param {string} botType - Type of bot
  */
 function recordPendingStake(symbol, stake, botType = 'ghost_ai') {
-    expectedStakes[symbol] = stake;
+    expectedStakes[symbol] = {
+        stake: stake,
+        timestamp: Date.now(),
+        botType: botType
+    };
     console.log(`🔒 [${botType}] ${symbol}: Stake $${stake} recorded as pending`);
 }
 
@@ -235,10 +259,36 @@ function recordPendingStake(symbol, stake, botType = 'ghost_ai') {
  */
 function clearPendingStake(symbol, botType = 'ghost_ai') {
     if (expectedStakes[symbol] !== undefined) {
-        const stake = expectedStakes[symbol];
+        const data = expectedStakes[symbol];
         delete expectedStakes[symbol];
-        console.log(`🔓 [${botType}] ${symbol}: Stake $${stake} cleared`);
+        console.log(`🔓 [${botType}] ${symbol}: Stake $${data.stake || data} cleared`);
     }
+}
+
+/**
+ * Cleanup stale pending stakes that didn't receive a response
+ * @param {number} timeoutMs - Timeout in milliseconds (default 15s)
+ */
+function cleanupStalePendingStakes(timeoutMs = 15000) {
+    const now = Date.now();
+    let cleanedCount = 0;
+
+    for (const [symbol, data] of Object.entries(expectedStakes)) {
+        const timestamp = (typeof data === 'object') ? data.timestamp : null;
+
+        if (timestamp && (now - timestamp > timeoutMs)) {
+            console.warn(`🧟 Cleaning up STALE pending stake for ${symbol} (waited ${(now - timestamp) / 1000}s)`);
+            delete expectedStakes[symbol];
+            cleanedCount++;
+
+            // Also attempt to release general trade lock if it exists
+            if (typeof releaseTradeLock === 'function') {
+                releaseTradeLock(symbol, data.botType || 'ghost_ai');
+            }
+        }
+    }
+
+    return cleanedCount;
 }
 
 /**

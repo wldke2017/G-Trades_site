@@ -66,9 +66,23 @@ class GhostBackgroundService {
         }
 
         if (msgType === 'buy') {
+            const passthrough = data.echo_req ? data.echo_req.passthrough : null;
+
+            if (data.error) {
+                console.error(`👻 Ghost Trade Error: ${data.error.message}`, data.error);
+                if (passthrough && this.onTradeResult) {
+                    this.onTradeResult({
+                        error: data.error.message,
+                        passthrough: passthrough,
+                        isVirtual: true,
+                        isFailure: true
+                    });
+                }
+                return;
+            }
+
             // Trade placed successfully
             const contractId = data.buy.contract_id;
-            const passthrough = data.echo_req.passthrough;
 
             if (passthrough) {
                 this.activeContracts.set(contractId, passthrough);
@@ -81,9 +95,6 @@ class GhostBackgroundService {
                     window.addLiveContract(contractId, passthrough.symbol, entryTick, passthrough.barrier, contractType);
                 }
             }
-
-            // Subscribe to this contract specifically?
-            // request had "subscribe": 1, so we should get updates.
         }
 
         if (msgType === 'proposal_open_contract') {

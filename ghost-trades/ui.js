@@ -465,7 +465,17 @@ function addBotTradeHistory(contract, profit) {
     // 4. Type
     const typeCell = row.insertCell(3);
     const symbolStr = contract.symbol ? contract.symbol.toUpperCase() : '';
-    const typeStr = contract.contract_type || '-';
+    const barrier = contract.barrier ?? '-';
+
+    // Format contract type to be more readable (e.g., OVER 2 instead of DIGITOVER)
+    let typeStr = contract.contract_type || '-';
+    if (typeof typeStr === 'string' && typeStr.startsWith('DIGIT')) {
+        const baseType = typeStr.replace('DIGIT', '');
+        typeStr = `${baseType} ${barrier}`;
+    } else {
+        typeStr = `${typeStr} ${barrier}`;
+    }
+
     typeCell.innerHTML = `<strong>${symbolStr}</strong> <span style="font-size: 0.85em;">${typeStr}</span>`;
 
     // 5. Entry Spot

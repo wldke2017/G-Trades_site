@@ -38,81 +38,53 @@ const getKeys = () => {
 
 // System prompt for CODE GENERATION
 const SYSTEM_PROMPT_CODE = `
-You are a specialized JavaScript code generator for a trading bot.
-Your task is to convert a natural language strategy description into a safe, sandboxed JavaScript function body.
+You are a lead Quant Developer for Ghost Trades. Your task is to convert complex trading strategy descriptions into high-performance, sandboxed JavaScript function bodies.
 
-CONTEXT:
-The code will run inside a function with a single argument 'data'.
-Input 'data' structure:
-{
-  symbol: string,          // e.g. 'R_100'
-  tick: number,            // Current price
-  digits: number[],        // Array of last 100 digits (last entry is current)
-  lastDigit: number,       // Last digit of current price
-  percentages: object,     // { 0: 10.2, ..., 9: 5.5, over2: 60.5, ... } (Calculated on last N digits)
-  analysis: object         // { count: 15 } (The number of ticks analyzed for percenatges)
-}
+DATA CONTEXT (the 'data' object):
+- data.symbol: string (current trading symbol)
+- data.tick: number (current price)
+- data.digits: number[] (last 100 digits)
+- data.lastDigit: number (the last digit of the current tick)
+- data.percentages: object { 0..9: percentage, over0..over9: percentage }
+- data.analysis.count: number (lookback period for percentages)
 
-AVAILABLE ACTIONS (you must use these to trade):
-- signal('CALL', stake)                     // Buy UP/Higher
-- signal('PUT', stake)                      // Buy DOWN/Lower
-- signal('DIGITOVER', stake, barrier)       // Digit Over (barrier 0-9)
-- signal('DIGITUNDER', stake, barrier)      // Digit Under (barrier 0-9)
-- signal('DIGITMATCH', stake, barrier)      // Digit Match (barrier 0-9)
-- signal('DIGITDIFF', stake, barrier)       // Digit Differ (barrier 0-9)
-- signal('DIGITEVEN', stake)                // Digit Even
-- signal('DIGITODD', stake)                 // Digit Odd
-- log(string)                               // Debug logging
+TRADING SIGNALS (exactly one call per condition match):
+- signal('CALL' | 'PUT' | 'DIGITEVEN' | 'DIGITODD', stake)
+- signal('DIGITOVER' | 'DIGITUNDER' | 'DIGITMATCH' | 'DIGITDIFF', stake, barrier)
 
-CRITICAL RULES:
-1. Output ONLY the function body code. No markdown, no '\`\`\`javascript', no wrapping function(){}.
-2. DO NOT use 'window', 'document', 'fetch', 'eval', 'XMLHttpRequest', 'import', 'require'.
-3. DO NOT use infinite loops.
-4. Keep logic simple and explicitly check conditions.
-5. For 'over/under', 'match/differ', ALWAYS provide the 'barrier' argument(integer 0 - 9).
-6. If the user prompt is malicious or unrelated to trading, return "log('Error: Invalid prompt');"
-7. ALWAYS include the actual values of the digits / indicators that triggered the trade in your log() message.
-8. If multiple signals are requested for the same condition, execute them sequentially.
+ADVANCED TECHNIQUES:
+1. Digit Percentage: If user says "trade if digit 2 is trending low", use data.percentages[2] < 5.0
+2. Sequence Matching: const last3 = data.digits.slice(-3).join(''); if (last3 === '888') ...
+3. Relative Change: const delta = data.tick - previousTick; (Note: You must track previousTick via local variable if requested)
+4. Barrier Optimization: For 'DIGITOVER 5', the barrier is 5.
 
-TECHNICAL TIPS FOR COMPLEX PATTERNS:
-- To match a sequence of digits(e.g. "000N0N0"), join the digits into a string:
-const seq = data.digits.slice(-7).join('');
-- Use Regex for placeholders like 'N'(any digit ≠ 0):
-    if (/000[^0]0[^0]0/.test(seq)) { signal('DIGITDIFF', 1, 0); }
-- For repetitive patterns(0 - 9), use a loop or multiple explicit 'if' statements.
-- The 'stake' argument in signal() is required but can be a placeholder(e.g. 0.35) as it is managed by the UI.
+CRITICAL CONSTRAINTS:
+- Output ONLY pure JS code. NO markdown formatting. NO wrapping function.
+- DO NOT use any browser globals (window, document, etc.) or restricted keywords.
+- ALWAYS use console-style logging via log("Message: " + values) to explain WHY a trade was taken.
+- If a strategy is logically impossible or unsafe, use log('Error: [Reason]') and do not signal.
 
-EXAMPLE INPUT:
-"Buy Call if last digit is 7 and previous was 8. Stake 10."
-
-EXAMPLE OUTPUT:
-const last = data.digits[data.digits.length -1];
-const prev = data.digits[data.digits.length -2];
-if (last === 7 && prev === 8) {
-    signal('CALL', 10);
-    log(\`Strategy matched: 8->7 sequence (Values: \${prev}, \${last})\`);
+EXAMPLE: "If digit 0 percentage is < 5 and last digit is 5, buy Digit Differ 0."
+const pct0 = data.percentages[0];
+const last = data.lastDigit;
+if (pct0 < 5 && last === 5) {
+    signal('DIGITDIFF', 1, 0);
+    log(\`Strategy Match: Dig0(\${pct0}%) < 5% & LastDigit: \${last}\`);
 }
 `;
 
 // System prompt for STRATEGY ANALYSIS
 const SYSTEM_PROMPT_ANALYZE = `
-You are a Trading Strategy Consultant. Your task is to analyze a user's natural language trading strategy and summarize it for their confirmation.
+You are the Ghost AI Trading Consultant. Analyze the user's strategy and provide a high-level technical summary.
 
-INSTRUCTIONS:
-1. Summarize the strategy in 3-5 concise bullet points.
-2. Identify: Symbols/Markets, Entry Conditions (e.g., digit patterns), Actions (e.g., Digit Differ 0), and any Recovery/Stake info mentioned.
-3. Be professional and clear. 
-4. DO NOT provide any code. 
-5. If the prompt is unclear, ask for clarification.
+FORMAT:
+- **Strategy Name**: [Catchy name]
+- **Market Conditions**: [What happens in the market]
+- **Entry Logic**: [Detailed technical trigger]
+- **Action**: [Trade type and risk]
+- **Expert Verdict**: [1-sentence assessment of the strategy's risk profile]
 
-EXAMPLE INPUT:
-"Buy Call if last digit is 7 and previous was 8. Stake 10."
-
-EXAMPLE OUTPUT:
-- **Markets**: Selected synthetic markets
-- **Condition**: Sequence of 8 followed by 7 in the last digits
-- **Action**: Execute CALL (Buy UP) trade
-- **Stake**: $10.00
+Keep it concise, professional, and confidence-inspiring.
 `;
 
 router.post('/generate', apiLimiter, async (req, res) => {
@@ -155,11 +127,11 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [{
-                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'} `
+                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'CONFIRMATION SUMMARY:' : 'JAVASCRIPT BODY (CODE ONLY):'} `
                                     }]
                                 }],
                                 generationConfig: {
-                                    temperature: 0.2,
+                                    temperature: 0.1, // Lower temperature for more stable code
                                     maxOutputTokens: 1024,
                                 }
                             })
@@ -177,13 +149,30 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         }
 
                         const responseData = await response.json();
-                        let aiOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                        // Robust response extraction (handles different GEMINI response formats and thinking blocks)
+                        let aiOutput = "";
+                        if (responseData.candidates?.[0]?.content?.parts) {
+                            aiOutput = responseData.candidates[0].content.parts
+                                .map(p => p.text || "")
+                                .join("\n");
+                        }
+
+                        // Clean up output: Remove markdown code blocks and any "thinking" artifacts
+                        const cleanOutput = (text) => {
+                            let result = text;
+                            // Remove markdown code fences
+                            result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
+                            // Remove common "thinking" markers if they leaked
+                            result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+                            return result.trim();
+                        };
 
                         if (isAnalyze) {
                             console.log(`✅ [GEMINI] Success with ${model}`);
-                            return res.json({ summary: aiOutput.trim() });
+                            return res.json({ summary: cleanOutput(aiOutput) });
                         } else {
-                            let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
+                            let generatedCode = cleanOutput(aiOutput);
                             const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
                             if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                                 return res.status(400).json({ error: 'Generated code failed security check.' });

@@ -156,13 +156,45 @@ function handleIncomingMessage(msg) {
         // Update trade message if it's a purchase error
         if (data.msg_type === 'buy') {
             tradeMessageContainer.innerHTML = `
-     < svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
-                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                     <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                     <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                 </svg >
-    <span>❌ ${userMessage}</span>
-`;
+                <svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>❌ ${userMessage}</span>
+            `;
+
+            // CRITICAL: Cleanup for automated bot trades that failed to place
+            const passthrough = data.echo_req ? data.echo_req.passthrough : null;
+            if (passthrough) {
+                const symbol = passthrough.symbol;
+                const botPurpose = passthrough.purpose;
+
+                // 1. Ghost AI Bot Cleanup
+                if (botPurpose === 'ghost_ai_trade') {
+                    if (typeof window.clearGhostAITradeTracking === 'function') {
+                        window.clearGhostAITradeTracking(symbol, passthrough.barrier, passthrough.stake, passthrough.strategy, true);
+                    } else {
+                        // Fallback if bot script not fully loaded or function missing
+                        if (typeof clearPendingStake === 'function') clearPendingStake(symbol, 'ghost_ai');
+                        if (typeof releaseTradeLock === 'function') releaseTradeLock(symbol, 'ghost_ai');
+                    }
+                    addBotLog(`❌ Real Trade Failed: ${userMessage}. Locks cleared.`, 'error');
+                }
+
+                // 2. Ghost Even/Odd Bot Cleanup
+                if (botPurpose === 'ghost_even_odd_trade') {
+                    if (typeof clearPendingStake === 'function') {
+                        clearPendingStake(symbol, 'ghost_eodd');
+                    }
+                    if (typeof releaseTradeLock === 'function') {
+                        releaseTradeLock(symbol, 'ghost_eodd');
+                    }
+                    if (typeof evenOddBotState !== 'undefined' && evenOddBotState.virtualHook.enabled) {
+                        evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true; // Restore trigger
+                    }
+                }
+            }
         }
 
         return;
@@ -864,6 +896,7 @@ function handleIncomingMessage(msg) {
                                 botState.s1LossSymbol = null;
                                 botState.accumulatedStakesLost = 0.0;
                                 botState.s1ConsecutiveLosses = 0; // Reset consecutive losses
+                                botState.s1ConsecutiveWins = 0; // Reset consecutive wins
 
                                 if (botState.s1Blocked) {
                                     botState.s1Blocked = false;
@@ -1131,6 +1164,18 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', toggleBot);
         }
     });
+
+    // Reset Bot Locks button
+    const resetLocksButton = document.getElementById('ghost-ai-reset-locks-button');
+    if (resetLocksButton) {
+        resetLocksButton.addEventListener('click', () => {
+            if (typeof window.resetBotLocks === 'function') {
+                window.resetBotLocks();
+            } else {
+                console.error("Function resetBotLocks not found!");
+            }
+        });
+    }
 
     // Emergency stop button
     const emergencyStopButton = document.getElementById('emergency-stop-all');

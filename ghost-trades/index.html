@@ -644,6 +644,11 @@
                             <option value="1HZ50V">Volatility 50 (1s) Index</option>
                             <option value="1HZ75V">Volatility 75 (1s) Index</option>
                             <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                            <option value="JD10">Jump 10 Index</option>
+                            <option value="JD25">Jump 25 Index</option>
+                            <option value="JD50">Jump 50 Index</option>
+                            <option value="JD75">Jump 75 Index</option>
+                            <option value="JD100">Jump 100 Index</option>
                         </select>
                         <button id="refreshDistributionBtn" class="refresh-distribution-btn"
                             onclick="refreshDistributionData()" title="Refresh distribution data">
@@ -1113,12 +1118,39 @@
                                     100 (1s)
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                    <input type="checkbox" class="ghost-market-checkbox" value="R_DBYE" checked> Bear
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ200V" checked> Vol
+                                    200 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ300V" checked> Vol
+                                    300 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD10" checked> Jump 10
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD25" checked> Jump 25
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD50" checked> Jump 50
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD75" checked> Jump 75
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD100" checked> Jump 100
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="RDBEAR" checked> Bear
                                     Market
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                    <input type="checkbox" class="ghost-market-checkbox" value="R_DBULL" checked> Bull
+                                    <input type="checkbox" class="ghost-market-checkbox" value="RDBULL" checked> Bull
                                     Market
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="STPIDX" checked> Step
+                                    Index
                                 </label>
                             </div>
                         </div>
@@ -1129,6 +1161,19 @@
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             <span>Start Bot</span>
+                        </button>
+
+                        <!-- Manual Reset Button for Global Silence Fix -->
+                        <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset"
+                            style="margin-top: 10px; background-color: #f39c12; color: white;">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                style="width: 18px; height: 18px; margin-right: 8px;">
+                                <path
+                                    d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            <span>Reset Bot Locks</span>
                         </button>
                     </div>
                 </div>

@@ -173,20 +173,8 @@ window.updateAIMarketSelector = function (activeSymbols) {
         return;
     }
 
-    // ALLOWED MARKETS (Whitelist from user request)
-    const ALLOWED_MARKETS = [
-        'Bear Market Index', 'Bull Market Index',
-        'Jump 10 Index', 'Jump 100 Index', 'Jump 25 Index', 'Jump 50 Index', 'Jump 75 Index',
-        'Volatility 10 (1s) Index', 'Volatility 10 Index', 'Volatility 100 (1s) Index', 'Volatility 100 Index',
-        'Volatility 15 (1s) Index', 'Volatility 25 (1s) Index', 'Volatility 25 Index', 'Volatility 30 (1s) Index',
-        'Volatility 50 (1s) Index', 'Volatility 50 Index', 'Volatility 75 (1s) Index', 'Volatility 75 Index', 'Volatility 90 (1s) Index'
-    ];
-
-    // Filter active symbols against whitelist
-    const supportedSymbols = activeSymbols.filter(symbol => {
-        const name = symbol.display_name || symbol.symbol;
-        return ALLOWED_MARKETS.includes(name);
-    });
+    // Filter active symbols using the shared helper
+    const supportedSymbols = activeSymbols.filter(symbol => isAllowedBotMarket(symbol.symbol));
 
     console.log(`🔍 AI UI: Filtered ${supportedSymbols.length} supported symbols from ${activeSymbols.length} total`);
 

@@ -75,6 +75,7 @@ const botState = {
 
     // S1 Monitoring
     s1ConsecutiveLosses: 0, // Track consecutive S1 losses
+    s1ConsecutiveWins: 0, // Track consecutive S1 wins
     s1Blocked: false, // Flag to block S1 after max losses
 
     // NEW: Dual Socket State
@@ -101,6 +102,8 @@ async function startGhostAiBot() {
 
     // Initialize Bot State for Dual Mode
     botState.nextTradeReal = false; // Default: Trade on Ghost (Background)
+    botState.s1ConsecutiveLosses = 0;
+    botState.s1ConsecutiveWins = 0;
 
     // CRITICAL: Real account confirmation
     if (typeof confirmRealAccountBotStart === 'function') {
@@ -429,6 +432,15 @@ function cleanupStaleContracts() {
                         }
                     }
                 }
+            }
+        }
+
+        // 3. Cleanup Stale Pending Stakes (Global Silence Fix)
+        // If a trade is stuck in "pending" for too long, clear it
+        if (typeof cleanupStalePendingStakes === 'function') {
+            const cleaned = cleanupStalePendingStakes(ORPHAN_TIMEOUT);
+            if (cleaned > 0) {
+                addBotLog(`🧹 Cleaned up ${cleaned} stale pending trade(s) causing Global Silence`, 'warning');
             }
         }
     }
@@ -1000,7 +1012,14 @@ async function executeTradeWithTracking(marketData) {
     if (!hookEnabled) {
         useReal = true; // Support standard mode
     } else {
-        useReal = botState.nextTradeReal;
+        // CRITICAL: Always use REAL if we are in Recovery Mode (S2)
+        // This ensures the martingale sequence is not interrupted by virtual checks
+        if (marketData.mode === 'S2') {
+            useReal = true;
+            console.log("🛠️ Recovery Mode (S2) detected: Forcing REAL Account execution.");
+        } else {
+            useReal = botState.nextTradeReal;
+        }
     }
 
     // Log intent
@@ -1077,7 +1096,18 @@ async function executeTradeWithTracking(marketData) {
             }
         };
         addBotLog(`🚀 Sending Buy Request (REAL) [${requestContractType}]...`, 'warning');
-        if (typeof sendAPIRequest === 'function') sendAPIRequest(proposalReq);
+        if (typeof sendAPIRequest === 'function') {
+            try {
+                sendAPIRequest(proposalReq).catch(err => {
+                    console.error("❌ Ghost AI: Real buy request failed to send:", err);
+                    addBotLog(`❌ Real Trade Failed to Send: ${err.message}`, 'error');
+                    clearGhostAITradeTracking(marketData.symbol, marketData.prediction, marketData.stake, 'S1', true);
+                });
+            } catch (err) {
+                console.error("❌ Ghost AI: Exception in sendAPIRequest:", err);
+                clearGhostAITradeTracking(marketData.symbol, marketData.prediction, marketData.stake, 'S1', true);
+            }
+        }
 
     } else {
         // --- VIRTUAL TRADE (GHOST) ---
@@ -1100,19 +1130,68 @@ async function executeTradeWithTracking(marketData) {
             "passthrough": {
                 "strategy": marketData.mode,
                 "symbol": marketData.symbol,
-                "barrier": marketData.prediction
+                "barrier": marketData.prediction,
+                "stake": 0.35
             }
         };
 
         addBotLog(`🚀 Sending Virtual Trade (Ghost) [${requestContractType}]...`, 'info');
         if (window.ghostService) {
-            window.ghostService.placeTrade(ghostReq);
+            try {
+                window.ghostService.placeTrade(ghostReq);
+            } catch (err) {
+                console.error("❌ Ghost AI: Exception in placeTrade:", err);
+                clearGhostAITradeTracking(marketData.symbol, marketData.prediction, 0.35, marketData.mode);
+            }
         } else {
             console.error("Ghost Service missing!");
             addBotLog("❌ Ghost Service Missing! Cannot place virtual trade.", "error");
+            clearGhostAITradeTracking(marketData.symbol, marketData.prediction, 0.35, marketData.mode);
         }
     }
 }
+
+/**
+ * Centralized cleanup for Ghost AI Trade tracking variables
+ * Called on trade completion, error, or placement failure
+ */
+function clearGhostAITradeTracking(symbol, barrier, stake, strategy, restoreHookToken = false) {
+    if (!symbol) return;
+
+    // 1. Release Global Silence (expectedStakes)
+    if (typeof clearPendingStake === 'function') {
+        clearPendingStake(symbol, 'ghost_ai');
+    } else if (typeof expectedStakes !== 'undefined') {
+        delete expectedStakes[symbol];
+    }
+
+    // 2. Release Strategy Lock (activeS1Symbols)
+    if (window.activeS1Symbols) {
+        window.activeS1Symbols.delete(symbol);
+    }
+
+    // 3. Release Trade Signature
+    if (typeof clearTradeSignature === 'function') {
+        clearTradeSignature(symbol, barrier, stake, 'ghost_ai');
+    }
+
+    // 4. Update S2 Counter if applicable
+    if (strategy === 'S2' && botState.activeS2Count > 0) {
+        botState.activeS2Count--;
+    }
+
+    // 5. Release Global Lock
+    if (typeof releaseTradeLock === 'function') {
+        releaseTradeLock(symbol, 'ghost_ai');
+    }
+
+    // 6. Restore Virtual Hook Token (if placement failed)
+    if (restoreHookToken && botState && document.getElementById('ghostaiVirtualHookEnabled')?.checked) {
+        console.log(`🪝 Token Restored for ${symbol}`);
+        botState.nextTradeReal = true;
+    }
+}
+window.clearGhostAITradeTracking = clearGhostAITradeTracking;
 
 function showComprehensiveDigitAnalysis(symbol, prediction) {
     const lastDigits = marketTickHistory[symbol] || [];
@@ -1233,32 +1312,67 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================
 
 function handleGhostTradeResult(result) {
+    const symbol = result.passthrough ? result.passthrough.symbol : null;
+    const strategy = result.passthrough ? result.passthrough.strategy : 'S1';
+    const barrier = result.passthrough ? result.passthrough.barrier : null;
+    const stake = result.passthrough ? result.passthrough.stake : 0.35;
+
+    // --- CRITICAL: RELEASE LOCKS USING CENTRALIZED CLEANUP ---
+    if (symbol) {
+        clearGhostAITradeTracking(symbol, barrier, stake, strategy);
+    }
+
+    // Handle Failures (API errors during buy)
+    if (result.isFailure) {
+        addBotLog(`❌ [Virtual] ${strategy} Failed: ${result.error}`, 'error');
+        return;
+    }
+
     const profitText = result.isWin ? 'WIN' : 'LOSS';
     const profitColor = result.isWin ? 'win' : 'loss';
-    addBotLog(`👻 [Virtual] ${result.passthrough.strategy}: ${profitText} ($${result.profit.toFixed(2)})`, profitColor);
+    addBotLog(`👻 [Virtual] ${strategy}: ${profitText}`, profitColor);
 
     addVirtualTradeHistory(result);
 
     if (!result.isWin) {
-        if (result.passthrough.strategy === 'S1') {
+        if (strategy === 'S1') {
             if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
+            botState.s1ConsecutiveWins = 0; // Reset wins on loss
         }
 
         const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
         const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
+        const startWhenInput = document.getElementById('ghostaiVirtualHookStartWhen');
+
         const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
         const hookEnabled = enabledInput && enabledInput.checked;
+        const startWhen = startWhenInput ? startWhenInput.value : 'LOSS'; // 'WIN' or 'LOSS'
 
-        if (hookEnabled && botState.s1ConsecutiveLosses >= hookTrigger) {
+        if (hookEnabled && startWhen === 'LOSS' && botState.s1ConsecutiveLosses >= hookTrigger) {
             addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveLosses} Losses). Next Trade on REAL Account.`, 'warning');
             botState.nextTradeReal = true;
         }
     } else {
-        if (result.passthrough.strategy === 'S1') {
-            botState.s1ConsecutiveLosses = 0;
+        if (strategy === 'S1') {
+            botState.s1ConsecutiveLosses = 0; // Reset losses on win
+            if (typeof botState.s1ConsecutiveWins !== 'undefined') botState.s1ConsecutiveWins++;
         }
-        // Ensure we stay on Ghost (default)
-        botState.nextTradeReal = false;
+
+        const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
+        const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
+        const startWhenInput = document.getElementById('ghostaiVirtualHookStartWhen');
+
+        const hookTrigger = parseInt(triggerInput ? triggerInput.value : 1) || 1;
+        const hookEnabled = enabledInput && enabledInput.checked;
+        const startWhen = startWhenInput ? startWhenInput.value : 'LOSS';
+
+        if (hookEnabled && startWhen === 'WIN' && botState.s1ConsecutiveWins >= hookTrigger) {
+            addBotLog(`🪝 Virtual Trigger Met! (${botState.s1ConsecutiveWins} Wins). Next Trade on REAL Account.`, 'warning');
+            botState.nextTradeReal = true;
+        } else {
+            // Ensure we stay on Ghost (default) OR if trigger not met
+            botState.nextTradeReal = false;
+        }
     }
 }
 
@@ -1290,7 +1404,17 @@ function addVirtualTradeHistory(result) {
     // 4. Type (Symbol + Type)
     const typeCell = document.createElement('td');
     const symbolStr = result.passthrough.symbol ? result.passthrough.symbol.toUpperCase() : '';
-    const typeStr = result.contract.contract_type || '-';
+    const barrier = result.passthrough.barrier ?? '-';
+
+    // Format contract type to be more readable (e.g., OVER 2 instead of DIGITOVER)
+    let typeStr = result.contract.contract_type || '-';
+    if (typeStr.startsWith('DIGIT')) {
+        const baseType = typeStr.replace('DIGIT', '');
+        typeStr = `${baseType} ${barrier}`;
+    } else {
+        typeStr = `${typeStr} ${barrier}`;
+    }
+
     typeCell.innerHTML = `<strong>${symbolStr}</strong> <span style="font-size: 0.85em;">${typeStr}</span>`;
     row.appendChild(typeCell);
 
@@ -1304,16 +1428,16 @@ function addVirtualTradeHistory(result) {
     exitCell.textContent = result.contract.exit_spot || '-';
     row.appendChild(exitCell);
 
-    // 7. Buy Price
+    // 7. Buy Price (Labelled as Virtual)
     const buyPriceCell = document.createElement('td');
-    buyPriceCell.textContent = result.contract.buy_price ? parseFloat(result.contract.buy_price).toFixed(2) : '0.00';
+    buyPriceCell.textContent = 'Virtual';
     row.appendChild(buyPriceCell);
 
-    // 8. Profit/Loss
+    // 8. Profit/Loss (Show WIN/LOSS for virtual)
     const plCell = document.createElement('td');
-    const profit = parseFloat(result.profit);
-    plCell.textContent = profit.toFixed(2);
+    plCell.textContent = result.isWin ? 'WIN' : 'LOSS';
     plCell.className = result.isWin ? 'profit-positive' : 'profit-negative';
+    plCell.style.fontWeight = 'bold';
     row.appendChild(plCell);
 
     // Prepend row
@@ -1324,3 +1448,41 @@ function addVirtualTradeHistory(result) {
         tableBody.deleteRow(50);
     }
 }
+
+/**
+ * Manually reset all bot locks and pending trades.
+ * This is used to resolve cases where the bot gets stuck in "Scanning Paused".
+ */
+function resetBotLocks() {
+    console.log("🧹 Manual Reset of Bot Locks Triggered");
+
+    // 1. Clear Global Silence (expectedStakes)
+    if (typeof clearAllPendingStakes === 'function') {
+        clearAllPendingStakes();
+    } else {
+        expectedStakes = {};
+    }
+
+    // 2. Clear Strategy Locks
+    if (window.activeS1Symbols) {
+        window.activeS1Symbols.clear();
+    }
+
+    // 3. Reset Active S2 Counter and Active Contracts
+    if (botState) {
+        botState.activeS2Count = 0;
+        botState.nextTradeReal = false;
+    }
+    window.activeContracts = {};
+
+    // 4. Release all global trade locks
+    if (typeof releaseAllTradeLocks === 'function') {
+        releaseAllTradeLocks('ghost_ai');
+    }
+
+    addBotLog("🧹 All bot locks and pending trades have been manually reset.", "info");
+    showToast("Bot locks reset successfully.", "success");
+}
+
+// Export to window for access from index.html or other scripts
+window.resetBotLocks = resetBotLocks;
