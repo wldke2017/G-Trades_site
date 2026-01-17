@@ -251,10 +251,17 @@ async function startGhostAiBot() {
             s2MaxDigit: s2MaxDigit,
             s2UsePercentage: s2UsePercentage,
             s2Prediction: s2Prediction,
-            s2ContractType: s2ContractType,
             s2DigitOperator: s2DigitOperator,
             s2Percentage: s2Percentage,
-            s2PercentageOperator: s2PercentageOperator
+            s2PercentageOperator: s2PercentageOperator,
+            // New Advanced Settings
+            vhEnabled: document.getElementById('ghostaiVirtualHookEnabled')?.checked,
+            vhStartWhen: document.getElementById('ghostaiVirtualHookStartWhen')?.value,
+            vhTrigger: document.getElementById('ghostaiVirtualHookTrigger')?.value,
+            vhEnabledS1: document.getElementById('ghostaiVHEnabledS1')?.checked,
+            vhEnabledS2: document.getElementById('ghostaiVHEnabledS2')?.checked,
+            postLossBehavior: document.getElementById('ghostaiPostLossBehavior')?.value,
+            serialMode: document.getElementById('ghostaiSerialMode')?.checked
         };
         window.botSettingsManager.saveSettings('ghost_ai', settings);
     }
@@ -964,31 +971,8 @@ function scanAndPlaceMultipleTrades() {
     const activeTradeCount = Object.keys(activeContracts).length;
     const maxConcurrentTrades = 1;
 
-    if (validS1Markets.length > 0 && activeTradeCount < maxConcurrentTrades) {
-        validS1Markets.sort((a, b) => b.overPercentage - a.overPercentage);
-        const selectedMarket = validS1Markets[0];
-
-        if (activeS1Symbols.has(selectedMarket.symbol)) return;
-
-        console.log(`🎯 [S1] Checking trade: ${selectedMarket.symbol}`);
-
-        if (!canPlaceStakeBasedTrade(selectedMarket.symbol, selectedMarket.stake, 'ghost_ai') ||
-            !isTradeSignatureUnique(selectedMarket.symbol, selectedMarket.prediction, selectedMarket.stake, 'ghost_ai')) {
-            console.log(`🚫 [S1] Trade BLOCKED for ${selectedMarket.symbol}`);
-            // Check alternatives (simplified logic from original)
-            return;
-        }
-
-        recordPendingStake(selectedMarket.symbol, selectedMarket.stake, 'ghost_ai');
-        recordTradeSignature(selectedMarket.symbol, selectedMarket.prediction, selectedMarket.stake, 'ghost_ai');
-        activeS1Symbols.set(selectedMarket.symbol, Date.now()); // Store timestamp for stale cleanup
-
-        addBotLog(`✓ S1 Entry: ${selectedMarket.symbol} | Stake: $${selectedMarket.stake.toFixed(2)}`, 'info');
-        executeTradeWithTracking(selectedMarket);
-    }
-
-    // S2 Logic
-    if (botState.martingaleStepCount > 0 && validS2Markets.length > 0 && botState.activeS2Count < 1) {
+    // === PRIORITY 1: S2 RECOVERY ===
+    if (botState.martingaleStepCount > 0 && validS2Markets.length > 0 && botState.activeS2Count < 1 && activeTradeCount < maxConcurrentTrades) {
         validS2Markets.sort((a, b) => b.overPercentage - a.overPercentage);
         const selected = validS2Markets[0];
 
@@ -1001,12 +985,41 @@ function scanAndPlaceMultipleTrades() {
 
         addBotLog(`🎯 [S2] Recovery selected: ${selected.symbol} | Stake: $${selected.stake} (Recovers: $${accumulatedLosses.toFixed(2)})`, 'warning');
 
-        recordPendingStake(selected.symbol, calculatedStake, 'ghost_ai');
-        recordTradeSignature(selected.symbol, selected.prediction, calculatedStake, 'ghost_ai');
+        recordPendingStake(selected.symbol, selected.stake, 'ghost_ai');
+        recordTradeSignature(selected.symbol, selected.prediction, selected.stake, 'ghost_ai');
         botState.recoverySymbol = selected.symbol;
 
         addBotLog(`✓ S2 Recovery: ${selected.symbol} | Stake: $${selected.stake.toFixed(2)}`, 'warning');
         executeTradeWithTracking(selected);
+        return; // S2 fired, exit scan
+    }
+
+    // === PRIORITY 2: S1 INITIAL ENTRIES ===
+    // Block S1 if we are in a martingale sequence (even if S2 signal not yet seen)
+    if (botState.martingaleStepCount > 0) {
+        return;
+    }
+
+    if (validS1Markets.length > 0 && activeTradeCount < maxConcurrentTrades) {
+        validS1Markets.sort((a, b) => b.overPercentage - a.overPercentage);
+        const selectedMarket = validS1Markets[0];
+
+        if (activeS1Symbols.has(selectedMarket.symbol)) return;
+
+        console.log(`🎯 [S1] Checking trade: ${selectedMarket.symbol}`);
+
+        if (!canPlaceStakeBasedTrade(selectedMarket.symbol, selectedMarket.stake, 'ghost_ai') ||
+            !isTradeSignatureUnique(selectedMarket.symbol, selectedMarket.prediction, selectedMarket.stake, 'ghost_ai')) {
+            console.log(`🚫 [S1] Trade BLOCKED for ${selectedMarket.symbol}`);
+            return;
+        }
+
+        recordPendingStake(selectedMarket.symbol, selectedMarket.stake, 'ghost_ai');
+        recordTradeSignature(selectedMarket.symbol, selectedMarket.prediction, selectedMarket.stake, 'ghost_ai');
+        activeS1Symbols.set(selectedMarket.symbol, Date.now()); // Store timestamp for stale cleanup
+
+        addBotLog(`✓ S1 Entry: ${selectedMarket.symbol} | Stake: $${selectedMarket.stake.toFixed(2)}`, 'info');
+        executeTradeWithTracking(selectedMarket);
     }
 }
 
@@ -1017,20 +1030,29 @@ async function executeTradeWithTracking(marketData) {
     // --- DUAL SOCKET LOGIC ---
     let useReal = false;
     const hookEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked;
+    const vhS1Enabled = document.getElementById('ghostaiVHEnabledS1')?.checked;
+    const vhS2Enabled = document.getElementById('ghostaiVHEnabledS2')?.checked;
 
     // Show Progress Tracker
     updateTradeProgressUI('attempting');
 
     if (!hookEnabled) {
-        useReal = true; // Support standard mode
+        useReal = true; // Support standard mode (VH OFF)
     } else {
-        // CRITICAL: Always use REAL if we are in Recovery Mode (S2)
-        // This ensures the martingale sequence is not interrupted by virtual checks
-        if (marketData.mode === 'S2') {
-            useReal = true;
-            console.log("🛠️ Recovery Mode (S2) detected: Forcing REAL Account execution.");
+        const strategy = marketData.mode; // 'S1' or 'S2'
+        const isS1 = (strategy === 'S1');
+        const isS2 = (strategy === 'S2');
+
+        // Check if VH applies to this specific strategy
+        const isVHAppliedToThisStrategy = (isS1 && vhS1Enabled) || (isS2 && vhS2Enabled);
+
+        if (!isVHAppliedToThisStrategy) {
+            useReal = true; // Fire REAL immediately for this strategy
+            console.log(`🛠️ VH Granularity: VH bypassed for ${strategy}. Executing on REAL.`);
         } else {
+            // Respect the Virtual Hook token
             useReal = botState.nextTradeReal;
+            console.log(`🪝 VH Granularity: VH active for ${strategy}. Using nextTradeReal: ${useReal}`);
         }
     }
 
@@ -1370,10 +1392,9 @@ function handleGhostTradeResult(result) {
     addVirtualTradeHistory(result);
 
     if (!result.isWin) {
-        if (strategy === 'S1') {
-            if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
-            botState.s1ConsecutiveWins = 0; // Reset wins on loss
-        }
+        // Increment consecutive losses for ANY virtual strategy (S1 or S2)
+        if (typeof botState.s1ConsecutiveLosses !== 'undefined') botState.s1ConsecutiveLosses++;
+        botState.s1ConsecutiveWins = 0; // Reset wins on loss
 
         const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
         const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');
@@ -1388,10 +1409,9 @@ function handleGhostTradeResult(result) {
             botState.nextTradeReal = true;
         }
     } else {
-        if (strategy === 'S1') {
-            botState.s1ConsecutiveLosses = 0; // Reset losses on win
-            if (typeof botState.s1ConsecutiveWins !== 'undefined') botState.s1ConsecutiveWins++;
-        }
+        // Reset losses for ANY virtual strategy (S1 or S2) on win
+        botState.s1ConsecutiveLosses = 0;
+        if (typeof botState.s1ConsecutiveWins !== 'undefined') botState.s1ConsecutiveWins++;
 
         const triggerInput = document.getElementById('ghostaiVirtualHookTrigger');
         const enabledInput = document.getElementById('ghostaiVirtualHookEnabled');

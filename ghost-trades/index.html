@@ -880,6 +880,39 @@
                                     title="Number of consecutive virtual results to trigger real trade">
                             </div>
 
+                            <div class="control-group"
+                                style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                <label style="font-weight: 600; color: #ff9800; margin-bottom: 10px; display: block;">VH
+                                    Granularity</label>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiVHEnabledS1" name="ghostaiVHEnabledS1" checked
+                                            style="width: auto;">
+                                        <span>Apply VH to S1 (Entries)</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiVHEnabledS2" name="ghostaiVHEnabledS2" checked
+                                            style="width: auto;">
+                                        <span>Apply VH to S2 (Recovery)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="control-group" style="margin-top: 15px;">
+                                <label for="ghostaiPostLossBehavior" style="font-weight: 600; color: #ff9800;">After
+                                    REAL Loss Behavior</label>
+                                <select id="ghostaiPostLossBehavior" name="ghostaiPostLossBehavior"
+                                    class="control-select">
+                                    <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)</option>
+                                    <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
+                                </select>
+                                <small
+                                    style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px; line-height: 1.3;">
+                                    <b>Option A:</b> S2 stays on REAL account until win.<br>
+                                    <b>Option B:</b> Goes back to Virtual and waits for VH trigger.
+                                </small>
+                            </div>
+
 
                         </div>
 

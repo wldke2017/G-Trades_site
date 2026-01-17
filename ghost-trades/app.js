@@ -834,6 +834,14 @@ function handleIncomingMessage(msg) {
                                 botState.s1LossSymbol = contract.symbol;
                                 botState.s1ConsecutiveLosses++;
 
+                                // --- Option B: Return to Virtual after REAL Loss ---
+                                const postLossBehavior = document.getElementById('ghostaiPostLossBehavior')?.value || 'OPTION_A';
+                                if (postLossBehavior === 'OPTION_B') {
+                                    console.log("🛡️ Option B: Real loss detected. Returning to Virtual for next trigger.");
+                                    botState.nextTradeReal = false;
+                                    botState.s1ConsecutiveLosses = 0; // Reset streak to start fresh on virtual
+                                }
+
                                 addBotLog(`❌ S1 Loss #${botState.s1ConsecutiveLosses}: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} `, 'loss');
 
                                 // Check if we should block S1
@@ -856,6 +864,14 @@ function handleIncomingMessage(msg) {
                                 botState.martingaleStepCount++;
 
                                 addBotLog(`❌ S2 Loss: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Martingale Step ${botState.martingaleStepCount} `, 'loss');
+
+                                // --- Option B: Return to Virtual after REAL Loss (S2) ---
+                                const postLossBehavior = document.getElementById('ghostaiPostLossBehavior')?.value || 'OPTION_A';
+                                if (postLossBehavior === 'OPTION_B') {
+                                    console.log("🛡️ Option B (S2): Real loss detected. Returning to Virtual for next trigger.");
+                                    botState.nextTradeReal = false;
+                                    botState.s1ConsecutiveLosses = 0; // Reset streak
+                                }
 
                                 // Check for Stop-Loss
                                 if (Math.abs(botState.totalPL) >= botState.stopLoss) {
@@ -1284,7 +1300,15 @@ function restoreBotSettingsOnLoad() {
                 s2UsePercentage: 'botS2UsePercentage',
                 s2Prediction: 'botS2Prediction',
                 s2Percentage: 'botS2Percentage',
-                s2PercentageOperator: 'botS2PercentageOperator'
+                s2PercentageOperator: 'botS2PercentageOperator',
+                // New Advanced Settings
+                vhEnabled: 'ghostaiVirtualHookEnabled',
+                vhStartWhen: 'ghostaiVirtualHookStartWhen',
+                vhTrigger: 'ghostaiVirtualHookTrigger',
+                vhEnabledS1: 'ghostaiVHEnabledS1',
+                vhEnabledS2: 'ghostaiVHEnabledS2',
+                postLossBehavior: 'ghostaiPostLossBehavior',
+                serialMode: 'ghostaiSerialMode'
             });
         } catch (error) {
             console.error('Error restoring Ghost AI settings:', error);
