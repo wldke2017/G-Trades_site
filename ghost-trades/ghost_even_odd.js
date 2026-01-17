@@ -649,8 +649,10 @@ async function startEvenOddBot() {
     evenOddBotState.activeContracts = {};
     evenOddBotState.martingaleStep = 0;
     evenOddBotState.martingaleSize = 1;
+    evenOddBotState.martingaleSize = 1;
     evenOddBotState.accumulatedLoss = 0;
     evenOddBotState.virtualOrders = {}; // Initialize virtual orders for Virtual Hook
+    evenOddBotState.evenOddSerialModeCooldownTill = 0; // Initialize cooldown
     symbolDigitHistory = {};
 
     // Update emergency button visibility
@@ -738,6 +740,11 @@ function handleEvenOddTick(tick) {
 
     const symbol = tick.symbol;
     const price = tick.quote.toString();
+    // Check Serial Mode Cooldown (3 Seconds Rest)
+    if (evenOddBotState.evenOddSerialModeCooldownTill && Date.now() < evenOddBotState.evenOddSerialModeCooldownTill) {
+        return;
+    }
+
     const lastDigit = parseInt(price.slice(-1));
 
     // Initialize symbol history if not exists (up to 15 digits)
@@ -869,15 +876,21 @@ function handleEvenOddTick(tick) {
             const strategy = isRecovery ? 'S2' : 'S1';
 
             // Check Granular Settings
-            const applyVH = evenOddBotState.virtualHook.enabled && (
+            // CRITICAL FIX: If isRealTradeTriggered is TRUE, force applyVH to FALSE to execute real trade
+            let applyVH = evenOddBotState.virtualHook.enabled && (
                 (strategy === 'S1' && evenOddBotState.virtualHook.vhEnabledS1) ||
                 (strategy === 'S2' && evenOddBotState.virtualHook.vhEnabledS2)
             );
 
+            if (evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
+                applyVH = false;
+            }
+
             // Log if VH is bypassed
             if (evenOddBotState.virtualHook.enabled && !applyVH && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
                 addEvenOddBotLog(`🛠️ VH Granularity: VH bypassed for ${strategy}. Executing on REAL.`, 'info');
-                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true; // Temporary bypass just for this trade cycle logic
+                // The line below was causing issues by prematurely setting isRealTradeTriggered to true
+                // evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true; // Temporary bypass just for this trade cycle logic
             }
 
             if (applyVH && !evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
@@ -1177,4 +1190,7 @@ function clearGhostEvenOddTradeTracking(symbol, profit, isWin) {
 
     // 4. Update UI
     updateEvenOddProfitLossDisplay();
+
+    // 5. Set Cooldown (3 Seconds Rest)
+    evenOddBotState.evenOddSerialModeCooldownTill = Date.now() + 3000;
 }
