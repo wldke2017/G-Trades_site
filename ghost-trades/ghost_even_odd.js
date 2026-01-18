@@ -662,8 +662,12 @@ async function startEvenOddBot() {
     evenOddBotState.martingaleSize = 1;
     evenOddBotState.accumulatedLoss = 0;
     evenOddBotState.virtualOrders = {}; // Initialize virtual orders for Virtual Hook
+    evenOddBotState.virtualOrders = {}; // Initialize virtual orders for Virtual Hook
     evenOddBotState.evenOddSerialModeCooldownTill = 0; // Initialize cooldown
     symbolDigitHistory = {};
+
+    // Start Anti-Freeze Watchdog
+    startEvenOddWatchdog();
 
     // Update emergency button visibility
     if (typeof updateEmergencyButtonVisibility === 'function') {
@@ -675,6 +679,9 @@ async function stopEvenOddBot() {
     if (!evenOddBotState.isTrading) return;
 
     evenOddBotState.isTrading = false;
+
+    // Stop Anti-Freeze Watchdog
+    stopEvenOddWatchdog();
 
     // Release Wake Lock (Ghost E/Odd)
     if (typeof window.wakeLockManager !== 'undefined') {
@@ -716,6 +723,74 @@ async function stopEvenOddBot() {
 // Performance optimization: Track last pattern check time per symbol
 let lastPatternCheckTime = {};
 const PATTERN_CHECK_COOLDOWN = 100; // Reduced from 1000ms to 100ms for faster response
+
+// ===================================
+// ANTI-FREEZE WATCHDOG
+// ===================================
+let evenOddWatchdogInterval = null;
+
+function startEvenOddWatchdog() {
+    if (evenOddWatchdogInterval) clearInterval(evenOddWatchdogInterval);
+
+    addEvenOddBotLog('🐕 Watchdog Timer Started (Safety Valve)', 'info');
+
+    evenOddWatchdogInterval = setInterval(() => {
+        if (!evenOddBotState.isTrading) {
+            stopEvenOddWatchdog();
+            return;
+        }
+
+        const now = Date.now();
+        let releaseCount = 0;
+
+        // 1. Check for STALE Trade Locks (> 25 seconds)
+        // If a trade takes longer than 25s, something is wrong (Ghost E/Odd trades are usually 2s ticks)
+        if (typeof globalTradeLocks !== 'undefined') {
+            for (const [key, lock] of Object.entries(globalTradeLocks)) {
+                if (lock.botType === 'ghost_eodd') {
+                    const duration = now - lock.timestamp;
+                    if (duration > 25000) {
+                        console.warn(`🐕 Watchdog: Released stale lock on ${key} (${(duration / 1000).toFixed(1)}s old)`);
+                        addEvenOddBotLog(`🐕 Watchdog: Force-released stuck trade on ${lock.symbol}`, 'warning');
+                        delete globalTradeLocks[key];
+                        releaseCount++;
+
+                        // Also clear pending stake to unblock Global Silence
+                        if (typeof clearPendingStake === 'function') {
+                            clearPendingStake(lock.symbol);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Check for STUCK Cooldown (> 5 seconds in future? Rest frequency is 3s)
+        // If cooldown is set to 1 hour from now due to some bug, we reset it.
+        // We allow up to 10s buffer just in case.
+        if (evenOddBotState.evenOddSerialModeCooldownTill > (now + 10000)) {
+            console.warn(`🐕 Watchdog: Detected stuck cooldown timestamp. Resetting.`);
+            addEvenOddBotLog(`🐕 Watchdog: Reset stuck cooldown timer.`, 'warning');
+            evenOddBotState.evenOddSerialModeCooldownTill = 0;
+        }
+
+        // 3. Cleanup Stuck Active Contracts (Ghost E/Odd contracts shouldn't live long)
+        // If we have an active contract for > 60s, it's definitely a zombie.
+        for (const [key, contract] of Object.entries(evenOddBotState.activeContracts)) {
+            // Assuming contract has purchase_time or similar, but we track by key mostly.
+            // We can check local timestamps if we stored them.
+            // For now, let's rely on locks. Locks cover the most critical blocking.
+        }
+
+    }, 30000); // Run every 30 seconds
+}
+
+function stopEvenOddWatchdog() {
+    if (evenOddWatchdogInterval) {
+        clearInterval(evenOddWatchdogInterval);
+        evenOddWatchdogInterval = null;
+        // console.log('🐕 Watchdog Timer Stopped');
+    }
+}
 
 /**
  * Handle incoming tick data for Even/Odd bot
