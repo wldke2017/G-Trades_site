@@ -122,6 +122,11 @@ function addEvenOddBotLog(message, type = 'info') {
     if (eoddBotLogContainer) {
         eoddBotLogContainer.appendChild(logEntry);
         eoddBotLogContainer.scrollTop = eoddBotLogContainer.scrollHeight;
+
+        // Prevent Memory Leak: Cap logs at 100
+        while (eoddBotLogContainer.children.length > 100) {
+            eoddBotLogContainer.removeChild(eoddBotLogContainer.firstChild);
+        }
     }
 }
 
