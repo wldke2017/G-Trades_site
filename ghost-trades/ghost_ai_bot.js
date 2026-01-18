@@ -141,10 +141,13 @@ async function startGhostAiBot() {
         clearAllPendingStakes();
     }
 
-    // Acquire Wake Lock
+    // Acquire Wake Lock (Ghost AI)
     if (typeof window.wakeLockManager !== 'undefined') {
         window.wakeLockManager.acquire();
     }
+
+    // Start Anti-Freeze Watchdog
+    startGhostAIWatchdog();
 
     // Add session start marker in logs
     addBotLog(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
@@ -363,6 +366,9 @@ async function stopGhostAiBot() {
 
     if (!isBotRunning) return;
     isBotRunning = false;
+
+    // Stop Anti-Freeze Watchdog
+    stopGhostAIWatchdog();
 
     // Release Wake Lock
     if (typeof window.wakeLockManager !== 'undefined') {
@@ -1627,4 +1633,82 @@ function resetTimelineUI() {
 window.updateTradeProgressUI = updateTradeProgressUI;
 
 // Export to window for access from index.html or other scripts
+// Export to window for access from index.html or other scripts
 window.resetBotLocks = resetBotLocks;
+
+
+// ===================================
+// ANTI-FREEZE WATCHDOG (Ghost AI)
+// ===================================
+let ghostAIWatchdogInterval = null;
+
+function startGhostAIWatchdog() {
+    if (ghostAIWatchdogInterval) clearInterval(ghostAIWatchdogInterval);
+
+    addBotLog('🐕 Ghost AI Watchdog Started (Safety Valve)', 'info');
+
+    ghostAIWatchdogInterval = setInterval(() => {
+        if (!isBotRunning) {
+            stopGhostAIWatchdog();
+            return;
+        }
+
+        const now = Date.now();
+        let releaseCount = 0;
+
+        // 1. Check for STALE Trade Locks (> 25 seconds)
+        // CRITICAL SAFETY: Only release locks if NO active trade exists for that symbol
+        if (typeof globalTradeLocks !== 'undefined') {
+            for (const [key, lock] of Object.entries(globalTradeLocks)) {
+                if (lock.botType === 'ghost_ai') {
+                    const duration = now - lock.timestamp;
+
+                    // Only consider stale if older than 25 seconds
+                    if (duration > 25000) {
+
+                        // SAFETY CHECK 1: Is this symbol in Active S1 list?
+                        if (activeS1Symbols && activeS1Symbols.has(lock.symbol)) {
+                            // console.log(`🐕 Watchdog: Skipping valid S1 trade on ${lock.symbol} (${(duration/1000).toFixed(1)}s elapsed)`);
+                            continue;
+                        }
+
+                        // SAFETY CHECK 2: Is this symbol the active Recovery symbol?
+                        if (botState.recoverySymbol === lock.symbol && botState.activeS2Count > 0) {
+                            // console.log(`🐕 Watchdog: Skipping valid S2 trade on ${lock.symbol} (${(duration/1000).toFixed(1)}s elapsed)`);
+                            continue;
+                        }
+
+                        // If NOT in active lists, it's a zombie lock
+                        console.warn(`🐕 Watchdog: Released stale lock on ${key} (${(duration / 1000).toFixed(1)}s old)`);
+                        addBotLog(`🐕 Watchdog: Force-released stuck trade on ${lock.symbol}`, 'warning');
+                        delete globalTradeLocks[key];
+                        releaseCount++;
+
+                        // Clear pending stakes to unblock global silence
+                        if (typeof clearPendingStake === 'function') {
+                            clearPendingStake(lock.symbol, 'ghost_ai');
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Check for STUCK Serial Mode Cooldown (> 10s into future?)
+        // Normal cooldown is 2-3s. If it's way in future, reset it.
+        if (typeof serialModeCooldownTill !== 'undefined') {
+            if (serialModeCooldownTill > (now + 10000)) {
+                console.warn(`🐕 Watchdog: Detected stuck serial cooldown. Resetting.`);
+                addBotLog(`🐕 Watchdog: Reset stuck serial timer.`, 'warning');
+                serialModeCooldownTill = 0;
+            }
+        }
+
+    }, 30000); // Run every 30 seconds
+}
+
+function stopGhostAIWatchdog() {
+    if (ghostAIWatchdogInterval) {
+        clearInterval(ghostAIWatchdogInterval);
+        ghostAIWatchdogInterval = null;
+    }
+}
