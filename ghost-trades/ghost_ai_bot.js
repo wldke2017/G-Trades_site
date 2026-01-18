@@ -141,6 +141,11 @@ async function startGhostAiBot() {
         clearAllPendingStakes();
     }
 
+    // Acquire Wake Lock
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.acquire();
+    }
+
     // Add session start marker in logs
     addBotLog(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
     addBotLog(`🔄 New Bot Session Started`, 'info');
@@ -358,6 +363,17 @@ async function stopGhostAiBot() {
 
     if (!isBotRunning) return;
     isBotRunning = false;
+
+    // Release Wake Lock
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.release();
+    }
+
+    // Stop bot timer
+    Lock
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.release();
+    }
 
     // Stop bot timer
     stopBotTimer();

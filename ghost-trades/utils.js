@@ -607,3 +607,88 @@ function calculateDigitPercentages(symbol, count = 15) {
 
     return percentages;
 }
+
+// ===================================
+// SCREEN WAKE LOCK MANAGER
+// ===================================
+
+const wakeLockManager = {
+    wakeLock: null,
+    activeReferrers: 0, // Reference count for active bots
+
+    /**
+     * Request screen wake lock
+     * @returns {Promise<void>}
+     */
+    async acquire() {
+        this.activeReferrers++;
+        console.log(`💡 Wake Lock: Acquire requested. Active refs: ${this.activeReferrers}`);
+
+        if (this.wakeLock) {
+            // Already active
+            return;
+        }
+
+        try {
+            if ('wakeLock' in navigator) {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                console.log('💡 Wake Lock: Active');
+
+                this.wakeLock.addEventListener('release', () => {
+                    console.log('💡 Wake Lock: Released externally');
+                    this.wakeLock = null;
+                });
+            } else {
+                console.warn('⚠️ Wake Lock API not supported in this browser.');
+            }
+        } catch (err) {
+            console.error(`❌ Wake Lock Error: ${err.name}, ${err.message}`);
+        }
+    },
+
+    /**
+     * Release screen wake lock
+     * @returns {Promise<void>}
+     */
+    async release() {
+        if (this.activeReferrers > 0) {
+            this.activeReferrers--;
+        }
+
+        console.log(`💡 Wake Lock: Release requested. Active refs: ${this.activeReferrers}`);
+
+        if (this.activeReferrers === 0 && this.wakeLock) {
+            try {
+                await this.wakeLock.release();
+                this.wakeLock = null;
+                console.log('💡 Wake Lock: Released (No active bots)');
+            } catch (err) {
+                console.error(`❌ Wake Lock Release Error: ${err.name}, ${err.message}`);
+            }
+        }
+    },
+
+    /**
+     * Handle visibility change to re-acquire lock if lost
+     */
+    async handleVisibilityChange() {
+        if (this.wakeLock !== null && document.visibilityState === 'visible') {
+            return;
+        }
+
+        if (this.wakeLock === null && document.visibilityState === 'visible' && this.activeReferrers > 0) {
+            console.log('💡 Wake Lock: Re-acquiring after visibility change...');
+            // Decrement first because acquire increments, maintaining the count
+            this.activeReferrers--;
+            await this.acquire();
+        }
+    }
+};
+
+// Handle tab visibility changes to restore lock
+document.addEventListener('visibilitychange', () => {
+    wakeLockManager.handleVisibilityChange();
+});
+
+// Expose globally
+window.wakeLockManager = wakeLockManager;

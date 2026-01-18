@@ -583,6 +583,11 @@ async function startEvenOddBot() {
     // Initialize money management
     initializeMoneyManagement();
 
+    // Acquire Wake Lock (Ghost E/Odd)
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.acquire();
+    }
+
     // Save current settings to localStorage
     if (typeof window.botSettingsManager !== 'undefined') {
         const settings = {
@@ -617,6 +622,11 @@ async function startEvenOddBot() {
     const eoddBotLogContainer = document.getElementById('eodd-bot-log-container');
     if (eoddBotLogContainer) {
         eoddBotLogContainer.innerHTML = '';
+    }
+
+    // Acquire Wake Lock
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.acquire();
     }
 
     // Add session start marker in logs
@@ -665,6 +675,11 @@ async function stopEvenOddBot() {
     if (!evenOddBotState.isTrading) return;
 
     evenOddBotState.isTrading = false;
+
+    // Release Wake Lock (Ghost E/Odd)
+    if (typeof window.wakeLockManager !== 'undefined') {
+        window.wakeLockManager.release();
+    }
 
     // Clear trade locks specific to Ghost E/ODD
     if (typeof releaseAllTradeLocks === 'function') {
