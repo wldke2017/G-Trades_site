@@ -214,28 +214,48 @@ function handleIncomingMessage(msg) {
                 updateAuthUI(data);
 
                 // Populate account switcher UI for API token logins
-                // Check if this is NOT an OAuth login (OAuth logins already populate the switcher)
-                const isOAuthLogin = data.echo_req && data.echo_req.passthrough && data.echo_req.passthrough.purpose === 'oauth_login';
-                if (!isOAuthLogin && typeof populateAccountSwitcherUI === 'function') {
-                    // Create a single account object for the current API token login
-                    const currentAccount = {
-                        id: data.authorize.loginid,
-                        token: localStorage.getItem('deriv_token'),
-                        currency: data.authorize.currency
-                    };
+                // Only do this for 'initial_login' (manual API token login)
+                const passthrough = data.echo_req && data.echo_req.passthrough ? data.echo_req.passthrough : {};
+                const isManualLogin = passthrough.purpose === 'initial_login';
 
-                    // Save to localStorage for persistence
-                    localStorage.setItem('deriv_all_accounts', JSON.stringify([currentAccount]));
-                    localStorage.setItem('deriv_account_id', currentAccount.id);
-                    localStorage.setItem('deriv_currency', currentAccount.currency);
+                if (isManualLogin && typeof populateAccountSwitcherUI === 'function') {
+                    // Check if we already have multiple accounts (e.g. from OAuth)
+                    // If we do, we don't want to overwrite them with a single entry
+                    const storedAccountsStr = localStorage.getItem('deriv_all_accounts');
+                    let existingAccounts = [];
+                    try {
+                        existingAccounts = storedAccountsStr ? JSON.parse(storedAccountsStr) : [];
+                    } catch (e) {
+                        console.warn('Failed to parse existing accounts');
+                    }
 
-                    // Populate the account switcher UI
-                    console.log('📦 Populating account switcher for API token login');
-                    populateAccountSwitcherUI([currentAccount]);
+                    if (existingAccounts.length <= 1) {
+                        // Create a single account object for the current API token login
+                        const currentAccount = {
+                            id: data.authorize.loginid,
+                            token: localStorage.getItem('deriv_token'),
+                            currency: data.authorize.currency
+                        };
 
-                    // Update refresh demo button visibility
-                    if (typeof updateRefreshDemoVisibility === 'function') {
-                        updateRefreshDemoVisibility();
+                        // Save to localStorage for persistence
+                        localStorage.setItem('deriv_all_accounts', JSON.stringify([currentAccount]));
+                        localStorage.setItem('deriv_account_id', currentAccount.id);
+                        localStorage.setItem('deriv_currency', currentAccount.currency);
+
+                        // Populate the account switcher UI
+                        console.log('📦 Populating account switcher for manual API token login');
+                        populateAccountSwitcherUI([currentAccount]);
+
+                        // Update refresh demo button visibility
+                        if (typeof updateRefreshDemoVisibility === 'function') {
+                            updateRefreshDemoVisibility();
+                        }
+                    } else {
+                        console.log('📦 Skipping account switcher overwrite: Multi-account list already exists');
+                        // Just update the header to show current account info
+                        if (typeof updateAccountHeader === 'function') {
+                            updateAccountHeader();
+                        }
                     }
                 }
 
