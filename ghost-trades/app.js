@@ -634,7 +634,7 @@ function handleIncomingMessage(msg) {
             else if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
                 if (contractInfo) {
                     const payout = parseFloat(contractInfo.payout).toFixed(2);
-                    showToast(`🤖 AI Trade placed: ${contractInfo.contract_id} `, 'success');
+                    // showToast(`🤖 AI Trade placed: ${contractInfo.contract_id} `, 'success');
 
                     // Subscribe WITH passthrough data so we can identify the result later
                     sendAPIRequest({
@@ -649,7 +649,7 @@ function handleIncomingMessage(msg) {
             else if (passthrough && passthrough.purpose === 'ghost_ai_trade') {
                 if (contractInfo) {
                     const payout = parseFloat(contractInfo.payout).toFixed(2);
-                    showToast(`👻 Ghost AI Trade: ${contractInfo.contract_id}`, 'success');
+                    // showToast(`👻 Ghost AI Trade: ${contractInfo.contract_id}`, 'success');
                     // Do NOT re-subscribe here, as ghost_ai_bot.js sends subscribe:1 in the buy request
                     console.log(`👻 Ghost AI Trade placed (Auto-subscribed): ${contractInfo.contract_id}`);
                 }
@@ -658,7 +658,7 @@ function handleIncomingMessage(msg) {
                 currentContractId = contractInfo.contract_id;
                 const payout = parseFloat(contractInfo.payout).toFixed(2);
 
-                showToast(`Trade placed successfully! Contract ID: ${contractInfo.contract_id} `, 'success');
+                // showToast(`Trade placed successfully! Contract ID: ${contractInfo.contract_id} `, 'success');
 
                 updateTradeMessageUI(`
     < svg class="message-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
@@ -868,7 +868,7 @@ function handleIncomingMessage(msg) {
                         // Notification
                         if (contract.profit > 0) {
                             const strategyLabel = contract.strategy === 'S1' ? 'S1' : 'S2';
-                            showToast(`🎉 ${strategyLabel} Win: +$${contract.profit.toFixed(2)} on ${contract.symbol} `, 'success', 10000);
+                            // showToast(`🎉 ${strategyLabel} Win: +$${contract.profit.toFixed(2)} on ${contract.symbol} `, 'success', 10000);
                         }
 
                         // --- Strategy-Specific Logic (MOVED INSIDE DEDUPLICATION BLOCK) ---
@@ -1013,7 +1013,7 @@ function handleIncomingMessage(msg) {
 
                     // Notification on win
                     if (contract.profit > 0) {
-                        showToast(`🎉 E/ODD Bot Win: +$${contract.profit.toFixed(2)} on ${contract.symbol}`, 'success', 10000);
+                        // showToast(`🎉 E/ODD Bot Win: +$${contract.profit.toFixed(2)} on ${contract.symbol}`, 'success', 10000);
                     }
                     // Check if it's a Market Summary bot trade
                     else if (passthrough && passthrough.purpose === 'market_summary_trade' && passthrough.run_id === window.marketSummaryBotState.runId) {
@@ -1034,7 +1034,7 @@ function handleIncomingMessage(msg) {
 
                         if (contract.profit > 0) {
                             window.marketSummaryBotState.winCount++;
-                            showToast(`🎉 Market Summary Win: +$${contract.profit.toFixed(2)} on ${contract.symbol}`, 'success', 10000);
+                            // showToast(`🎉 Market Summary Win: +$${contract.profit.toFixed(2)} on ${contract.symbol}`, 'success', 10000);
                             addMarketSummaryLog(`✅ Win: +$${contract.profit.toFixed(2)} on ${contract.symbol} | Total P/L: $${window.marketSummaryBotState.totalPL.toFixed(2)}`, 'win');
 
                             // Reset martingale on win
