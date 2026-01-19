@@ -213,6 +213,32 @@ function handleIncomingMessage(msg) {
                 // Update UI using new UI module
                 updateAuthUI(data);
 
+                // Populate account switcher UI for API token logins
+                // Check if this is NOT an OAuth login (OAuth logins already populate the switcher)
+                const isOAuthLogin = data.echo_req && data.echo_req.passthrough && data.echo_req.passthrough.purpose === 'oauth_login';
+                if (!isOAuthLogin && typeof populateAccountSwitcherUI === 'function') {
+                    // Create a single account object for the current API token login
+                    const currentAccount = {
+                        id: data.authorize.loginid,
+                        token: localStorage.getItem('deriv_token'),
+                        currency: data.authorize.currency
+                    };
+
+                    // Save to localStorage for persistence
+                    localStorage.setItem('deriv_all_accounts', JSON.stringify([currentAccount]));
+                    localStorage.setItem('deriv_account_id', currentAccount.id);
+                    localStorage.setItem('deriv_currency', currentAccount.currency);
+
+                    // Populate the account switcher UI
+                    console.log('📦 Populating account switcher for API token login');
+                    populateAccountSwitcherUI([currentAccount]);
+
+                    // Update refresh demo button visibility
+                    if (typeof updateRefreshDemoVisibility === 'function') {
+                        updateRefreshDemoVisibility();
+                    }
+                }
+
                 // --- CRITICAL SAFETY FIX: STOP ALL BOTS ON ACCOUNT SWITCH ---
                 let botsStopped = false;
 
