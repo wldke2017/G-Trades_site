@@ -669,6 +669,33 @@ window.handleAIStrategyResult = function (contract) {
         }
     }
 
+    // --- NEW: TAKE PROFIT & STOP LOSS CHECKS ---
+    const targetProfitInput = document.getElementById('ai-target-profit');
+    const stopLossInput = document.getElementById('ai-stop-loss');
+
+    if (targetProfitInput && stopLossInput) {
+        const targetProfit = parseFloat(targetProfitInput.value) || Infinity;
+        const stopLoss = parseFloat(stopLossInput.value) || Infinity;
+
+        // Check Take Profit
+        if (window.aiTradingState.totalProfit >= targetProfit) {
+            if (window.aiStrategyRunner) {
+                window.aiStrategyRunner.log(`🎯 TAKE PROFIT REACHED: $${window.aiTradingState.totalProfit.toFixed(2)} / $${targetProfit.toFixed(2)}`, 'success');
+                handleStopStrategy(); // Stop the bot
+                showToast(`Target Profit Reached: $${window.aiTradingState.totalProfit.toFixed(2)}`, 'success', 8000);
+            }
+        }
+
+        // Check Stop Loss
+        else if (window.aiTradingState.totalProfit <= -stopLoss) {
+            if (window.aiStrategyRunner) {
+                window.aiStrategyRunner.log(`🛑 STOP LOSS REACHED: $${window.aiTradingState.totalProfit.toFixed(2)} / -$${stopLoss.toFixed(2)}`, 'error');
+                handleStopStrategy(); // Stop the bot
+                showToast(`Stop Loss Reached: $${window.aiTradingState.totalProfit.toFixed(2)}`, 'error', 8000);
+            }
+        }
+    }
+
     // Update UI
     updateAIStatsUI();
     updateAIHistoryTable(contract, profit);

@@ -48,28 +48,26 @@ DATA CONTEXT (the 'data' object):
 - data.percentages: object { 0..9: percentage, over0..over9: percentage }
 - data.analysis.count: number (lookback period for percentages)
 
+SYMBOL MAPPING (data.symbol):
+- Volatility 10/25/50/75/100: 'R_10', 'R_25', 'R_50', 'R_75', 'R_100'
+- Volatility 1s (1HZ): '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V'
+
 TRADING SIGNALS (exactly one call per condition match):
 - signal('CALL' | 'PUT' | 'DIGITEVEN' | 'DIGITODD', stake)
 - signal('DIGITOVER' | 'DIGITUNDER' | 'DIGITMATCH' | 'DIGITDIFF', stake, barrier)
 
-ADVANCED TECHNIQUES:
-1. Digit Percentage: If user says "trade if digit 2 is trending low", use data.percentages[2] < 5.0
-2. Sequence Matching: const last3 = data.digits.slice(-3).join(''); if (last3 === '888') ...
-3. Relative Change: const delta = data.tick - previousTick; (Note: You must track previousTick via local variable if requested)
-4. Barrier Optimization: For 'DIGITOVER 5', the barrier is 5.
+CONSTRAINTS & BEST PRACTICES:
+1. Symbol Focus: If the user specifies a market, ALWAYS wrap your logic in: if (data.symbol === 'CORRECT_SYMBOL') { ... }
+2. Multi-Trade Blocking: The platform has a 5-second lock per market. If the user asks for "simultaneous" trades (e.g., Over 1 and Under 8), they will be blocked if triggered on the same tick. If requested, write logic to space them out across different ticks or log that it's currently limited by safety gates.
+3. Single Execution: For "once" requests, use a global-persistent flag: if (!window.strategyExecuted) { ... window.strategyExecuted = true; }
+4. Persistence: You can use 'window.customState = ...' to track streaks or states across ticks.
+5. Logging: ALWAYS explain WHY a trade was taken via log().
 
-CRITICAL CONSTRAINTS:
-- Output ONLY pure JS code. NO markdown formatting. NO wrapping function.
-- DO NOT use any browser globals (window, document, etc.) or restricted keywords.
-- ALWAYS use console-style logging via log("Message: " + values) to explain WHY a trade was taken.
-- If a strategy is logically impossible or unsafe, use log('Error: [Reason]') and do not signal.
-
-EXAMPLE: "If digit 0 percentage is < 5 and last digit is 5, buy Digit Differ 0."
-const pct0 = data.percentages[0];
-const last = data.lastDigit;
-if (pct0 < 5 && last === 5) {
-    signal('DIGITDIFF', 1, 0);
-    log(\`Strategy Match: Dig0(\${pct0}%) < 5% & LastDigit: \${last}\`);
+EXAMPLE (Specific market & pattern): "Trade Over 5 on Vol 100 once if last digit is 0."
+if (data.symbol === 'R_100' && data.lastDigit === 0 && !window.hasRun) {
+    signal('DIGITOVER', 1, 5);
+    window.hasRun = true;
+    log("Vol 100 Over 5 triggered on digit 0. Execution locked.");
 }
 `;
 
