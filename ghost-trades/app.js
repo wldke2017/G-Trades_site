@@ -639,7 +639,7 @@ function handleIncomingMessage(msg) {
                     const payout = parseFloat(contractInfo.payout).toFixed(2);
                     // showToast(`🤖 AI Trade placed: ${contractInfo.contract_id} `, 'success');
 
-                    // Subscribe WITH passthrough data so we can identify the result later
+                    // Subscribe WITH extended passthrough data
                     sendAPIRequest({
                         "proposal_open_contract": 1,
                         "contract_id": contractInfo.contract_id,
@@ -699,6 +699,11 @@ function handleIncomingMessage(msg) {
                 if (passthrough && passthrough.purpose === 'ai_strategy_trade') {
                     // Check contract result
                     console.log(`🤖 AI Strategy Trade Result: ${contract.symbol} | Profit: ${contract.profit} `);
+
+                    // Ensure symbol and type info is present for history
+                    contract.symbol = contract.symbol || passthrough.symbol;
+                    contract.contract_type = contract.contract_type || passthrough.type;
+                    contract.barrier = contract.barrier || passthrough.barrier;
 
                     // Call UI handler for Martingale/Stats
                     if (typeof window.handleAIStrategyResult === 'function') {

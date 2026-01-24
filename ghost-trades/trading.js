@@ -725,6 +725,9 @@ window.executeAIStratTrade = function (type, stake, symbol, barrier = null) {
         },
         "passthrough": {
             "purpose": "ai_strategy_trade",
+            "symbol": symbol,
+            "type": type,
+            "barrier": barrier,
             "timestamp": Date.now()
         }
     };

@@ -735,16 +735,22 @@ function updateAIHistoryTable(contract, profit) {
     timeCell.style.padding = '8px';
     timeCell.style.borderBottom = '1px solid var(--glass-border)';
 
-    // Symbol
-    const symbolCell = document.createElement('td');
-    const symbolText = contract.symbol + (isVirtual ? ' (Virtual)' : '');
-    symbolCell.innerHTML = symbolText; // Allow HTML if needed? No, textContent is fine.
-    // Use innerHTML to style the (Virtual) tag if we wanted, but text is safer. 
-    // Let's use simple text but distinct color for virtual tag if we want.
+    // Symbol & Type (Contract)
+    const symbolCell = row.insertCell(1);
+
+    // Format contract type to be more readable (e.g., ODD instead of DIGITODD)
+    let typeStr = contract.contract_type || '-';
+    if (typeof typeStr === 'string' && typeStr.startsWith('DIGIT')) {
+        typeStr = typeStr.replace('DIGIT', '');
+    }
+
+    const barrier = contract.barrier !== null && contract.barrier !== undefined ? ` ${contract.barrier}` : '';
+    const symbolStr = contract.symbol ? contract.symbol.replace('R_', 'VOL ').replace('1HZ', 'VOL ').replace('V', '') : '---';
+
+    symbolCell.innerHTML = `<strong>${symbolStr}</strong> <span style="font-size:0.85em; opacity:0.9;">${typeStr}${barrier}</span>`;
+
     if (isVirtual) {
-        symbolCell.innerHTML = `${contract.symbol} <span style="font-size:0.8em; opacity:0.7">(Virtual)</span>`;
-    } else {
-        symbolCell.textContent = contract.symbol;
+        symbolCell.innerHTML += ` <span style="font-size:0.75em; opacity:0.6; font-style:italic;">(Ghost)</span>`;
     }
 
     symbolCell.style.padding = '8px';
