@@ -736,7 +736,7 @@ function updateAIHistoryTable(contract, profit) {
     timeCell.style.borderBottom = '1px solid var(--glass-border)';
 
     // Symbol & Type (Contract)
-    const symbolCell = row.insertCell(1);
+    const symbolCell = document.createElement('td');
 
     // Format contract type to be more readable (e.g., ODD instead of DIGITODD)
     let typeStr = contract.contract_type || '-';
@@ -756,27 +756,14 @@ function updateAIHistoryTable(contract, profit) {
     symbolCell.style.padding = '8px';
     symbolCell.style.borderBottom = '1px solid var(--glass-border)';
 
-    // Result
-    const resultCell = document.createElement('td');
+    // Profit / Loss
+    const profitCell = document.createElement('td');
     const isWin = profit > 0;
 
-    let resultText = isWin ? 'WIN' : 'LOSS';
-    if (isVirtual) resultText = isWin ? 'V-WIN' : 'V-LOSS';
-
-    resultCell.textContent = resultText;
-    resultCell.style.padding = '8px';
-    resultCell.style.textAlign = 'center';
-    resultCell.style.color = isWin ? '#2ecc71' : '#e74c3c';
-    resultCell.style.fontWeight = 'bold';
-    resultCell.style.borderBottom = '1px solid var(--glass-border)';
-
-    // Profit
-    const profitCell = document.createElement('td');
-
-    // For virtual trades, profit is just +1 or -1 usually, or simulated status
+    // For virtual trades, profit is just shown as result type
     if (isVirtual) {
-        profitCell.textContent = '---';
-        profitCell.style.opacity = '0.5';
+        profitCell.textContent = isWin ? 'V-WIN' : 'V-LOSS';
+        profitCell.style.opacity = '0.8';
     } else {
         profitCell.textContent = (profit > 0 ? '+' : '') + profit.toFixed(2);
     }
@@ -784,11 +771,11 @@ function updateAIHistoryTable(contract, profit) {
     profitCell.style.padding = '8px';
     profitCell.style.textAlign = 'right';
     profitCell.style.color = isWin ? '#2ecc71' : '#e74c3c';
+    profitCell.style.fontWeight = 'bold';
     profitCell.style.borderBottom = '1px solid var(--glass-border)';
 
     row.appendChild(timeCell);
     row.appendChild(symbolCell);
-    row.appendChild(resultCell);
     row.appendChild(profitCell);
 
     // Prepend to show newest first
