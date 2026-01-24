@@ -5,6 +5,9 @@
 // Track balance subscription ID to cancel when switching accounts
 let currentBalanceSubscriptionId = null;
 
+// Custom lookback count for digit distribution (default: 1000)
+let distributionLookbackCount = 1000;
+
 function requestBalance() {
     // Cancel previous balance subscription if it exists
     if (currentBalanceSubscriptionId) {
@@ -77,8 +80,11 @@ function subscribeToAllVolatilities() {
 
     sendAPIRequest({ "forget_all": "ticks" });
 
+    // Initialize multi-market dashboard UI
+    initMultiMarketDashboard(volatilitySymbols);
+
     volatilitySymbols.forEach((symbol, index) => {
-        // FIXED: Subscribe to real-time ticks (NOT ticks_history)
+        // Subscribe to real-time ticks
         console.log(`📡 Subscribing to real-time ticks for ${symbol}...`);
         sendAPIRequest({
             "ticks": symbol,
@@ -92,64 +98,153 @@ function subscribeToAllVolatilities() {
         };
         marketFullTickDigits[symbol] = [];
 
-        // Fetch historical tick data for distribution analysis (1000 ticks immediately)
-        console.log(`📊 Fetching 1000 historical ticks for ${symbol}...`);
-        fetchTickHistory(symbol, 1000);
+        // Fetch historical tick data for distribution analysis (uses custom lookback count)
+        fetchTickHistory(symbol, distributionLookbackCount);
 
         if (!document.getElementById(`row-${symbol}`)) {
             const row = tickerTableBody.insertRow();
             row.id = `row-${symbol}`;
 
             const symbolCell = row.insertCell(0);
-            // Better display names for various indices
-            let displayName = symbol;
-
-            // Volatility Indices
-            if (symbol.startsWith('R_')) displayName = symbol.replace('R_', 'Vol ');
-            else if (symbol.startsWith('1HZ')) displayName = symbol.replace('1HZ', 'Vol ').replace('V', '');
-
-            // Jump Indices
-            else if (symbol.startsWith('JD')) displayName = symbol.replace('JD', 'Jump ');
-
-            // Crash/Boom
-            else if (symbol.includes('CRASH')) displayName = symbol.replace('CRASH', 'Crash ');
-            else if (symbol.includes('BOOM')) displayName = symbol.replace('BOOM', 'Boom ');
-
-            // Daily Reset Indices
-            else if (symbol.includes('RDBEAR')) displayName = 'Bear Market Index';
-            else if (symbol.includes('RDBULL')) displayName = 'Bull Market Index';
-
-            // Step Indices
-            else if (symbol === 'STPIDX') displayName = 'Step Index';
-
-            // DEX Indices
-            else if (symbol.startsWith('DEX')) displayName = symbol.replace('DEX', 'DEX ').replace('DN', ' Down').replace('UP', ' Up');
-
-            // Drift Switching
-            else if (symbol.startsWith('DRIFT')) displayName = symbol.replace('DRIFT', 'Drift ');
-
-            // Add (1s) suffix for 1-second indices
-            if (symbol.startsWith('1HZ') || symbol.includes('1s')) {
-                displayName += ' (1s)';
-            }
-
+            let displayName = getMarketDisplayName(symbol);
             symbolCell.textContent = displayName;
 
             row.insertCell(1).textContent = '--';
             row.insertCell(2).textContent = '--';
         }
     });
-
-    // Hide skeleton and show table after a delay to simulate loading
-    setTimeout(() => {
-        const skeleton = document.getElementById('marketWatchSkeleton');
-        const table = document.getElementById('tickerTable');
-        if (skeleton && table) {
-            skeleton.style.display = 'none';
-            table.style.display = 'table';
-        }
-    }, 2000);
 }
+
+/**
+ * Initializes the Multi-Market Dashboard UI
+ */
+function initMultiMarketDashboard(symbols) {
+    const dashboard = document.getElementById('multiMarketDashboard');
+    if (!dashboard) return;
+
+    dashboard.innerHTML = ''; // Clear existing
+    dashboard.style.display = 'flex';
+
+    symbols.forEach(symbol => {
+        const rowHtml = generateMarketGaugeRow(symbol);
+        dashboard.insertAdjacentHTML('beforeend', rowHtml);
+    });
+}
+
+/**
+ * Generates HTML for a single market row in the dashboard
+ */
+function generateMarketGaugeRow(symbol) {
+    const displayName = getMarketDisplayName(symbol);
+
+    let gaugesHtml = '';
+    for (let i = 0; i <= 9; i++) {
+        gaugesHtml += `
+            <div class="circular-gauge-container" id="gauge-container-${symbol}-${i}">
+                <div class="gauge-svg-wrapper">
+                    <svg class="gauge-svg" viewBox="0 0 40 40">
+                        <circle class="gauge-bg" cx="20" cy="20" r="16"></circle>
+                        <circle class="gauge-progress" id="gauge-path-${symbol}-${i}" cx="20" cy="20" r="16" 
+                            stroke-dasharray="0 100"></circle>
+                    </svg>
+                    <div class="gauge-content">
+                        <span class="gauge-digit">${i}</span>
+                        <span class="gauge-percent-val" id="gauge-val-${symbol}-${i}">0%</span>
+                    </div>
+                </div>
+                <div class="hot-indicator-dot"></div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="market-gauge-row" id="market-row-${symbol}">
+            <div class="market-header">
+                <div class="market-info-main">
+                    <span class="market-name-tag">${displayName}</span>
+                    <span class="market-price-tag" id="market-price-${symbol}">0.0000</span>
+                </div>
+            </div>
+            <div class="gauges-grid">
+                ${gaugesHtml}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Helper to get clean market display name
+ */
+function getMarketDisplayName(symbol) {
+    let displayName = symbol;
+    if (symbol.startsWith('R_')) displayName = symbol.replace('R_', 'Vol ');
+    else if (symbol.startsWith('1HZ')) displayName = symbol.replace('1HZ', 'Vol ').replace('V', '');
+    else if (symbol.startsWith('JD')) displayName = symbol.replace('JD', 'Jump ');
+    else if (symbol.includes('CRASH')) displayName = symbol.replace('CRASH', 'Crash ');
+    else if (symbol.includes('BOOM')) displayName = symbol.replace('BOOM', 'Boom ');
+    else if (symbol.includes('RDBEAR')) displayName = 'Bear Market Index';
+    else if (symbol.includes('RDBULL')) displayName = 'Bull Market Index';
+    else if (symbol === 'STPIDX') displayName = 'Step Index';
+
+    if (symbol.startsWith('1HZ') || symbol.includes('1s')) {
+        displayName += ' (1s)';
+    }
+    return displayName;
+}
+
+/**
+ * Refreshes all market distributions by fetching historical data
+ */
+async function refreshAllMarketDistributions() {
+    const skeleton = document.getElementById('digitAnalysisSkeleton');
+    const dashboard = document.getElementById('multiMarketDashboard');
+
+    if (skeleton && dashboard) {
+        skeleton.style.display = 'block';
+        dashboard.style.display = 'none';
+    }
+
+    try {
+        // Use snapshot API for massive efficiency
+        const response = await fetch('http://localhost:3000/api/snapshot');
+        if (response.ok) {
+            const snapshot = await response.json();
+            Object.keys(snapshot).forEach(symbol => {
+                const data = snapshot[symbol];
+                if (data && data.last_1000_ticks) {
+                    marketFullTickDigits[symbol] = data.last_1000_ticks;
+                    updateDigitAnalysisDisplay(symbol);
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('⚠️ Manual refresh fallback...');
+        const markets = Object.keys(marketFullTickDigits);
+        for (const symbol of markets) {
+            await fetchTickHistory(symbol, distributionLookbackCount);
+        }
+    }
+
+    if (skeleton && dashboard) {
+        skeleton.style.display = 'none';
+        dashboard.style.display = 'flex';
+    }
+}
+
+/**
+ * Sets the distribution lookback and refreshes data
+ */
+window.setDistributionLookback = function (value) {
+    distributionLookbackCount = parseInt(value);
+    console.log(`📏 Set distribution lookback to ${distributionLookbackCount}`);
+
+    // Refresh all markets with new lookback
+    refreshAllMarketDistributions();
+
+    if (typeof showToast === 'function') {
+        showToast(`Lookback set to ${distributionLookbackCount} ticks`, 'info');
+    }
+};
 
 function requestMarketData(symbol) {
     if (!currentChart) initializeChart();
@@ -174,19 +269,43 @@ function requestMarketData(symbol) {
  * @param {string} symbol - The symbol to fetch tick history for
  * @param {number} count - Number of historical ticks to fetch (default 1000)
  */
-function fetchTickHistory(symbol, count = 1000) {
+async function fetchTickHistory(symbol, count = 1000) {
     console.log(`📊 Fetching ${count} historical ticks for ${symbol}...`);
+
+    // 1. First, try to fetch from the Ghost Recorder Backend (Instant Data)
+    try {
+        const backendUrl = `http://localhost:3000/api/market/${symbol}?lookback=${count}`;
+        console.log(`📡 Attempting instant backend fetch: ${backendUrl}`);
+
+        const response = await fetch(backendUrl);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.history && Array.isArray(data.history)) {
+                console.log(`✅ Instant Backend Success! Fetched ${data.history.length} ticks for ${symbol}`);
+
+                // Populate global tick cache
+                marketFullTickDigits[symbol] = data.history.map(t => typeof t === 'object' ? t.digit : t);
+
+                // Update UI immediately
+                updateDigitAnalysisDisplay(symbol);
+                return; // Goal achieved!
+            }
+        }
+    } catch (e) {
+        console.warn(`⚠️ Ghost Recorder backend offline or error (Fall-back to Deriv):`, e.message);
+    }
+
+    // 2. Fallback to Deriv API (Slower manual fetching)
     const tickHistoryRequest = {
         "ticks_history": symbol,
         "end": "latest",
         "count": count,
         "style": "ticks"
-        // FIXED: Removed subscribe parameter - not valid for historical requests
     };
 
     sendAPIRequest(tickHistoryRequest)
         .then(() => {
-            console.log(`✅ Historical tick request sent for ${symbol}`);
+            console.log(`✅ Historical tick request sent via Deriv for ${symbol}`);
         })
         .catch(error => {
             console.error(`❌ Failed to fetch tick history for ${symbol}:`, error);
@@ -221,15 +340,15 @@ function refreshDistributionData() {
 
     // Show loading state
     const skeleton = document.getElementById('digitAnalysisSkeleton');
-    const content = document.getElementById('digitAnalysisContent');
+    const content = document.getElementById('multiMarketDashboard');
     if (skeleton && content) {
         skeleton.style.display = 'block';
         content.style.display = 'none';
     }
 
-    // Fetch fresh 1000 ticks
-    console.log(`🔄 Refreshing distribution data for ${selectedSymbol}...`);
-    fetchTickHistory(selectedSymbol, 1000);
+    // Fetch fresh ticks based on custom lookback count
+    console.log(`🔄 Refreshing distribution data for ${selectedSymbol} (${distributionLookbackCount} ticks)...`);
+    fetchTickHistory(selectedSymbol, distributionLookbackCount);
 
     // Show toast notification
     if (typeof showToast === 'function') {
@@ -483,96 +602,62 @@ function populateMarketSelector() {
  */
 function updateDigitAnalysisDisplay(symbol) {
     const skeleton = document.getElementById('digitAnalysisSkeleton');
-    const content = document.getElementById('digitAnalysisContent');
+    const dashboard = document.getElementById('multiMarketDashboard');
 
-    // Show loading skeleton
-    if (skeleton && content) {
+    // 1. Initial State Handling
+    if (skeleton && (!dashboard || dashboard.children.length === 0)) {
         skeleton.style.display = 'block';
-        content.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'none';
     }
 
-    // Check if we have digit distribution data
+    // 2. Get Distribution Data
     const distribution = calculateFullDigitDistribution(symbol);
+    if (!distribution) return;
 
-    if (!distribution) {
-        // No data available yet, keep skeleton visible
-        console.log(`⏳ Waiting for digit distribution data for ${symbol}...`);
-        setTimeout(() => updateDigitAnalysisDisplay(symbol), 1000);
-        return;
-    }
-
-    console.log(`✅ Digit distribution for ${symbol}:`, distribution);
-    console.log(`   Total ticks analyzed: ${distribution.totalTicks}`);
-    console.log(`   Most appearing: ${distribution.mostAppearingDigit} (${distribution.counts[distribution.mostAppearingDigit]} times)`);
-    console.log(`   Least appearing: ${distribution.leastAppearingDigit} (${distribution.counts[distribution.leastAppearingDigit]} times)`);
-
-    // Hide skeleton and show content
-    if (skeleton && content) {
+    // 3. Update UI
+    if (skeleton && dashboard && dashboard.style.display === 'none') {
         skeleton.style.display = 'none';
-        content.style.display = 'block';
+        dashboard.style.display = 'flex';
     }
 
-    // Update summary
-    const mostFrequentEl = document.getElementById('mostFrequentDigit');
-    const leastFrequentEl = document.getElementById('leastFrequentDigit');
-    const distributionCheckEl = document.getElementById('distributionCheck');
-    const tickCountEl = document.getElementById('distributionTickCount');
+    const row = document.getElementById(`market-row-${symbol}`);
+    if (!row) return;
 
-    if (mostFrequentEl) {
-        mostFrequentEl.textContent = `${distribution.mostAppearingDigit} (${distribution.counts[distribution.mostAppearingDigit]} times)`;
-    }
-
-    if (leastFrequentEl) {
-        leastFrequentEl.textContent = `${distribution.leastAppearingDigit} (${distribution.counts[distribution.leastAppearingDigit]} times)`;
-    }
-
-    if (distributionCheckEl) {
-        const isValid = distribution.mostAppearingDigit > 4 && distribution.leastAppearingDigit < 4;
-        distributionCheckEl.textContent = isValid ? 'PASS' : 'FAIL';
-        distributionCheckEl.className = `summary-value ${isValid ? 'pass' : 'fail'}`;
-    }
-
-    if (tickCountEl) {
-        tickCountEl.textContent = `${distribution.totalTicks} ticks`;
-        tickCountEl.className = distribution.totalTicks >= 100 ? 'summary-value' : 'summary-value warning';
-    }
-
-    // Sort digits by frequency to determine ranking
+    // Calculate averages and identifying Hot/Cold
+    const avg = distribution.totalTicks / 10;
     const sortedDigits = Object.entries(distribution.counts)
         .map(([digit, count]) => ({ digit: parseInt(digit), count }))
         .sort((a, b) => b.count - a.count);
 
-    // Update horizontal bars with color coding based on frequency ranking
-    for (let digit = 0; digit <= 9; digit++) {
-        const barEl = document.getElementById(`digitBar${digit}`);
-        const percentEl = document.getElementById(`digitPercent${digit}`);
+    // Update each gauge
+    for (let d = 0; d <= 9; d++) {
+        const count = distribution.counts[d];
+        const percentage = (count / distribution.totalTicks) * 100;
 
-        if (barEl && percentEl) {
-            const count = distribution.counts[digit];
-            const percentage = (count / distribution.totalTicks) * 100;
+        const path = document.getElementById(`gauge-path-${symbol}-${d}`);
+        const valText = document.getElementById(`gauge-val-${symbol}-${d}`);
 
-            barEl.style.width = `${percentage.toFixed(1)}%`;
-            percentEl.textContent = `${percentage.toFixed(1)}%`;
+        if (path && valText) {
+            // SVG Circular Arc (Circumference ~ 100.5 for r=16)
+            const circumference = 100.5;
+            const offset = circumference - (percentage / 100) * circumference;
+            path.style.strokeDasharray = `${circumference - offset} ${circumference}`;
 
-            // Remove all color classes
-            barEl.classList.remove('most-frequent', 'second-frequent', 'third-frequent', 'least-frequent');
+            valText.textContent = `${percentage.toFixed(1)}%`;
 
-            // Find the rank of this digit
-            const rank = sortedDigits.findIndex(item => item.digit === digit);
+            // Reset classes
+            path.classList.remove('hot', 'cold');
+            const container = document.getElementById(`gauge-container-${symbol}-${d}`);
+            if (container) container.classList.remove('is-hot', 'is-cold');
 
-            // Apply color based on ranking
-            // Green = most appearing (rank 0)
-            // Blue = 2nd most appearing (rank 1)
-            // Yellow = 3rd most appearing (rank 2)
-            // Red = least appearing (rank 9)
+            // Ranking-based coloring
+            const rank = sortedDigits.findIndex(item => item.digit === d);
             if (rank === 0) {
-                barEl.classList.add('most-frequent');
-            } else if (rank === 1) {
-                barEl.classList.add('second-frequent');
-            } else if (rank === 2) {
-                barEl.classList.add('third-frequent');
+                path.classList.add('hot');
+                if (container) container.classList.add('is-hot');
             } else if (rank === 9) {
-                barEl.classList.add('least-frequent');
+                path.classList.add('cold');
+                if (container) container.classList.add('is-cold');
             }
         }
     }

@@ -458,14 +458,17 @@ function handleIncomingMessage(msg) {
                         updateLastDigitIndicator(symbol, digit);
                     }
 
-                    // Update distribution display if this is the selected market (every 10 ticks to avoid too many updates)
-                    const distributionMarketSelector = document.getElementById('distributionMarketSelector');
-                    if (distributionMarketSelector && distributionMarketSelector.value === symbol) {
-                        // Update every 10 ticks
-                        if (marketFullTickDigits[symbol].length % 10 === 0) {
-                            if (typeof updateDigitAnalysisDisplay === 'function') {
-                                updateDigitAnalysisDisplay(symbol);
-                            }
+                    // Update Price in Multi-Market Dashboard
+                    const priceEl = document.getElementById(`market-price-${symbol}`);
+                    if (priceEl) {
+                        const decimals = (symbol.includes('1HZ') || symbol.includes('1s')) ? 2 : 4;
+                        priceEl.textContent = price.toFixed(decimals);
+                    }
+
+                    // Update distribution display (every 5 ticks for all subscribed markets)
+                    if (marketFullTickDigits[symbol].length % 5 === 0) {
+                        if (typeof updateDigitAnalysisDisplay === 'function') {
+                            updateDigitAnalysisDisplay(symbol);
                         }
                     }
                 }

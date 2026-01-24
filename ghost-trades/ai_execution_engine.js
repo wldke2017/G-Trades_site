@@ -67,7 +67,7 @@ class AIStrategyRunner {
         if (typeof window.virtualHookManager !== 'undefined') {
             const vHookEnabled = document.getElementById('ai-virtual-hook-toggle')?.checked || false;
             const vHookTrigger = 'LOSS'; // Default for AI Strategy
-            const vHookCount = 1;
+            const vHookCount = parseInt(document.getElementById('ai-virtual-hook-streak')?.value) || 1;
 
             window.virtualHookManager.enableForBot('ai_strategy', {
                 enabled: vHookEnabled,
@@ -145,7 +145,7 @@ class AIStrategyRunner {
             if (window.virtualHookManager.hasPendingVirtualOrder('ai_strategy', tickContext.symbol)) {
 
                 // Evaluate it using the CURRENT tick (which is "next" relative to when order was placed)
-                const result = window.virtualHookManager.evaluateVirtualResult('ai_strategy', tickContext.symbol, tickContext.quote);
+                const result = window.virtualHookManager.evaluateVirtualResult('ai_strategy', tickContext.symbol, tickContext.tick);
 
                 if (result) {
                     // Log result to UI
@@ -233,7 +233,7 @@ class AIStrategyRunner {
                 let currentTick = 0;
                 if (window.marketTickHistory && window.marketTickHistory[symbol]) {
                     const history = window.marketTickHistory[symbol];
-                    if (history.length > 0) currentTick = history[history.length - 1].quote;
+                    if (history.length > 0) currentTick = history[history.length - 1]; // marketTickHistory elements are numbers (digits)
                 }
 
                 window.virtualHookManager.recordVirtualOrder('ai_strategy', symbol, type, barrier, currentTick);

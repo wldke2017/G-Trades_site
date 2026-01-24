@@ -239,11 +239,13 @@
     font-family: 'JetBrains Mono', monospace;
 }
 
-.summary-value.pass {
+.summary-value.pass,
+.summary-value.hot-value {
     color: var(--success-color);
 }
 
-.summary-value.fail {
+.summary-value.fail,
+.summary-value.cold-value {
     color: var(--error-color);
 }
 
@@ -450,6 +452,197 @@
     font-weight: 600;
 }
 
+/* --- Multi-Market Circular Gauges --- */
+.multi-market-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: var(--spacing-lg);
+}
+
+.market-gauge-row {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.market-gauge-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-color);
+}
+
+.market-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.75rem;
+}
+
+.market-info-main {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.market-name-tag {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.market-price-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.gauges-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.circular-gauge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.gauge-svg-wrapper {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.gauge-bg {
+    fill: none;
+    stroke: var(--glass-border);
+    stroke-width: 6;
+}
+
+.gauge-progress {
+    fill: none;
+    stroke: #94a3b8;
+    /* Default */
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease, stroke 0.3s ease;
+}
+
+.gauge-progress.hot {
+    stroke: var(--success-color);
+    filter: drop-shadow(0 0 4px var(--success-color));
+}
+
+.gauge-progress.cold {
+    stroke: var(--error-color);
+    filter: drop-shadow(0 0 4px var(--error-color));
+}
+
+.gauge-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.gauge-digit {
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    display: block;
+    line-height: 1;
+}
+
+.gauge-percent-val {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.hot-indicator-dot {
+    position: absolute;
+    bottom: -12px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #f97316;
+    /* Orange arrow as seen in image */
+    display: none;
+    z-index: 10;
+}
+
+.circular-gauge-container.last-tick .hot-indicator-dot {
+    display: block;
+    animation: bounce 0.6s infinite alternate;
+}
+
+/* Hot/Cold Badges */
+.circular-gauge-container::after {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-weight: 800;
+    text-transform: uppercase;
+    z-index: 5;
+    display: none;
+}
+
+.circular-gauge-container.is-hot::after {
+    content: 'HOT';
+    background: var(--success-color);
+    color: white;
+    display: block;
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.circular-gauge-container.is-cold::after {
+    content: 'COLD';
+    background: var(--error-color);
+    color: white;
+    display: block;
+    box-shadow: 0 0 8px var(--error-color);
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
 /* --- Speedbot Responsive --- */
 @media (max-width: 1024px) {
     .trading-interface {
@@ -475,24 +668,21 @@
     }
 }
 
-@media (max-width: 640px) {
-    .digit-bars-horizontal {
-        gap: 0.375rem;
-    }
-
-    .digit-label-box {
-        width: 32px;
-        height: 32px;
-        font-size: 0.75rem;
-    }
-
-    .digit-bar-horizontal {
-        height: 32px;
+@media (max-width: 1024px) {
+    .gauges-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
     }
 }
 
-@media (max-width: 480px) {
-    .digit-bars-horizontal {
+@media (max-width: 640px) {
+    .gauges-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .gauge-svg-wrapper {
+        width: 50px;
+        height: 50px;
     }
 }
