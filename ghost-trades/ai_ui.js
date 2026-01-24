@@ -99,11 +99,18 @@ function initializeAIUI() {
     }
 
     if (aiRunBtn) {
-        aiRunBtn.addEventListener('click', handleRunStrategy);
+        aiRunBtn.addEventListener('click', () => {
+            console.log('🚀 AI Run Button Clicked');
+            handleRunStrategy();
+        });
     }
 
     if (aiStopBtn) {
-        aiStopBtn.addEventListener('click', handleStopStrategy);
+        aiStopBtn.addEventListener('click', () => {
+            console.log('🛑 AI Stop Button Clicked');
+            stopAITimer();
+            handleStopStrategy();
+        });
     }
 
     if (aiSelectAllBtn) {
@@ -400,7 +407,8 @@ async function handleGenerateStrategy() {
 }
 
 function handleRunStrategy() {
-    const code = aiCodeEditor.value.trim();
+    console.log('🏃 handleRunStrategy: Processing...');
+    const code = aiCodeEditor?.value?.trim();
     if (!code) {
         showToast('No code to run.', 'error');
         return;
@@ -420,15 +428,28 @@ function handleRunStrategy() {
 
     const compiled = window.aiStrategyRunner.compile(code);
     if (compiled) {
-        // Reset Martingale State
+        // --- Reset Session Stats ---
         const stakeInput = document.getElementById('ai-stake-input');
         const baseStake = parseFloat(stakeInput?.value) || 0.35;
+
         window.aiTradingState.currentStake = baseStake;
         window.aiTradingState.consecutiveLosses = 0;
-        window.aiTradingState.accumulatedLoss = 0; // Reset accumulation
+        window.aiTradingState.accumulatedLoss = 0;
         window.aiTradingState.totalProfit = 0;
+        window.aiTradingState.winCount = 0;
+        window.aiTradingState.lossCount = 0;
+        window.aiTradingState.totalStake = 0;
+        window.aiTradingState.totalPayout = 0;
 
-        window.aiStrategyRunner.log(`Starting strategy on ${selectedMarkets.length} market(s). Base Stake: $${baseStake}`, 'info');
+        window.aiTradingState.runsCount++;
+
+        window.aiStrategyRunner.log(`Starting with Base Stake: $${baseStake}`, 'info');
+
+        // Start Timer
+        startAITimer();
+        updateAIStatsUI();
+
+        console.log(`🤖 AI Runner: Starting on ${selectedMarkets.length} market(s)`);
 
         // Start runner with selected markets
         const started = window.aiStrategyRunner.start(selectedMarkets);
@@ -701,46 +722,6 @@ window.handleAIStrategyResult = function (contract) {
     updateAIHistoryTable(contract, profit);
 };
 
-// Reset state when strategy starts
-// Re-hooking existing handleRunStrategy to add stats initialization
-const originalHandleRun = handleRunStrategy;
-handleRunStrategy = function () {
-    // Reset Session Stats (keep runsCount accumulating, or increment it)
-    const stakeInput = document.getElementById('ai-stake-input');
-    const baseStake = parseFloat(stakeInput?.value) || 0.35;
-
-    window.aiTradingState.currentStake = baseStake;
-    window.aiTradingState.consecutiveLosses = 0;
-    window.aiTradingState.accumulatedLoss = 0;
-    window.aiTradingState.totalProfit = 0;
-    window.aiTradingState.winCount = 0;
-    window.aiTradingState.lossCount = 0;
-    window.aiTradingState.totalStake = 0;
-    window.aiTradingState.totalPayout = 0;
-
-    window.aiTradingState.runsCount++;
-
-    if (window.aiStrategyRunner) window.aiStrategyRunner.log(`Starting with Base Stake: $${baseStake}`, 'info');
-
-    // Start Timer
-    startAITimer();
-    updateAIStatsUI();
-
-    originalHandleRun();
-};
-
-// Hook into stop button to stop timer
-const stopBtn = document.getElementById('ai-stop-btn');
-if (stopBtn) {
-    const originalStopClick = stopBtn.onclick;
-    stopBtn.onclick = function (e) {
-        stopAITimer();
-        if (typeof originalStopClick === 'function') originalStopClick(e);
-        // Call the original handler defined in ai_ui.js (which might be anonymous or attached via event listener, so we rely on the DOM event propagation or re-attach if we knew the name)
-        // Since handleStopStrategy is attached via event listener in ai_ui.js init, we can just stop the timer here.
-        handleStopStrategy();
-    };
-}
 // Helper: Update AI History Table
 function updateAIHistoryTable(contract, profit) {
     const tableBody = document.querySelector('#ai-history-table tbody');
