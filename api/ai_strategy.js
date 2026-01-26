@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
-const fs = require('fs');
-const path = require('path');
-// Using a simple random generator since we cannot easily install new packages.
-const generateId = () => Math.random().toString(36).substr(2, 9);
-const STRATEGIES_FILE = path.join(__dirname, '../saved_strategies.json');
 // Auth removed for standalone public API
 const { apiLimiter } = require('../middleware/rateLimiter');
 
@@ -251,105 +246,4 @@ router.post('/generate', apiLimiter, async (req, res) => {
         res.status(500).json({ error: `Failed to generate strategy: ${error.message}` });
     }
 });
-
-// ==========================================
-// STRATEGY MANAGEMENT ENDPOINTS
-// ==========================================
-
-// Helper to read strategies
-const readStrategies = () => {
-    try {
-        if (!fs.existsSync(STRATEGIES_FILE)) {
-            fs.writeFileSync(STRATEGIES_FILE, JSON.stringify({ strategies: [] }, null, 2));
-            return [];
-        }
-        const data = fs.readFileSync(STRATEGIES_FILE, 'utf8');
-        return JSON.parse(data).strategies || [];
-    } catch (err) {
-        console.error('Error reading strategies:', err);
-        return [];
-    }
-};
-
-// Helper to write strategies
-const writeStrategies = (strategies) => {
-    try {
-        fs.writeFileSync(STRATEGIES_FILE, JSON.stringify({ strategies }, null, 2));
-        return true;
-    } catch (err) {
-        console.error('Error writing strategies:', err);
-        return false;
-    }
-};
-
-// GET /strategies - List all saved strategies
-router.get('/strategies', (req, res) => {
-    const strategies = readStrategies();
-    // Return only necessary fields for the list
-    const list = strategies.map(s => ({
-        id: s.id,
-        name: s.name,
-        createdAt: s.createdAt
-    })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Newest first
-    res.json(list);
-});
-
-// GET /strategies/:id - Get specific strategy details
-router.get('/strategies/:id', (req, res) => {
-    const strategies = readStrategies();
-    const strategy = strategies.find(s => s.id === req.params.id);
-    if (!strategy) return res.status(404).json({ error: 'Strategy not found' });
-    res.json(strategy);
-});
-
-// POST /strategies - Save a new strategy
-router.post('/strategies', (req, res) => {
-    const { name, code, prompt } = req.body;
-
-    if (!name || !code) {
-        return res.status(400).json({ error: 'Name and Code are required' });
-    }
-
-    if (name.length > 50) return res.status(400).json({ error: 'Name too long (max 50 chars)' });
-    if (code.length > 10000) return res.status(400).json({ error: 'Code too long (max 10000 chars)' });
-
-    const strategies = readStrategies();
-
-    if (strategies.length >= 100) {
-        return res.status(400).json({ error: 'Storage limit reached (max 100 strategies). Delete some to save new ones.' });
-    }
-
-    const newStrategy = {
-        id: generateId(),
-        name: name.trim(),
-        code,
-        prompt: prompt || '',
-        createdAt: new Date().toISOString()
-    };
-
-    strategies.push(newStrategy);
-    if (writeStrategies(strategies)) {
-        res.json(newStrategy);
-    } else {
-        res.status(500).json({ error: 'Failed to save strategy' });
-    }
-});
-
-// DELETE /strategies/:id - Delete a strategy
-router.delete('/strategies/:id', (req, res) => {
-    let strategies = readStrategies();
-    const initialLength = strategies.length;
-    strategies = strategies.filter(s => s.id !== req.params.id);
-
-    if (strategies.length === initialLength) {
-        return res.status(404).json({ error: 'Strategy not found' });
-    }
-
-    if (writeStrategies(strategies)) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ error: 'Failed to delete strategy' });
-    }
-});
-
 module.exports = router;

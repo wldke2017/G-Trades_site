@@ -9,8 +9,12 @@ const AI_API_ENDPOINT = isProduction
     : (isLocalDev ? 'http://localhost:4000/api/ai/generate' : '/api/ai/generate');
 
 const AI_STRATEGY_API = isProduction
-    ? 'https://ghost-trades.site/api/ai/strategies'
-    : (isLocalDev ? 'http://localhost:4000/api/ai/strategies' : '/api/ai/strategies');
+    ? 'https://ghost-trades.site/api/ai'
+    : (isLocalDev ? 'http://localhost:4000/api/ai' : '/api/ai');
+
+const STORAGE_KEYS = {
+    STRATEGIES: 'ghost_ai_strategies'
+};
 
 // UI Elements
 let aiPromptInput, aiGenerateBtn, aiCodeEditor, aiRunBtn, aiStopBtn, aiLogContainer, aiStatusIndicator, aiPromptCounter;
@@ -138,6 +142,11 @@ function initializeAIUI() {
 
     // Set Initial State
     updateAIStatus('IDLE');
+
+    // Add migration notice if relevant
+    if (window.aiStrategyRunner) {
+        window.aiStrategyRunner.log(`💾 Strategy Library successfully migrated to Browser Storage (Permanent Mode).`, 'info');
+    }
 
     // RACE CONDITION FIX: If markets already loaded in app.js, populate them now
     if (window.activeSymbols && window.activeSymbols.length > 0) {
@@ -796,60 +805,75 @@ function updateAIHistoryTable(contract, profit) {
 }
 
 // ==========================================
-// STRATEGY MANAGEMENT FUNCTIONS
+// STRATEGY MANAGEMENT FUNCTIONS (LOCAL STORAGE)
 // ==========================================
 
-async function loadSavedStrategies() {
-    if (!aiStrategiesList) return;
-
+function getLocalStrategies() {
     try {
-        const response = await fetch(AI_STRATEGY_API);
-        if (!response.ok) throw new Error('Failed to load strategies');
-
-        const strategies = await response.json();
-
-        // Clear list
-        aiStrategiesList.innerHTML = '';
-
-        if (strategies.length === 0) {
-            aiStrategiesList.innerHTML = `
-                <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem; font-style: italic;">
-                    No strategies saved yet. Create one!
-                </div>`;
-            return;
-        }
-
-        strategies.forEach(strategy => {
-            const el = document.createElement('div');
-            el.className = 'ai-strategy-item';
-            el.innerHTML = `
-                <div class="strategy-info">
-                    <span class="strategy-name">${strategy.name}</span>
-                    <span class="strategy-date">${new Date(strategy.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div class="strategy-actions">
-                    <button class="btn-micro load-btn" data-id="${strategy.id}" title="Load Strategy">📂 Load</button>
-                    <button class="btn-micro delete-btn" data-id="${strategy.id}" title="Delete Strategy" style="color: #ff444f; border-color: rgba(255, 68, 79, 0.3);">❌</button>
-                </div>
-            `;
-
-            // Bind events
-            el.querySelector('.load-btn').addEventListener('click', () => handleLoadStrategy(strategy.id));
-            el.querySelector('.delete-btn').addEventListener('click', () => handleDeleteStrategy(strategy.id));
-
-            aiStrategiesList.appendChild(el);
-        });
-
-        console.log(`✅ Loaded ${strategies.length} saved strategies`);
-
-    } catch (error) {
-        console.error('Error loading strategies:', error);
-        aiStrategiesList.innerHTML = `<div style="text-align: center; color: #e74c3c; padding: 10px;">Failed to load strategies</div>`;
+        const data = localStorage.getItem(STORAGE_KEYS.STRATEGIES);
+        return data ? JSON.parse(data) : [];
+    } catch (err) {
+        console.error('Error reading from localStorage:', err);
+        return [];
     }
 }
 
-async function handleSaveStrategy() {
-    const code = aiCodeEditor.value.trim();
+function saveLocalStrategies(strategies) {
+    try {
+        localStorage.setItem(STORAGE_KEYS.STRATEGIES, JSON.stringify(strategies));
+        return true;
+    } catch (err) {
+        console.error('Error saving to localStorage:', err);
+        showToast('Storage full! Could not save strategy.', 'error');
+        return false;
+    }
+}
+
+function loadSavedStrategies() {
+    if (!aiStrategiesList) return;
+
+    const strategies = getLocalStrategies();
+
+    // Clear list
+    aiStrategiesList.innerHTML = '';
+
+    if (strategies.length === 0) {
+        aiStrategiesList.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem; font-style: italic;">
+                No strategies saved yet. Create one!
+            </div>`;
+        return;
+    }
+
+    // Sort by Date (newest first)
+    strategies.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    strategies.forEach(strategy => {
+        const el = document.createElement('div');
+        el.className = 'ai-strategy-item';
+        el.innerHTML = `
+            <div class="strategy-info">
+                <span class="strategy-name">${strategy.name}</span>
+                <span class="strategy-date">${new Date(strategy.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="strategy-actions">
+                <button class="btn-micro load-btn" data-id="${strategy.id}" title="Load Strategy">📂 Load</button>
+                <button class="btn-micro delete-btn" data-id="${strategy.id}" title="Delete Strategy" style="color: #ff444f; border-color: rgba(255, 68, 79, 0.3);">❌</button>
+            </div>
+        `;
+
+        // Bind events
+        el.querySelector('.load-btn').addEventListener('click', () => handleLoadStrategy(strategy.id));
+        el.querySelector('.delete-btn').addEventListener('click', () => handleDeleteStrategy(strategy.id));
+
+        aiStrategiesList.appendChild(el);
+    });
+
+    console.log(`✅ Loaded ${strategies.length} local strategies`);
+}
+
+function handleSaveStrategy() {
+    const code = aiCodeEditor?.value?.trim();
     if (!code) {
         showToast('No code to save', 'error');
         return;
@@ -858,75 +882,60 @@ async function handleSaveStrategy() {
     const name = prompt('Enter a name for this strategy:');
     if (!name) return; // User cancelled
 
-    const promptText = aiPromptInput.value.trim();
+    const promptText = aiPromptInput?.value?.trim() || '';
+    const strategies = getLocalStrategies();
 
-    try {
-        const response = await fetch(AI_STRATEGY_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name,
-                code,
-                prompt: promptText
-            })
-        });
+    const newStrategy = {
+        id: 'strat_' + Math.random().toString(36).substr(2, 9),
+        name: name.trim(),
+        code,
+        prompt: promptText,
+        createdAt: new Date().toISOString()
+    };
 
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'Failed to save');
-        }
-
-        showToast('Strategy saved successfully!', 'success');
-        loadSavedStrategies(); // Refresh list
-
-    } catch (error) {
-        console.error('Error saving strategy:', error);
-        showToast(error.message, 'error');
+    strategies.push(newStrategy);
+    if (saveLocalStrategies(strategies)) {
+        showToast('Strategy saved locally!', 'success');
+        loadSavedStrategies();
     }
 }
 
-async function handleLoadStrategy(id) {
+function handleLoadStrategy(id) {
     if (!id) return;
 
-    try {
-        const response = await fetch(`${AI_STRATEGY_API}/${id}`);
-        if (!response.ok) throw new Error('Failed to load strategy details');
+    const strategies = getLocalStrategies();
+    const strategy = strategies.find(s => s.id === id);
 
-        const strategy = await response.json();
-
-        aiCodeEditor.value = strategy.code;
-        if (strategy.prompt && aiPromptInput) {
-            aiPromptInput.value = strategy.prompt;
-            // update counter
-            if (aiPromptCounter) aiPromptCounter.textContent = `${strategy.prompt.length} / 2000`;
-        }
-
-        showToast(`Loaded "${strategy.name}"`, 'success');
-
-    } catch (error) {
-        console.error('Error loading strategy:', error);
-        showToast('Failed to load strategy', 'error');
+    if (!strategy) {
+        showToast('Strategy not found', 'error');
+        return;
     }
+
+    if (aiCodeEditor) aiCodeEditor.value = strategy.code;
+    if (strategy.prompt && aiPromptInput) {
+        aiPromptInput.value = strategy.prompt;
+        if (aiPromptCounter) aiPromptCounter.textContent = `${strategy.prompt.length} / 2000`;
+    }
+
+    showToast(`Loaded "${strategy.name}"`, 'success');
 }
 
-async function handleDeleteStrategy(id) {
+function handleDeleteStrategy(id) {
     if (!id) return;
 
     if (!confirm('Are you sure you want to delete this strategy?')) return;
 
-    try {
-        const response = await fetch(`${AI_STRATEGY_API}/${id}`, {
-            method: 'DELETE'
-        });
+    let strategies = getLocalStrategies();
+    const initialLength = strategies.length;
+    strategies = strategies.filter(s => s.id !== id);
 
-        if (!response.ok) throw new Error('Failed to delete');
+    if (strategies.length === initialLength) {
+        showToast('Could not find strategy to delete', 'error');
+        return;
+    }
 
+    if (saveLocalStrategies(strategies)) {
         showToast('Strategy deleted', 'success');
-        loadSavedStrategies(); // Refresh list
-
-    } catch (error) {
-        console.error('Error deleting strategy:', error);
-        showToast('Failed to delete strategy', 'error');
+        loadSavedStrategies();
     }
 }
-
