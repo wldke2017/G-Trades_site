@@ -1357,7 +1357,8 @@ function restoreBotSettingsOnLoad() {
                 vhEnabledS1: 'ghostaiVHEnabledS1',
                 vhEnabledS2: 'ghostaiVHEnabledS2',
                 postLossBehavior: 'ghostaiPostLossBehavior',
-                serialMode: 'ghostaiSerialMode'
+                serialMode: 'ghostaiSerialMode',
+                showAnalysisToast: 'ghostaiShowAnalysisToast'
             });
         } catch (error) {
             console.error('Error restoring Ghost AI settings:', error);

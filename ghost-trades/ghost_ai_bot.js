@@ -69,6 +69,8 @@ const botState = {
     winPercentage: 0,
     s1LossSymbol: null, // Track symbol that caused S1 loss
     totalStake: 0.0,
+    analysisDigits: 15, // Fixed default
+    showAnalysisToast: false, // Default: Disabled
     totalPayout: 0.0,
     runId: null, // Unique ID for current run
     activeS2Count: 0, // Track active S2 trades to limit concurrency
@@ -164,10 +166,11 @@ async function startGhostAiBot() {
     const targetProfit = parseFloat(botTargetProfit.value);
     const payoutPercentage = parseFloat(botPayoutPercentage.value);
     const stopLoss = parseFloat(botStopLoss.value);
-    const maxMartingaleSteps = parseInt(botMaxMartingale.value);
+    const maxMartingale = parseInt(botMaxMartingale.value);
 
     // Load new configuration parameters
     const analysisDigits = parseInt(document.getElementById('botAnalysisDigits')?.value || 15);
+    const showAnalysisToast = document.getElementById('ghostaiShowAnalysisToast')?.checked ?? false;
     const s1UseDigitCheck = document.getElementById('botS1UseDigitCheck')?.checked ?? true;
     const s1CheckDigits = parseInt(document.getElementById('botS1CheckDigits')?.value || 4);
     const s1MaxDigit = parseInt(document.getElementById('botS1MaxDigit')?.value || 3);
@@ -193,8 +196,9 @@ async function startGhostAiBot() {
     botState.targetProfit = targetProfit;
     botState.payoutPercentage = payoutPercentage;
     botState.stopLoss = stopLoss;
-    botState.maxMartingaleSteps = maxMartingaleSteps;
+    botState.maxMartingaleSteps = maxMartingale;
     botState.analysisDigits = analysisDigits;
+    botState.showAnalysisToast = showAnalysisToast;
     botState.s1UseDigitCheck = s1UseDigitCheck;
     botState.s1CheckDigits = s1CheckDigits;
     botState.s1MaxDigit = s1MaxDigit;
@@ -242,7 +246,7 @@ async function startGhostAiBot() {
             targetProfit: targetProfit,
             payoutPercentage: payoutPercentage,
             stopLoss: stopLoss,
-            maxMartingale: maxMartingaleSteps,
+            maxMartingale: maxMartingale,
             analysisDigits: analysisDigits,
             s1UseDigitCheck: s1UseDigitCheck,
             s1CheckDigits: s1CheckDigits,
@@ -269,7 +273,8 @@ async function startGhostAiBot() {
             vhEnabledS1: document.getElementById('ghostaiVHEnabledS1')?.checked,
             vhEnabledS2: document.getElementById('ghostaiVHEnabledS2')?.checked,
             postLossBehavior: document.getElementById('ghostaiPostLossBehavior')?.value,
-            serialMode: document.getElementById('ghostaiSerialMode')?.checked
+            serialMode: document.getElementById('ghostaiSerialMode')?.checked,
+            showAnalysisToast: document.getElementById('ghostaiShowAnalysisToast')?.checked
         };
         window.botSettingsManager.saveSettings('ghost_ai', settings);
     }
@@ -1278,7 +1283,11 @@ function showComprehensiveDigitAnalysis(symbol, prediction) {
 
     if (lastDigits.length >= 20) {
         const last6Digits = lastDigits.slice(-6);
-        showToast(`Analysis for ${symbol}: Last 6 digits [${last6Digits.join(', ')}] | Prediction: OVER ${prediction}`, 'info', 5000);
+
+        // Only show toast if enabled in settings
+        if (botState.showAnalysisToast) {
+            showToast(`Analysis for ${symbol}: Last 6 digits [${last6Digits.join(', ')}] | Prediction: OVER ${prediction}`, 'info', 5000);
+        }
 
         let analysisText = `📊 Digit Analysis for ${symbol} (Last 20 ticks):\n`;
         for (let digit = 0; digit <= 9; digit++) {
