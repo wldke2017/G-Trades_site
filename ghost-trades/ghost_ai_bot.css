@@ -268,7 +268,18 @@
     .bot-controls,
     .bot-status,
     .bot-history {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-md);
+    }
+
+    .bot-log {
+        height: 300px;
+        font-size: 0.75rem;
+        padding: var(--spacing-sm);
+        word-break: break-word;
+    }
+
+    .bot-grid {
+        gap: var(--spacing-md);
     }
 }
 

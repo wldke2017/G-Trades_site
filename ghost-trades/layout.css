@@ -137,6 +137,30 @@ header {
     overflow: visible;
 }
 
+.emergency-stop-btn {
+    background: #ff4444;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: none;
+    /* Shown via JS when bot starts */
+    margin-right: 15px;
+    box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+    transition: all 0.3s;
+    white-space: nowrap;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.emergency-stop-btn:hover {
+    background: #ff0000;
+    transform: scale(1.05);
+}
+
 .balance-display {
     display: flex;
     align-items: center;
@@ -379,6 +403,16 @@ header {
         flex: 1 !important;
         gap: 6px !important;
         overflow: visible !important;
+    }
+
+    .emergency-stop-btn {
+        padding: 6px 10px !important;
+        margin-right: 5px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .emergency-stop-btn .stop-text {
+        display: none !important;
     }
 
     /* Branding - Compact */
