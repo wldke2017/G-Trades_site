@@ -1,23 +1,34 @@
 /* ===================================
-   SPEEDBOT - RESPONSIVE ENHANCEMENTS
-   Improved mobile-first layout with better card arrangements
+   SPEEDBOT - RESPONSIVE ENHANCEMENTS V2
+   Complete responsive overhaul with modern design
    =================================== */
 
-/* --- Base Layout Improvements --- */
+/* --- Reset and Base Fixes --- */
 .trading-interface {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--spacing-lg);
     min-height: unset;
+    width: 100%;
+    max-width: 100%;
     padding: var(--spacing-md);
     animation: fadeInUp 0.5s ease;
+    box-sizing: border-box;
 }
 
 /* Desktop: Side Controls */
 @media (min-width: 1024px) {
     .trading-interface {
-        grid-template-columns: 320px 1fr;
+        display: grid;
+        grid-template-columns: 300px 1fr;
         padding: var(--spacing-xl);
+        gap: var(--spacing-xl);
+    }
+}
+
+@media (min-width: 1440px) {
+    .trading-interface {
+        grid-template-columns: 320px 1fr;
     }
 }
 
@@ -25,6 +36,7 @@
 .trading-controls {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
@@ -34,6 +46,14 @@
     gap: var(--spacing-md);
     position: relative;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.trading-controls:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Add gradient accent */
@@ -44,20 +64,30 @@
     left: 0;
     width: 4px;
     height: 100%;
-    background: var(--grad-primary);
-    opacity: 0.8;
+    background: linear-gradient(180deg, #10b981 0%, #ff444f 100%);
+    opacity: 0.9;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .controls-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin-bottom: var(--spacing-xs);
     background: linear-gradient(135deg, #10b981 0%, #ff444f 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
 }
 
 /* --- Control Groups --- */
@@ -69,30 +99,38 @@
 
 .control-group label {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 
 .control-group select,
 .control-group input {
     width: 100%;
     padding: var(--spacing-md);
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(15, 23, 42, 0.8);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-size: 0.9375rem;
+    font-size: 0.95rem;
     transition: all var(--transition-base);
     font-family: 'JetBrains Mono', monospace;
+    box-sizing: border-box;
 }
 
 .control-group select:focus,
 .control-group input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(255, 68, 79, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 68, 79, 0.15), 0 0 12px rgba(255, 68, 79, 0.2);
+    background: rgba(15, 23, 42, 0.95);
+    transform: translateY(-1px);
+}
+
+.control-group select:hover,
+.control-group input:hover {
+    border-color: rgba(255, 255, 255, 0.15);
     background: rgba(15, 23, 42, 0.9);
 }
 
@@ -105,42 +143,81 @@
 }
 
 .btn-trade {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-lg);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: var(--transition-bounce);
+    transition: all var(--transition-bounce);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
     position: relative;
     overflow: hidden;
-    letter-spacing: 0.5px;
-    min-height: 48px;
+    letter-spacing: 0.8px;
+    min-height: 56px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .btn-trade svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     transition: transform var(--transition-base);
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
 }
 
 .btn-trade:hover:not(:disabled) svg {
-    transform: scale(1.2);
+    transform: scale(1.3) rotate(5deg);
+}
+
+/* Ripple effect */
+.btn-trade::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-trade:active::after {
+    width: 300px;
+    height: 300px;
 }
 
 .btn-up {
-    background: linear-gradient(135deg, var(--success-color), var(--success-light));
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
     color: white;
-    box-shadow: 0 4px 12px var(--success-glow);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-up::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .btn-up:hover:not(:disabled) {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 20px var(--success-glow);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.5);
+}
+
+.btn-up:hover::before {
+    opacity: 1;
 }
 
 .btn-up:active:not(:disabled) {
@@ -148,18 +225,43 @@
 }
 
 .btn-down {
-    background: linear-gradient(135deg, var(--error-color), var(--error-light));
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
     color: white;
-    box-shadow: 0 4px 12px var(--error-glow);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-down::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .btn-down:hover:not(:disabled) {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 20px var(--error-glow);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 28px rgba(239, 68, 68, 0.5);
+}
+
+.btn-down:hover::before {
+    opacity: 1;
 }
 
 .btn-down:active:not(:disabled) {
     transform: translateY(0) scale(0.98);
+}
+
+.btn-trade:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* --- Trading Main Area --- */
@@ -167,20 +269,52 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Desktop: Side by Side */
-@media (min-width: 768px) {
+/* Tablet: Side by Side */
+@media (min-width: 768px) and (max-width: 1023px) {
     .trading-main-area {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-lg);
     }
 }
 
-/* Large Desktop: More space for chart */
+/* Desktop: More space for chart */
 @media (min-width: 1440px) {
     .trading-main-area {
-        grid-template-columns: 2fr 1fr;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: var(--spacing-xl);
+    }
+}
+
+/* --- Chart Container --- */
+.chart-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 768px) {
+    .chart-container {
+        min-height: 500px;
     }
 }
 
@@ -188,6 +322,7 @@
 .market-watch {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
@@ -195,6 +330,37 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.market-watch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Add animated gradient border */
+.market-watch::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981, #3b82f6, #ff444f, #10b981);
+    background-size: 200% 100%;
+    animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
 }
 
 .market-watch h4 {
@@ -203,7 +369,7 @@
     color: var(--text-primary);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
@@ -211,7 +377,17 @@
 
 .market-watch h4::before {
     content: '📊';
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .market-watch-container {
@@ -219,13 +395,20 @@
     overflow-y: auto;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    max-height: 400px;
+    max-height: 450px;
+}
+
+@media (max-width: 767px) {
+    .market-watch-container {
+        max-height: 350px;
+    }
 }
 
 /* --- Digit Analysis Card --- */
 .digit-analysis {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
@@ -233,6 +416,28 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.digit-analysis:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Add animated gradient border */
+.digit-analysis::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff444f, #f59e0b, #10b981, #ff444f);
+    background-size: 200% 100%;
+    animation: gradientMove 3s linear infinite;
 }
 
 .digit-analysis h4 {
@@ -240,32 +445,39 @@
     color: var(--text-primary);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
+    margin-bottom: var(--spacing-md);
 }
 
 /* --- Distribution Controls --- */
-.distribution-controls {
+.distribution-controls,
+.distribution-market-selector {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     padding: var(--spacing-md);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-md);
 }
 
-.distribution-controls label {
+.distribution-controls label,
+.distribution-market-selector label {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: 600;
+    flex-shrink: 0;
 }
 
-.distribution-controls select {
+.distribution-controls select,
+.market-select-dropdown {
+    flex: 1;
+    min-width: 150px;
     padding: var(--spacing-sm) var(--spacing-md);
     background: var(--bg-secondary);
     border: 1px solid var(--glass-border);
@@ -276,10 +488,18 @@
     transition: all var(--transition-base);
 }
 
-.refresh-distribution-btn {
-    padding: var(--spacing-sm);
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+.distribution-controls select:focus,
+.market-select-dropdown:focus {
+    outline: none;
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.refresh-distribution-btn,
+#refresh-distribution-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
     border-radius: var(--radius-md);
     color: var(--success-color);
     cursor: pointer;
@@ -287,14 +507,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
 }
 
-.refresh-distribution-btn:hover {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.5);
-    transform: rotate(90deg);
+.refresh-distribution-btn:hover,
+#refresh-distribution-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.6);
+    transform: rotate(180deg);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
 }
 
 /* --- Distribution Legend --- */
@@ -312,91 +535,38 @@
     gap: var(--spacing-xs);
     font-size: 0.75rem;
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .legend-color {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform var(--transition-base);
 }
 
-/* --- Market Gauge Rows --- */
-.multi-market-dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    overflow-y: auto;
-    max-height: 600px;
-    -webkit-overflow-scrolling: touch;
-}
-
-.market-gauge-row {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-md);
-    transition: all var(--transition-base);
-    position: relative;
-    overflow: hidden;
-}
-
-.market-gauge-row:hover {
-    transform: translateX(4px);
-    border-color: rgba(16, 185, 129, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.market-gauge-row::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--grad-success);
-    opacity: 0;
-    transition: opacity var(--transition-base);
-}
-
-.market-gauge-row:hover::before {
-    opacity: 1;
-}
-
-.market-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 1px solid var(--glass-border);
-}
-
-.market-name-tag {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace;
+.legend-item:hover .legend-color {
+    transform: scale(1.2);
 }
 
 /* --- Ticker Table Enhancement --- */
 .ticker-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     min-width: 500px;
 }
 
 .ticker-table th {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     padding: var(--spacing-md);
     text-align: left;
     color: var(--text-secondary);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -406,16 +576,30 @@
 .ticker-table td {
     padding: var(--spacing-md);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: background-color var(--transition-base);
+    transition: all var(--transition-base);
     font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
 }
 
 .ticker-table tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.06);
+    transform: scale(1.01);
+}
+
+.price-up {
+    color: var(--success-color);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.price-down {
+    color: var(--error-color);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
 /* --- Mobile Optimizations --- */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .trading-interface {
         padding: var(--spacing-sm);
         gap: var(--spacing-md);
@@ -423,49 +607,56 @@
 
     .trading-controls,
     .market-watch,
-    .digit-analysis {
+    .digit-analysis,
+    .chart-container {
         padding: var(--spacing-md);
     }
 
     .controls-title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .btn-trade {
-        min-height: 52px;
+        min-height: 54px;
         font-size: 1rem;
+        padding: var(--spacing-md);
     }
 
-    .distribution-controls {
+    .distribution-controls,
+    .distribution-market-selector {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .distribution-controls label {
+    .distribution-controls label,
+    .distribution-market-selector label {
         width: 100%;
     }
 
-    .distribution-controls select {
+    .distribution-controls select,
+    .market-select-dropdown {
         width: 100%;
-    }
-
-    .distribution-legend {
-        justify-content: space-between;
+        min-width: unset;
     }
 
     .market-watch-container {
         max-height: 300px;
     }
 
-    .multi-market-dashboard {
-        max-height: 400px;
-    }
-
     /* Improve touch targets */
     .control-group select,
     .control-group input {
-        min-height: 44px;
+        min-height: 48px;
         font-size: 1rem;
+    }
+
+    .ticker-table {
+        font-size: 0.8rem;
+    }
+
+    .ticker-table th,
+    .ticker-table td {
+        padding: var(--spacing-sm);
     }
 }
 
@@ -477,18 +668,19 @@
 
     .trading-controls,
     .market-watch,
-    .digit-analysis {
+    .digit-analysis,
+    .chart-container {
         padding: var(--spacing-sm);
         border-radius: var(--radius-lg);
     }
 
     .controls-title {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .btn-trade {
-        padding: var(--spacing-sm);
-        font-size: 0.9rem;
+        padding: var(--spacing-md);
+        font-size: 0.95rem;
     }
 
     .legend-item {
@@ -499,66 +691,44 @@
         font-size: 0.75rem;
         min-width: 400px;
     }
-
-    .ticker-table th,
-    .ticker-table td {
-        padding: var(--spacing-sm);
-    }
 }
 
 /* --- Scrollbar Styling --- */
 .market-watch-container::-webkit-scrollbar,
-.multi-market-dashboard::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+.digit-analysis-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
 .market-watch-container::-webkit-scrollbar-track,
-.multi-market-dashboard::-webkit-scrollbar-track {
+.digit-analysis-container::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .market-watch-container::-webkit-scrollbar-thumb,
-.multi-market-dashboard::-webkit-scrollbar-thumb {
-    background: rgba(16, 185, 129, 0.6);
-    border-radius: 3px;
+.digit-analysis-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }
 
 .market-watch-container::-webkit-scrollbar-thumb:hover,
-.multi-market-dashboard::-webkit-scrollbar-thumb:hover {
-    background: rgba(16, 185, 129, 0.8);
+.digit-analysis-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
 }
 
 /* --- Loading States --- */
-.market-watch-skeleton,
-.digit-analysis-skeleton {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-}
-
 .skeleton {
     background: linear-gradient(
         90deg,
         rgba(255, 255, 255, 0.05) 25%,
-        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.12) 50%,
         rgba(255, 255, 255, 0.05) 75%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: var(--radius-md);
-}
-
-.skeleton-card {
-    height: 80px;
-    width: 100%;
-}
-
-.skeleton-row {
-    height: 40px;
-    width: 100%;
 }
 
 @keyframes shimmer {
@@ -573,28 +743,21 @@
 /* --- Trade Message --- */
 .trade-message {
     padding: var(--spacing-md);
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     color: #60a5fa;
     margin-top: var(--spacing-md);
+    animation: fadeIn 0.5s ease;
 }
 
 .trade-message .message-icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
-}
-
-/* --- Contract Details --- */
-.contract-details {
-    padding: var(--spacing-md);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    margin-top: var(--spacing-sm);
+    animation: pulse 2s infinite;
 }
