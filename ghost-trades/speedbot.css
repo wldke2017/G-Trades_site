@@ -442,15 +442,6 @@
     font-family: 'JetBrains Mono', monospace;
 }
 
-.price-up {
-    color: var(--success-color);
-    font-weight: 600;
-}
-
-.price-down {
-    color: var(--error-color);
-    font-weight: 600;
-}
 
 /* --- Multi-Market Circular Gauges --- */
 .multi-market-dashboard {

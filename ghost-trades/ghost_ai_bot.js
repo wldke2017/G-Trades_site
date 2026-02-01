@@ -1538,7 +1538,7 @@ function addVirtualTradeHistory(result) {
     // 8. Profit/Loss (Show WIN/LOSS for virtual)
     const plCell = document.createElement('td');
     plCell.textContent = result.isWin ? 'WIN' : 'LOSS';
-    plCell.className = result.isWin ? 'profit-positive' : 'profit-negative';
+    plCell.className = result.isWin ? 'price-up' : 'price-down';
     plCell.style.fontWeight = 'bold';
     row.appendChild(plCell);
 

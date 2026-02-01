@@ -367,6 +367,7 @@ img {
 
 /* Better touch targets for mobile */
 @media (max-width: 768px) {
+
     button,
     a,
     input[type="checkbox"],
@@ -383,7 +384,8 @@ img {
     input[type="password"],
     textarea,
     select {
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px;
+        /* Prevents zoom on iOS */
         padding: 12px;
     }
 
@@ -432,7 +434,7 @@ img {
     .collapsible-header:active,
     button:active {
         transform: scale(0.98);
-        transition: transform 0.1s ease;
+        transition: transform 0.1s xase;
     }
 }
 
@@ -469,6 +471,7 @@ section {
 
 /* Optimize animations for mobile */
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -476,4 +479,15 @@ section {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* --- Trade Outcome Styling --- */
+.price-up {
+    color: var(--success-color) !important;
+    font-weight: 600 !important;
+}
+
+.price-down {
+    color: var(--error-color) !important;
+    font-weight: 600 !important;
 }

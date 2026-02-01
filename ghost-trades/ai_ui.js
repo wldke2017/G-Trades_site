@@ -790,6 +790,9 @@ function updateAIHistoryTable(contract, profit) {
     const profitCell = document.createElement('td');
     const isWin = profit > 0;
 
+    // Apply color class
+    profitCell.className = isWin ? 'price-up' : 'price-down';
+
     // For virtual trades, profit is just shown as result type
     if (isVirtual) {
         profitCell.textContent = isWin ? 'V-WIN' : 'V-LOSS';

@@ -494,7 +494,7 @@ function addBotTradeHistory(contract, profit) {
     const plCell = row.insertCell(7);
     const isWin = profit > 0;
     plCell.textContent = parseFloat(profit).toFixed(2);
-    plCell.className = isWin ? 'profit-positive' : 'profit-negative';
+    plCell.className = isWin ? 'price-up' : 'price-down';
 
     // Limit rows to 50
     if (tableBody.rows.length > 50) {
