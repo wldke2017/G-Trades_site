@@ -396,7 +396,8 @@ header {
         align-items: center !important;
         padding: 4px 8px !important;
         gap: 6px !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+        /* ALLOW DROPDOWN TO FLOW OUT */
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box !important;
