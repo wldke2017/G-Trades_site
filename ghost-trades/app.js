@@ -1248,7 +1248,7 @@ function handleOAuthRedirectAndInit() {
 // Add this line where you set up other event listeners in app.js
 document.addEventListener('DOMContentLoaded', () => {
     // Ghost AI toggle buttons (all three)
-    const ghostAIButtonIds = ['ghost-ai-toggle-button', 'ghost-ai-toggle-button-bottom', 'ghost-ai-toggle-button-history'];
+    const ghostAIButtonIds = ['ghost-ai-toggle-button'];
 
     ghostAIButtonIds.forEach(buttonId => {
         const button = document.getElementById(buttonId);

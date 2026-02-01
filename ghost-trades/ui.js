@@ -349,9 +349,7 @@ function updateTradeMessageUI(htmlContent) {
  */
 function updateGhostAIButtonStates(isRunning) {
     const buttons = [
-        document.getElementById('ghost-ai-toggle-button'),
-        document.getElementById('ghost-ai-toggle-button-bottom'),
-        document.getElementById('ghost-ai-toggle-button-history')
+        document.getElementById('ghost-ai-toggle-button')
     ];
 
     buttons.forEach(button => {

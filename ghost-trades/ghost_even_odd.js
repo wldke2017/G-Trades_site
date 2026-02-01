@@ -1237,7 +1237,7 @@ function restoreActivePatterns() {
 // Initialize even/odd bot controls
 document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners for all three even/odd bot buttons
-    const buttonIds = ['even-odd-toggle-button-top', 'even-odd-toggle-button-bottom', 'even-odd-toggle-button-history'];
+    const buttonIds = ['even-odd-toggle-button'];
 
     buttonIds.forEach(buttonId => {
         const button = document.getElementById(buttonId);
