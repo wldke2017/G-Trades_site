@@ -280,7 +280,8 @@
         height: 300px;
         font-size: 0.75rem;
         padding: var(--spacing-sm);
-        word-break: break-word;
+        word-break: break-all !important;
+        overflow-wrap: anywhere !important;
     }
 
     .bot-grid {
@@ -288,6 +289,7 @@
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+        overflow: hidden !important;
     }
 
     .bot-controls,
@@ -296,6 +298,33 @@
         padding: 15px !important;
         width: 100% !important;
         border-radius: var(--radius-lg);
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    /* Progress Timeline Wrapping */
+    .progress-timeline {
+        flex-wrap: wrap !important;
+        gap: 20px 10px !important;
+        justify-content: center !important;
+        padding: 15px 0 !important;
+    }
+
+    .timeline-step {
+        flex: 0 1 calc(33.33% - 10px) !important;
+        min-width: 80px !important;
+    }
+
+    .timeline-line {
+        display: none !important;
+        /* Hide lines on mobile as they break when wrapping */
+    }
+
+    .step-label {
+        white-space: normal !important;
+        text-align: center !important;
+        font-size: 0.65rem !important;
+        line-height: 1.2 !important;
     }
 }
 
