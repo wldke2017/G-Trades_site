@@ -367,6 +367,13 @@ header {
     z-index: 1;
 }
 
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0 10px !important;
+        margin: var(--spacing-md) auto !important;
+    }
+}
+
 /* --- Mobile Header Redesign --- */
 @media (max-width: 768px) {
     header {

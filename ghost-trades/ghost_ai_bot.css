@@ -81,6 +81,8 @@
     grid-template-areas: "controls status history";
     gap: var(--spacing-lg);
     min-height: 600px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bot-controls {
@@ -94,6 +96,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .bot-controls h4 {
@@ -280,6 +285,17 @@
 
     .bot-grid {
         gap: var(--spacing-md);
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .bot-controls,
+    .bot-status,
+    .bot-history {
+        padding: 15px !important;
+        width: 100% !important;
+        border-radius: var(--radius-lg);
     }
 }
 
