@@ -204,7 +204,7 @@ function handleIncomingMessage(msg) {
         case 'authorize':
             if (data.authorize) {
                 console.log("✅ Authorization successful:", data.authorize.loginid);
-                showToast(`Welcome! Logged in as ${data.authorize.loginid} `, 'success');
+                // showToast(`Welcome! Logged in as ${data.authorize.loginid} `, 'success');
 
                 // Store login ID in oauthState
                 window.oauthState.login_id = data.authorize.loginid;
@@ -337,7 +337,7 @@ function handleIncomingMessage(msg) {
 
                 console.log(`✅ Loaded ${count} active symbols`);
                 console.log('📋 First 10 symbols for debugging:', activeSymbols.slice(0, 10));
-                showToast(`${count} markets loaded successfully`, 'success');
+                // showToast(`${count} markets loaded successfully`, 'success');
 
                 populateMarketSelector();
                 subscribeToAllVolatilities();

@@ -325,7 +325,7 @@ function populateAccountSwitcher(accounts) {
     // Use new UI if available, fallback to old implementation
     if (typeof populateAccountSwitcherUI === 'function') {
         populateAccountSwitcherUI(accounts);
-        
+
         // Also update refresh demo button visibility
         if (typeof updateRefreshDemoVisibility === 'function') {
             updateRefreshDemoVisibility();
@@ -335,7 +335,7 @@ function populateAccountSwitcher(accounts) {
 
     // Fallback: Old implementation
     console.warn('Using legacy account switcher');
-    
+
     // If no accounts provided, try to load from storage
     if (!accounts || accounts.length === 0) {
         const storedAccounts = localStorage.getItem('deriv_all_accounts');
@@ -608,7 +608,7 @@ function testWebSocketConnection() {
         console.log('📊 Connection test result:', statusText);
 
         if (connection && connection.readyState === WebSocket.OPEN) {
-            showToast('✅ WebSocket connection successful!', 'success');
+            // showToast('✅ WebSocket connection successful!', 'success');
         } else {
             showToast('❌ WebSocket connection failed - check console for details', 'error');
         }

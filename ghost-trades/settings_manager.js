@@ -9,7 +9,7 @@ class BotSettingsManager {
         this.version = '1.0';
         console.log('✅ Bot Settings Manager initialized');
     }
-    
+
     /**
      * Save all bot settings to localStorage
      * @param {string} botName - Name of the bot (e.g., 'ghost_ai', 'ghost_eodd', 'ai_strategy')
@@ -31,7 +31,7 @@ class BotSettingsManager {
             return false;
         }
     }
-    
+
     /**
      * Load specific bot settings from localStorage
      * @param {string} botName - Name of the bot
@@ -41,20 +41,20 @@ class BotSettingsManager {
         try {
             const allSettings = this.loadAllSettings();
             const settings = allSettings[botName] || null;
-            
+
             if (settings) {
                 console.log(`📂 Loaded settings for ${botName}:`, settings);
             } else {
                 console.log(`ℹ️ No saved settings found for ${botName}`);
             }
-            
+
             return settings;
         } catch (error) {
             console.error(`❌ Failed to load settings for ${botName}:`, error);
             return null;
         }
     }
-    
+
     /**
      * Load all settings from localStorage
      * @returns {object} - All settings object
@@ -68,7 +68,7 @@ class BotSettingsManager {
             return {};
         }
     }
-    
+
     /**
      * Auto-restore settings to UI elements
      * @param {string} botName - Name of the bot
@@ -81,9 +81,9 @@ class BotSettingsManager {
             console.log(`ℹ️ No settings to restore for ${botName}`);
             return false;
         }
-        
+
         let restoredCount = 0;
-        
+
         // Apply each setting to its input element
         Object.entries(inputMappings).forEach(([key, elementId]) => {
             const element = document.getElementById(elementId);
@@ -104,17 +104,17 @@ class BotSettingsManager {
                 }
             }
         });
-        
+
         console.log(`✅ Restored ${restoredCount} settings for ${botName}`);
-        
+
         // Show notification to user
         if (restoredCount > 0 && typeof showToast === 'function') {
-            showToast(`Settings restored for ${botName.replace('_', ' ').toUpperCase()}`, 'success', 3000);
+            // showToast(`Settings restored for ${botName.replace('_', ' ').toUpperCase()}`, 'success', 3000);
         }
-        
+
         return true;
     }
-    
+
     /**
      * Delete settings for a specific bot
      * @param {string} botName - Name of the bot
@@ -131,7 +131,7 @@ class BotSettingsManager {
             return false;
         }
     }
-    
+
     /**
      * Clear all bot settings
      */
@@ -145,7 +145,7 @@ class BotSettingsManager {
             return false;
         }
     }
-    
+
     /**
      * Export settings as JSON string
      * @returns {string} - JSON string of all settings
@@ -154,7 +154,7 @@ class BotSettingsManager {
         const allSettings = this.loadAllSettings();
         return JSON.stringify(allSettings, null, 2);
     }
-    
+
     /**
      * Import settings from JSON string
      * @param {string} jsonString - JSON string to import
