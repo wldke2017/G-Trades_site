@@ -74,6 +74,11 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100vh;
@@ -82,6 +87,8 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Mobile Optimization */
@@ -347,4 +354,126 @@ body::before {
 img {
     max-width: 100%;
     height: auto;
+}
+
+/* ===================================
+   MOBILE UX ENHANCEMENTS
+   =================================== */
+
+/* Smooth scrolling for all scrollable containers */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+    button,
+    a,
+    input[type="checkbox"],
+    input[type="radio"],
+    select {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Improve input field sizing */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 12px;
+    }
+
+    /* Custom scrollbar for webkit browsers on mobile */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-hover);
+    }
+
+    /* Smooth momentum scrolling on iOS */
+    .bot-log,
+    .collapsible-content,
+    #live-contracts-container,
+    .ticks-visual {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.05);
+    }
+
+    /* Prevent text selection on UI controls */
+    .btn-bot,
+    .collapsible-header,
+    button {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Add subtle tap feedback */
+    .btn-bot:active,
+    .collapsible-header:active,
+    button:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Prevent horizontal overflow globally */
+body,
+html,
+#app,
+main,
+section {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Ensure all containers respect viewport width */
+.container,
+.bot-grid,
+.trading-interface,
+.ghostai-interface {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Mobile-friendly spacing */
+@media (max-width: 640px) {
+    :root {
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.4rem;
+        --spacing-md: 0.75rem;
+        --spacing-lg: 1rem;
+        --spacing-xl: 1.25rem;
+    }
+}
+
+/* Optimize animations for mobile */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

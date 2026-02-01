@@ -766,6 +766,8 @@
         display: flex !important;
         flex-direction: column !important;
         gap: 20px !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
 
     /* Icon Scaling */
@@ -791,6 +793,43 @@
     .ai-card-header h4 {
         text-align: center !important;
         width: 100% !important;
+    }
+
+    /* Ensure all content is visible */
+    .ai-card,
+    .ai-editor-section,
+    .ai-logs-section {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Improve scrolling for logs and editor */
+    .ai-logs,
+    .code-editor {
+        -webkit-overflow-scrolling: touch !important;
+        word-break: break-word !important;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 374px) {
+    .ai-card {
+        padding: 12px !important;
+    }
+
+    .ai-parameters-grid {
+        gap: 12px !important;
+    }
+
+    .btn-ai-small,
+    .btn-ai-medium {
+        font-size: 0.75rem !important;
+        padding: 8px 12px !important;
+    }
+
+    #ai-market-checkboxes {
+        font-size: 0.7rem !important;
     }
 }
 

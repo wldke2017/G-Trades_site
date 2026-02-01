@@ -4,13 +4,17 @@
 
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const isProduction = window.location.hostname === 'ghost-trades.site';
-const AI_API_ENDPOINT = isProduction
-    ? 'https://ghost-trades.site/api/ai/generate'
-    : (isLocalDev ? 'http://localhost:4000/api/ai/generate' : '/api/ai/generate');
 
-const AI_STRATEGY_API = isProduction
-    ? 'https://ghost-trades.site/api/ai'
-    : (isLocalDev ? 'http://localhost:4000/api/ai' : '/api/ai');
+// API Configuration - Uses relative paths by default for better portability
+// Fallback to local 4000/3000 if running via file system or specific dev setups
+const getApiBase = () => {
+    if (isProduction) return 'https://ghost-trades.site/api/ai';
+    if (isLocalDev) return 'http://localhost:4000/api/ai';
+    return '/api/ai'; // Robust relative path for most servers/proxies
+};
+
+const AI_STRATEGY_API = getApiBase();
+const AI_API_ENDPOINT = `${AI_STRATEGY_API}/generate`;
 
 const STORAGE_KEYS = {
     STRATEGIES: 'ghost_ai_strategies'
@@ -163,17 +167,12 @@ function initializeAIUI() {
 
 // Global function to populate markets (Called from app.js when activeSymbols are ready)
 window.updateAIMarketSelector = function (activeSymbols) {
-    console.log('🔄 AI UI: updateAIMarketSelector called', {
-        hasContainer: !!aiMarketCheckboxes,
-        symbolCount: activeSymbols ? activeSymbols.length : 0
-    });
-
     if (!aiMarketCheckboxes) {
-        console.error('❌ AI UI: Market checkboxes container not found - retrying initialization...');
-        // Retry getting the element
-        aiMarketCheckboxes = document.getElementById('ai-market-checkboxes');
+        console.log('🔄 AI UI: Elements not initialized yet, attempting re-initialization...');
+        initializeAIUI();
+
         if (!aiMarketCheckboxes) {
-            console.error('❌ AI UI: Still cannot find market checkboxes container');
+            console.error('❌ AI UI: Market checkboxes container still not found. Ensure DOM matches expectations.');
             return;
         }
     }
@@ -385,7 +384,10 @@ async function handleAPIResponse(response) {
         data = await response.json();
     } else {
         const text = await response.text();
-        throw new Error(`The server returned an invalid response. Ensure the Backend API is running.`);
+        console.error('❌ Server Non-JSON Response:', text);
+        throw new Error(`The AI backend returned an invalid response. 
+        Please ensure the Ghost AI service is running on the correct port (default: 4000) 
+        and you are not experiencing connection issues.`);
     }
 
     if (!response.ok) {
