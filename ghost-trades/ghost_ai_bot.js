@@ -630,16 +630,23 @@ function renderLiveContracts() {
     if (!container) return;
 
     container.innerHTML = '';
-    const contracts = Object.values(liveContractMonitor);
+
+    // Sort contracts by startTime descending (newest at top)
+    const contracts = Object.values(liveContractMonitor).sort((a, b) => b.startTime - a.startTime);
 
     if (contracts.length === 0) {
         container.innerHTML = '<div class="no-contracts">Waiting for active trades...</div>';
         return;
     }
 
+    // Clear container is still needed if we want to ensure exact order from scratch,
+    // but DocumentFragment makes it much more stable and flicker-free.
+    const fragment = document.createDocumentFragment();
+
     contracts.forEach(contract => {
         const card = document.createElement('div');
         card.className = 'live-contract-card';
+        card.setAttribute('data-contract-id', contract.contractId || '');
 
         // Header
         const header = document.createElement('div');
@@ -663,7 +670,7 @@ function renderLiveContracts() {
             if (tick.type === 'entry') {
                 tickEl.classList.add('entry-tick');
             } else if (tick.type === 'post') {
-                // Color based on win/loss logic (simplified: green if matches condition)
+                // Color based on win/loss logic
                 const isWin = (contract.contractType === 'OVER' && tick.digit > contract.barrier) ||
                     (contract.contractType === 'UNDER' && tick.digit < contract.barrier);
                 tickEl.classList.add(isWin ? 'win-tick' : 'loss-tick');
@@ -688,13 +695,17 @@ function renderLiveContracts() {
                 </span>
             `;
             card.style.border = contract.isWin ? '1px solid #10b981' : '1px solid #ff444f';
+            card.classList.add('finalized');
         } else {
             footer.innerHTML = `<span>Elapsed: ${(contract.elapsedMs / 1000).toFixed(1)}s</span>`;
         }
         card.appendChild(footer);
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
 }
 window.renderLiveContracts = renderLiveContracts;
 
@@ -740,15 +751,8 @@ function addLiveContract(contractId, symbol, entryTick, barrier, contractType) {
     addBotLog(`🔴 Live Monitor: Tracking ${symbol} (${contractType} ${barrier})`, 'info');
     renderLiveContracts();
 
-    // Auto-expand monitor section
-    const monitorContent = document.getElementById('live-contract-monitor');
-    const monitorArrow = document.getElementById('arrow-live-contract-monitor');
-    const placeholder = document.getElementById('placeholder-live-contract-monitor');
-    if (monitorContent && monitorContent.classList.contains('collapsed')) {
-        monitorContent.classList.remove('collapsed');
-        if (monitorArrow) monitorArrow.classList.remove('collapsed');
-        if (placeholder) placeholder.style.display = 'none';
-    }
+    addBotLog(`🔴 Live Monitor: Tracking ${symbol} (${contractType} ${barrier})`, 'info');
+    renderLiveContracts();
 }
 window.addLiveContract = addLiveContract;
 
@@ -766,6 +770,14 @@ function finalizeLiveContract(contractId, isWin, profit) {
         liveContractMonitor[contractId].isWin = isWin;
         liveContractMonitor[contractId].profit = profit;
         renderLiveContracts();
+
+        // Auto-remove after 10 seconds to keep UI clean and prevent "screen vibration"
+        setTimeout(() => {
+            if (liveContractMonitor[contractId]) {
+                delete liveContractMonitor[contractId];
+                renderLiveContracts();
+            }
+        }, 10000);
     }
 }
 window.finalizeLiveContract = finalizeLiveContract;

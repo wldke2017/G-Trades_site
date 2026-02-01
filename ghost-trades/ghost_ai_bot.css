@@ -362,6 +362,24 @@
     flex-direction: column;
     gap: var(--spacing-md);
     padding: var(--spacing-sm);
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.05);
+}
+
+#live-contracts-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#live-contracts-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+#live-contracts-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
 }
 
 .no-contracts {
@@ -412,6 +430,7 @@
 
 /* Extra small screens (320px - 374px) */
 @media (max-width: 374px) {
+
     .bot-controls,
     .bot-status,
     .bot-history {
