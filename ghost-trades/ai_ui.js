@@ -8,9 +8,18 @@ const isProduction = window.location.hostname === 'ghost-trades.site';
 // API Configuration - Uses relative paths by default for better portability
 // Fallback to local 4000/3000 if running via file system or specific dev setups
 const getApiBase = () => {
-    if (isProduction) return 'https://ghost-trades.site/api/ai';
+    // Priority 1: Current origin if not file://
+    if (window.location.protocol !== 'file:') {
+        // If we are on ghost-trades.site, use the production API
+        if (isProduction) return 'https://ghost-trades.site/api/ai';
+        // If we are on a different domain/port (e.g. dev server), use relative path
+        return '/api/ai';
+    }
+
+    // Priority 2: Fallbacks for local development
     if (isLocalDev) return 'http://localhost:4000/api/ai';
-    return '/api/ai'; // Robust relative path for most servers/proxies
+
+    return 'http://localhost:4000/api/ai'; // Final fallback
 };
 
 const AI_STRATEGY_API = getApiBase();
@@ -211,6 +220,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
+        checkbox.className = 'ai-market-checkbox'; // CRITICAL: Required for getSelectedAIMarkets()
         checkbox.value = symbol.symbol;
         checkbox.id = `ai-chk-${symbol.symbol}`;
         checkbox.checked = true; // Default checked as per user request (Auto-select all supported)
@@ -241,6 +251,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
+            checkbox.className = 'ai-market-checkbox'; // CRITICAL: Required for getSelectedAIMarkets()
             checkbox.value = symbol.symbol;
             checkbox.id = `ai-chk-${symbol.symbol}`;
 

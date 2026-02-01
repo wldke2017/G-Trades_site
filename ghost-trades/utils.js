@@ -32,7 +32,13 @@ const TRADE_LOCK_DURATION = 5000;
 let marketTickHistory = {};
 let marketDigitPercentages = {};
 let marketFullTickDigits = {};
+
+// Explicitly export to window for cross-module access
+window.marketTickHistory = marketTickHistory;
+window.marketDigitPercentages = marketDigitPercentages;
+window.marketFullTickDigits = marketFullTickDigits;
 window.digitHistory = marketFullTickDigits;
+window.globalTradeLocks = globalTradeLocks;
 
 // ===================================
 // UTILITY FUNCTIONS

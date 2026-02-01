@@ -130,9 +130,10 @@ class AIStrategyRunner {
 
         // SAFETY: Ensure digit history exists and has data
         if (!tickContext.digits || tickContext.digits.length === 0) {
-            // Fallback: Try to get from global digitHistory
-            if (window.digitHistory && window.digitHistory[tickContext.symbol]) {
-                tickContext.digits = window.digitHistory[tickContext.symbol];
+            // Fallback: Try to get from global tick history
+            const globalHistory = window.marketFullTickDigits || window.digitHistory;
+            if (globalHistory && globalHistory[tickContext.symbol]) {
+                tickContext.digits = globalHistory[tickContext.symbol];
             } else {
                 // Not enough data yet, skip execution
                 return;
