@@ -828,21 +828,11 @@ function analyzeEvenOddPattern(symbol, lastDigits) {
 }
 
 function handleEvenOddTick(tick) {
-    // Double check if bot is still trading (in case stop was triggered)
-    if (!evenOddBotState.isTrading) {
-        return;
-    }
-
     const symbol = tick.symbol;
     const price = tick.quote.toString();
-    // Check Serial Mode Cooldown (3 Seconds Rest)
-    if (evenOddBotState.evenOddSerialModeCooldownTill && Date.now() < evenOddBotState.evenOddSerialModeCooldownTill) {
-        return;
-    }
-
     const lastDigit = parseInt(price.slice(-1));
 
-    // Initialize symbol history if not exists (up to 15 digits)
+    // ALWAYS update history even if bot is not trading
     if (!symbolDigitHistory[symbol]) {
         symbolDigitHistory[symbol] = {
             digit1: null,
@@ -863,23 +853,23 @@ function handleEvenOddTick(tick) {
         };
     }
 
-    // Update the last digits for this specific symbol (shift all digits)
-    const digits = symbolDigitHistory[symbol];
-    digits.digit15 = digits.digit14;
-    digits.digit14 = digits.digit13;
-    digits.digit13 = digits.digit12;
-    digits.digit12 = digits.digit11;
-    digits.digit11 = digits.digit10;
-    digits.digit10 = digits.digit9;
-    digits.digit9 = digits.digit8;
-    digits.digit8 = digits.digit7;
-    digits.digit7 = digits.digit6;
-    digits.digit6 = digits.digit5;
-    digits.digit5 = digits.digit4;
-    digits.digit4 = digits.digit3;
-    digits.digit3 = digits.digit2;
-    digits.digit2 = digits.digit1;
-    digits.digit1 = lastDigit;
+    // Update history: shift old digits
+    const history = symbolDigitHistory[symbol];
+    for (let i = 15; i > 1; i--) {
+        history[`digit${i}`] = history[`digit${i - 1}`];
+    }
+    history.digit1 = lastDigit;
+
+    // --- GAP: Trading logic only runs if bot is ON ---
+    // Double check if bot is still trading (in case stop was triggered)
+    if (!evenOddBotState.isTrading) {
+        return;
+    }
+
+    // Check Serial Mode Cooldown (3 Seconds Rest)
+    if (evenOddBotState.evenOddSerialModeCooldownTill && Date.now() < evenOddBotState.evenOddSerialModeCooldownTill) {
+        return;
+    }
 
     // Check if we already traded this pattern recently
     if (!evenOddBotState.symbolPatterns[symbol]) {

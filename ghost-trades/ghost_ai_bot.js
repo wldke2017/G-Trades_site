@@ -771,23 +771,26 @@ function finalizeLiveContract(contractId, isWin, profit) {
 window.finalizeLiveContract = finalizeLiveContract;
 
 function handleBotTick(tick) {
-    if (!isBotRunning) return;
-
     const symbol = tick.symbol;
     const price = tick.quote.toString();
     const lastDigit = parseInt(price.slice(-1));
 
-    if (Math.random() < 0.05) console.log(`Bot tick: ${symbol} = ${price}`);
+    if (Math.random() < 0.05) console.log(`Bot tick context: ${symbol} = ${price}`);
 
+    // ALWAYS update history even if bot is not running
     if (marketTickHistory[symbol]) {
         marketTickHistory[symbol].push(lastDigit);
-        if (marketTickHistory[symbol].length > 20) marketTickHistory[symbol].shift();
+        // We keep up to 100 ticks for better analysis context, even if 20 is the "ready" threshold
+        if (marketTickHistory[symbol].length > 100) marketTickHistory[symbol].shift();
 
         if (marketTickHistory[symbol].length >= 20) {
-            const analysisCount = botState.analysisDigits || 15;
+            const analysisCount = botState?.analysisDigits || 15;
             marketDigitPercentages[symbol] = calculateDigitPercentages(symbol, analysisCount);
         }
     }
+
+    // --- GAP: Trading & Scanning logic only runs if bot is ON ---
+    if (!isBotRunning) return;
 
     const now = Date.now();
     if (now - lastScanTime > 1000) updateTechnicalIndicators();

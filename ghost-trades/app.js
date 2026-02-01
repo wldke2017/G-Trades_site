@@ -497,13 +497,13 @@ function handleIncomingMessage(msg) {
                     window.aiStrategyRunner.execute(aiTickContext);
                 }
 
-                // 5. Feed Ghost AI Bot
-                if (isBotRunning && typeof handleBotTick === 'function') {
+                // 5. Feed Ghost AI Bot (Always feed to populate history)
+                if (typeof handleBotTick === 'function') {
                     handleBotTick(data.tick);
                 }
 
-                // 6. Feed Ghost Even/Odd Bot
-                if (evenOddBotState && evenOddBotState.isTrading && typeof handleEvenOddTick === 'function') {
+                // 6. Feed Ghost Even/Odd Bot (Always feed to populate history)
+                if (typeof handleEvenOddTick === 'function') {
                     handleEvenOddTick(data.tick);
                 }
             }
