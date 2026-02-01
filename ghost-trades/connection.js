@@ -6,9 +6,17 @@
 let connection = null;
 let reconnectAttempts = 0;
 let reconnectTimer = null;
+let pingInterval = null;
 
 function connectToDeriv() {
     console.log('🔌 connectToDeriv() called, current state:', connection ? connection.readyState : 'no connection');
+
+    // Initialize Visibility API listener (only once)
+    if (!window.visibilityListenerAdded) {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.visibilityListenerAdded = true;
+        console.log('👀 Page Visibility API listener added');
+    }
 
     if (connection && (connection.readyState === WebSocket.OPEN || connection.readyState === WebSocket.CONNECTING)) {
         console.log('✅ Connection already open or connecting, skipping...');
@@ -112,6 +120,50 @@ function handleConnectionOpen(event) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
     }
+
+    startHeartbeat();
+}
+
+function startHeartbeat() {
+    if (pingInterval) clearInterval(pingInterval);
+
+    pingInterval = setInterval(() => {
+        if (connection && connection.readyState === WebSocket.OPEN) {
+            console.log('💓 Heartbeat: Sending ping...');
+            connection.send(JSON.stringify({ ping: 1 }));
+        }
+    }, 30000); // 30 seconds
+}
+
+function stopHeartbeat() {
+    if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+    }
+}
+
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        console.log('🟢 Page became visible - Checking connection stability...');
+
+        const needsReconnect = !connection ||
+            connection.readyState === WebSocket.CLOSED ||
+            connection.readyState === WebSocket.CLOSING;
+
+        if (needsReconnect) {
+            console.log('⚠️ Connection lost in background. Reconnecting...');
+            reconnectAttempts = 0; // Reset for aggressive immediate reconnect
+            connectToDeriv();
+
+            // If we have a token, authorize immediately
+            const token = localStorage.getItem('deriv_token');
+            if (token) connectAndAuthorize(token);
+        } else {
+            // Even if open, send a test ping to ensure the server hasn't ghosted us
+            console.log('📝 Connection looks alive, sending test ping...');
+            connection.send(JSON.stringify({ ping: 1 }));
+        }
+    }
 }
 
 function handleConnectionError(error) {
@@ -144,6 +196,8 @@ function handleConnectionError(error) {
 function handleConnectionClose(event) {
     console.log("🔌 WebSocket connection closed", event.code, event.reason);
     updateConnectionStatus('disconnected');
+
+    stopHeartbeat();
 
     if (!event.wasClean) {
         showToast("Connection lost. Attempting to reconnect...", 'warning');
