@@ -1032,12 +1032,8 @@ function handleEvenOddTick(tick) {
             // Execute trade for this symbol
             executePatternTrade(tradeDecision.action, symbol, tradeDecision.pattern, stake, digitSequence);
 
-            // RESET VIRTUAL HOOK AFTER REAL TRADE
-            if (evenOddBotState.virtualHook.enabled) {
-                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = false;
-                evenOddBotState.virtualHook.currentStreak[symbol] = 0;
-                addEvenOddBotLog(`🔄 Hook Reset on ${symbol} after real trade execution.`, 'info');
-            }
+            // RESET VIRTUAL HOOK removed from here.
+            // It is now handled in clearGhostEvenOddTradeTracking after the result is known.
         }
     }
 }
@@ -1263,13 +1259,27 @@ function clearGhostEvenOddTradeTracking(symbol, profit, isWin) {
         clearPendingStake(symbol);
     }
 
-    // 3. Option B: Post-Loss Behavior (Return to Virtual)
-    if (!isWin) {
-        const postLossBehavior = evenOddBotState.virtualHook.postLossBehavior || 'OPTION_A';
-        if (postLossBehavior === 'OPTION_B' && evenOddBotState.virtualHook.enabled) {
+    // 3. Virtual Hook Behavior Management
+    const vhEnabled = evenOddBotState.virtualHook.enabled;
+    const postLossBehavior = evenOddBotState.virtualHook.postLossBehavior || 'OPTION_A';
+
+    if (vhEnabled) {
+        if (isWin) {
+            // Reset Hook on ANY real win
             evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = false;
-            evenOddBotState.virtualHook.currentStreak[symbol] = 0; // Reset virtual streak
-            addEvenOddBotLog(`🛡️ Option B: Real loss on ${symbol}. Returning to Virtual for next trigger.`, 'info');
+            evenOddBotState.virtualHook.currentStreak[symbol] = 0;
+            console.log(`✅ REAL Win on ${symbol}. Returning to Virtual.`);
+        } else {
+            // Handle Loss behavior
+            if (postLossBehavior === 'OPTION_B') {
+                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = false;
+                evenOddBotState.virtualHook.currentStreak[symbol] = 0; // Reset virtual streak
+                addEvenOddBotLog(`🛡️ Option B: Real loss on ${symbol}. Returning to Virtual for next trigger.`, 'info');
+            } else {
+                // Option A: Keep isRealTradeTriggered = true (STAY ON REAL)
+                evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true;
+                addEvenOddBotLog(`🔥 Option A: Real loss on ${symbol}. Staying on REAL for recovery.`, 'warning');
+            }
         }
     }
 

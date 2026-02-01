@@ -888,12 +888,19 @@ function handleIncomingMessage(msg) {
                                 botState.s1LossSymbol = contract.symbol;
                                 botState.s1ConsecutiveLosses++;
 
-                                // --- Option B: Return to Virtual after REAL Loss ---
+                                // --- Virtual Hook After REAL Loss Logic ---
+                                const vhEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked || false;
                                 const postLossBehavior = document.getElementById('ghostaiPostLossBehavior')?.value || 'OPTION_A';
-                                if (postLossBehavior === 'OPTION_B') {
-                                    console.log("🛡️ Option B: Real loss detected. Returning to Virtual for next trigger.");
-                                    botState.nextTradeReal = false;
-                                    botState.s1ConsecutiveLosses = 0; // Reset streak to start fresh on virtual
+
+                                if (vhEnabled) {
+                                    if (postLossBehavior === 'OPTION_B') {
+                                        console.log("🛡️ Option B: Real loss detected. Returning to Virtual for next trigger.");
+                                        botState.nextTradeReal = false;
+                                        botState.s1ConsecutiveLosses = 0; // Reset streak to start fresh on virtual
+                                    } else {
+                                        console.log("🔥 Option A: Real loss detected. Staying on REAL for recovery.");
+                                        botState.nextTradeReal = true; // STAY ON REAL
+                                    }
                                 }
 
                                 addBotLog(`❌ S1 Loss #${botState.s1ConsecutiveLosses}: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} `, 'loss');
@@ -908,6 +915,14 @@ function handleIncomingMessage(msg) {
                             } else {
                                 // S1 Win - Reset consecutive loss counter
                                 botState.s1ConsecutiveLosses = 0; // Reset on win
+                                // --- Reset VH on REAL WIN ---
+                                const vhEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked || false;
+                                if (vhEnabled && botState.nextTradeReal) {
+                                    console.log("✅ REAL Win detected. Returning to Virtual.");
+                                    botState.nextTradeReal = false;
+                                    botState.s1ConsecutiveLosses = 0;
+                                }
+
                                 addBotLog(`✅ S1 Win: +$${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Consecutive losses reset`, 'win');
                             }
                         } else {
@@ -919,12 +934,19 @@ function handleIncomingMessage(msg) {
 
                                 addBotLog(`❌ S2 Loss: $${profit.toFixed(2)} on ${contract.symbol} | Total P / L: $${botState.totalPL.toFixed(2)} | Martingale Step ${botState.martingaleStepCount} `, 'loss');
 
-                                // --- Option B: Return to Virtual after REAL Loss (S2) ---
+                                // --- Virtual Hook After REAL Loss Logic (S2) ---
+                                const vhEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked || false;
                                 const postLossBehavior = document.getElementById('ghostaiPostLossBehavior')?.value || 'OPTION_A';
-                                if (postLossBehavior === 'OPTION_B') {
-                                    console.log("🛡️ Option B (S2): Real loss detected. Returning to Virtual for next trigger.");
-                                    botState.nextTradeReal = false;
-                                    botState.s1ConsecutiveLosses = 0; // Reset streak
+
+                                if (vhEnabled) {
+                                    if (postLossBehavior === 'OPTION_B') {
+                                        console.log("🛡️ Option B (S2): Real loss detected. Returning to Virtual for next trigger.");
+                                        botState.nextTradeReal = false;
+                                        botState.s1ConsecutiveLosses = 0; // Reset streak
+                                    } else {
+                                        console.log("🔥 Option A (S2): Real loss detected. Staying on REAL for recovery step.");
+                                        botState.nextTradeReal = true; // STAY ON REAL
+                                    }
                                 }
 
                                 // Check for Stop-Loss
@@ -964,6 +986,14 @@ function handleIncomingMessage(msg) {
                                 botState.accumulatedStakesLost = 0.0;
                                 botState.s1ConsecutiveLosses = 0; // Reset consecutive losses
                                 botState.s1ConsecutiveWins = 0; // Reset consecutive wins
+
+                                // RESET VH ON RECOVERY WIN
+                                const vhEnabled = document.getElementById('ghostaiVirtualHookEnabled')?.checked || false;
+                                if (vhEnabled) {
+                                    console.log("✅ S2 RECOVERY Win. Returning to Virtual.");
+                                    botState.nextTradeReal = false;
+                                    botState.s1ConsecutiveLosses = 0;
+                                }
 
                                 if (botState.s1Blocked) {
                                     botState.s1Blocked = false;

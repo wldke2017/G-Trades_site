@@ -1132,8 +1132,9 @@ async function executeTradeWithTracking(marketData) {
 
     if (useReal) {
         // --- REAL TRADE ---
-        // Reset flag immediately (consume the token)
-        botState.nextTradeReal = false;
+        // CRITICAL: Resetting token 'nextTradeReal = false' removed from here.
+        // It is now handled in app.js after the trade result is confirmed.
+        // This ensures OPTION_A (Stay on Real) works correctly.
 
         const requestContractType = normalizeContractType(marketData.contractType || (marketData.prediction <= 4 ? "DIGITOVER" : "DIGITUNDER"));
 
