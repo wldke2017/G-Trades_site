@@ -1061,7 +1061,8 @@ function executePatternTrade(action, symbol, pattern, stake) {
     }
 
     // Lock should already be acquired by caller, but double-check
-    if (!globalTradeLocks[symbol] || globalTradeLocks[symbol].botType !== 'ghost_eodd') {
+    const lockKey = `${symbol}_default`;
+    if (!globalTradeLocks[lockKey] || globalTradeLocks[lockKey].botType !== 'ghost_eodd') {
         console.warn(`⚠️ Trade lock not held for ${symbol}, acquiring now...`);
         if (!acquireTradeLock(symbol, 'ghost_eodd')) {
             addEvenOddBotLog(`⚠️ Failed to acquire lock for ${symbol}`, 'warning');
@@ -1325,3 +1326,9 @@ function clearGhostEvenOddTradeTracking(symbol, profit, isWin) {
     // 5. Set Cooldown (3 Seconds Rest)
     evenOddBotState.evenOddSerialModeCooldownTill = Date.now() + 3000;
 }
+
+// Export functions to window for centralized access
+window.clearGhostEvenOddTradeTracking = clearGhostEvenOddTradeTracking;
+window.startEvenOddBot = startEvenOddBot;
+window.stopEvenOddBot = stopEvenOddBot;
+window.toggleEvenOddBot = toggleEvenOddBot;
