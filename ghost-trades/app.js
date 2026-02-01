@@ -1407,8 +1407,8 @@ function restoreBotSettingsOnLoad() {
                 vHookTrigger: 'eoddVirtualHookTrigger',
                 vHookFixedStake: 'eoddVirtualHookFixedStake',
                 // New Advanced Settings
-                vHookEnabledS1: 'eoddVHEnabledS1',
-                vHookEnabledS2: 'eoddVHEnabledS2',
+                vHookEnabledInitial: 'eoddVHEnabledInitial',
+                vHookEnabledMartingale: 'eoddVHEnabledMartingale',
                 postLossBehavior: 'eoddPostLossBehavior'
             });
         } catch (error) {

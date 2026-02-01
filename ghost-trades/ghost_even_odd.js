@@ -26,8 +26,8 @@ let evenOddBotState = {
         fixedStake: null, // Override stake if set
         currentStreak: {}, // { symbol: count }
         isRealTradeTriggered: {}, // { symbol: boolean }
-        vhEnabledS1: true,
-        vhEnabledS2: true,
+        vhEnabledInitial: true,
+        vhEnabledMartingale: true,
         postLossBehavior: 'OPTION_A'
     }
 };
@@ -72,12 +72,12 @@ function initializeMoneyManagement() {
     evenOddBotState.virtualHook.fixedStake = vHookFixedStakeInput && vHookFixedStakeInput.value ? parseFloat(vHookFixedStakeInput.value) : null;
 
     // Advanced Settings
-    const vhEnabledS1Input = document.getElementById('eoddVHEnabledS1');
-    const vhEnabledS2Input = document.getElementById('eoddVHEnabledS2');
+    const vhEnabledInitialInput = document.getElementById('eoddVHEnabledInitial');
+    const vhEnabledMartingaleInput = document.getElementById('eoddVHEnabledMartingale');
     const postLossBehaviorInput = document.getElementById('eoddPostLossBehavior');
 
-    evenOddBotState.virtualHook.vhEnabledS1 = vhEnabledS1Input ? vhEnabledS1Input.checked : true;
-    evenOddBotState.virtualHook.vhEnabledS2 = vhEnabledS2Input ? vhEnabledS2Input.checked : true;
+    evenOddBotState.virtualHook.vhEnabledInitial = vhEnabledInitialInput ? vhEnabledInitialInput.checked : true;
+    evenOddBotState.virtualHook.vhEnabledMartingale = vhEnabledMartingaleInput ? vhEnabledMartingaleInput.checked : true;
     evenOddBotState.virtualHook.postLossBehavior = postLossBehaviorInput ? postLossBehaviorInput.value : 'OPTION_A';
 
     evenOddBotState.virtualHook.currentStreak = {};
@@ -606,9 +606,10 @@ async function startEvenOddBot() {
             vHookTrigger: evenOddBotState.virtualHook.triggerCount,
             vHookFixedStake: evenOddBotState.virtualHook.fixedStake,
             // New Advanced Settings
-            vHookEnabledS1: evenOddBotState.virtualHook.vhEnabledS1,
-            vHookEnabledS2: evenOddBotState.virtualHook.vhEnabledS2,
-            postLossBehavior: evenOddBotState.virtualHook.postLossBehavior
+            vHookEnabledInitial: evenOddBotState.virtualHook.vhEnabledInitial,
+            vHookEnabledMartingale: evenOddBotState.virtualHook.vhEnabledMartingale,
+            postLossBehavior: evenOddBotState.virtualHook.postLossBehavior,
+            activePatterns: Array.from(document.querySelectorAll('.pattern-checkbox:checked')).map(cb => cb.value)
         };
         window.botSettingsManager.saveSettings('ghost_eodd', settings);
     }
@@ -913,6 +914,7 @@ function handleEvenOddTick(tick) {
             if (evenOddBotState.virtualHook.currentStreak[symbol] >= evenOddBotState.virtualHook.triggerCount) {
                 evenOddBotState.virtualHook.isRealTradeTriggered[symbol] = true;
                 addEvenOddBotLog(`🪝 HOOK ACTIVATED on ${symbol}! Next trade will be REAL.`, 'warning');
+                console.log(`[EODD] Trigger Activated for ${symbol}. isRealTradeTriggered=true`);
                 showToast(`🪝 Hook Triggered on ${symbol}!`, 'warning');
             }
         } else {
@@ -954,21 +956,24 @@ function handleEvenOddTick(tick) {
             }
 
             // CHECK VIRTUAL HOOK ENTRIES
-            // Determine if this is S1 (Initial) or S2 (Recovery/Martingale)
-            // If valid martingale exists and step > 0, it's S2. Otherwise S1.
+            // Determine if this is INITIAL (Base) or MARTINGALE (Recovery)
+            // If valid martingale exists and step > 0, it's MARTINGALE. Otherwise INITIAL.
             const currentMartingale = evenOddBotState.symbolMartingale[symbol];
             const isRecovery = currentMartingale && currentMartingale.step > 0;
-            const strategy = isRecovery ? 'S2' : 'S1';
+            const strategy = isRecovery ? 'MARTINGALE' : 'INITIAL';
 
             // Check Granular Settings
             // CRITICAL FIX: If isRealTradeTriggered is TRUE, force applyVH to FALSE to execute real trade
             let applyVH = evenOddBotState.virtualHook.enabled && (
-                (strategy === 'S1' && evenOddBotState.virtualHook.vhEnabledS1) ||
-                (strategy === 'S2' && evenOddBotState.virtualHook.vhEnabledS2)
+                (strategy === 'INITIAL' && evenOddBotState.virtualHook.vhEnabledInitial) ||
+                (strategy === 'MARTINGALE' && evenOddBotState.virtualHook.vhEnabledMartingale)
             );
 
             if (evenOddBotState.virtualHook.isRealTradeTriggered[symbol]) {
                 applyVH = false;
+                console.log(`[EODD] Trade decision for ${symbol}: Hook is ACTIVE, forcing REAL trade.`);
+            } else if (evenOddBotState.virtualHook.enabled) {
+                console.log(`[EODD] Trade decision for ${symbol}: VH is ${applyVH ? 'REQUIRED' : 'BYPASSED'} (Trigger not yet hit).`);
             }
 
             // Log if VH is bypassed
@@ -1047,6 +1052,7 @@ function monitorTicks() {
 }
 
 function executePatternTrade(action, symbol, pattern, stake) {
+    console.log(`[EODD] Executing REAL trade for ${symbol}: ${action} | Stake: $${stake}`);
     // Validate bot is still trading (check again in case of race condition)
     if (!evenOddBotState.isTrading) {
         addEvenOddBotLog(`⚠️ Bot stopped, skipping trade execution`, 'warning');
@@ -1200,6 +1206,33 @@ function updateEvenOddButtonStates(isRunning) {
     });
 }
 
+/**
+ * Restore active patterns from saved settings
+ */
+function restoreActivePatterns() {
+    if (typeof window.botSettingsManager === 'undefined') return;
+
+    const allSettings = window.botSettingsManager.loadAllSettings();
+    const settings = allSettings['ghost_eodd'];
+
+    if (settings && settings.activePatterns) {
+        console.log('📂 Restoring active patterns for Ghost Even/Odd bot...');
+
+        // First, uncheck all patterns
+        document.querySelectorAll('.pattern-checkbox').forEach(cb => cb.checked = false);
+
+        // Then check only the ones from settings
+        settings.activePatterns.forEach(patternValue => {
+            const checkbox = document.querySelector(`.pattern-checkbox[value="${patternValue}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+
+        console.log(`✅ Restored ${settings.activePatterns.length} active patterns`);
+    }
+}
+
 // Initialize even/odd bot controls
 document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners for all three even/odd bot buttons
@@ -1211,6 +1244,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', toggleEvenOddBot);
         }
     });
+
+    // Restore active patterns from settings
+    restoreActivePatterns();
 
     // Add event listener for custom pattern button
     const addCustomPatternBtn = document.getElementById('addCustomPattern');
