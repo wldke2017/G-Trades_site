@@ -731,3 +731,10 @@
 .timeline-step.active .step-circle {
     animation: stepPulse 2s infinite;
 }
+.log-info {
+    color: var(--text-primary);
+    font-style: italic;
+    opacity: 0.9;
+    padding: 5px;
+    text-align: center;
+}
