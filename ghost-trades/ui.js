@@ -386,7 +386,7 @@ function updateProfitLossDisplay() {
 
     if (plDisplay) {
         plDisplay.textContent = `$${plValue.toFixed(2)}`;
-        plDisplay.className = 'profit-value ' + (plValue >= 0 ? 'profit-positive' : 'profit-negative');
+        plDisplay.className = 'profit-value ' + (plValue >= 0 ? 'pl-win' : 'pl-loss');
     }
 
     // Also update stats

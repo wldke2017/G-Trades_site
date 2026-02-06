@@ -561,7 +561,7 @@ function updateAIStatsUI() {
     const profitEl = document.getElementById('aiProfitLossDisplay');
     if (profitEl) {
         profitEl.textContent = `$${window.aiTradingState.totalProfit.toFixed(2)}`;
-        profitEl.className = `profit-value ${window.aiTradingState.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}`;
+        profitEl.className = `profit-value ${window.aiTradingState.totalProfit >= 0 ? 'pl-win' : 'pl-loss'}`;
     }
 
     // Win Rate

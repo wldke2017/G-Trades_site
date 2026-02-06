@@ -426,7 +426,7 @@
 
 .ticker-table th {
     background: var(--bg-secondary);
-    padding: var(--spacing-md);
+    padding: 6px 12px;
     text-align: left;
     color: var(--text-secondary);
     font-weight: 600;
@@ -436,7 +436,7 @@
 }
 
 .ticker-table td {
-    padding: var(--spacing-md);
+    padding: 6px 12px;
     border-bottom: 1px solid var(--glass-border);
     transition: background-color var(--transition-base);
     font-family: 'JetBrains Mono', monospace;

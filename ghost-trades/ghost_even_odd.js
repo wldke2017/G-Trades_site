@@ -29,7 +29,12 @@ let evenOddBotState = {
         vhEnabledInitial: true,
         vhEnabledMartingale: true,
         postLossBehavior: 'OPTION_A'
-    }
+    },
+    botStartTime: null,
+    botTimerInterval: null,
+    totalStake: 0.0,
+    totalPayout: 0.0,
+    runsCount: 0
 };
 
 // ... (skipping unchanged code) ...
@@ -179,10 +184,57 @@ function updateEvenOddProfitLossDisplay() {
 
     // Update trades count display
     const tradesDisplay = document.getElementById('eoddTradesCountDisplay');
+    const winRateDisplay = document.getElementById('eoddWinRateDisplay');
+    const stakeDisplay = document.getElementById('eoddTotalStakeDisplay');
+    const payoutDisplay = document.getElementById('eoddTotalPayoutDisplay');
+
+    const totalTrades = mm.winCount + mm.lossCount;
+    const winRate = totalTrades > 0 ? (mm.winCount / totalTrades) * 100 : 0;
+
+    if (winRateDisplay) {
+        winRateDisplay.textContent = `${winRate.toFixed(1)}%`;
+    }
+
     if (tradesDisplay) {
         const activeCount = Object.keys(evenOddBotState.activeContracts).length;
         const activeText = activeCount > 0 ? ` (${activeCount} active)` : '';
         tradesDisplay.textContent = `${mm.winCount}W/${mm.lossCount}L${activeText}`;
+    }
+
+    if (stakeDisplay) {
+        stakeDisplay.textContent = `$${evenOddBotState.totalStake.toFixed(2)}`;
+    }
+
+    if (payoutDisplay) {
+        payoutDisplay.textContent = `$${evenOddBotState.totalPayout.toFixed(2)}`;
+    }
+}
+
+function updateEvenOddTimer() {
+    if (!evenOddBotState.botStartTime) return;
+    const elapsed = Date.now() - evenOddBotState.botStartTime;
+    const timeString = formatElapsedTime(elapsed);
+    const timerDisplay = document.getElementById('eoddTimerDisplay');
+    if (timerDisplay) {
+        timerDisplay.textContent = timeString;
+    }
+}
+
+function startEvenOddTimer() {
+    evenOddBotState.botStartTime = Date.now();
+    updateEvenOddTimer();
+    evenOddBotState.botTimerInterval = setInterval(updateEvenOddTimer, 1000);
+}
+
+function stopEvenOddTimer() {
+    if (evenOddBotState.botTimerInterval) {
+        clearInterval(evenOddBotState.botTimerInterval);
+        evenOddBotState.botTimerInterval = null;
+    }
+    evenOddBotState.botStartTime = null;
+    const timerDisplay = document.getElementById('eoddTimerDisplay');
+    if (timerDisplay) {
+        timerDisplay.textContent = '00:00:00';
     }
 }
 
@@ -579,6 +631,9 @@ async function startEvenOddBot() {
     evenOddBotState.isTrading = true;
     evenOddBotState.runId = `even-odd-${Date.now()}`;
 
+    // Start session timer
+    startEvenOddTimer();
+
     // Update all button states
     updateEvenOddButtonStates(true);
 
@@ -685,6 +740,9 @@ async function stopEvenOddBot() {
     if (!evenOddBotState.isTrading) return;
 
     evenOddBotState.isTrading = false;
+
+    // Stop session timer
+    stopEvenOddTimer();
 
     // Stop Anti-Freeze Watchdog
     stopEvenOddWatchdog();
