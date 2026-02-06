@@ -1,0 +1,133 @@
+<!-- Unified Trade Interface Card for Ghost AI Bot -->
+<!-- This replaces the .bot-grid structure (lines 659-1249 in index.html) -->
+
+<div class="unified-trade-card">
+    <!-- Card Header with Title, Virtual Hook Toggle, and View Switcher -->
+    <div class="unified-card-header">
+        <h3 class="card-title">Trade History</h3>
+
+        <!-- Virtual Hook Toggle (Center) -->
+        <div class="virtual-hook-toggle-wrapper">
+            <label class="toggle-switch">
+                <input type="checkbox" id="ghostaiVirtualHookEnabled" name="ghostaiVirtualHookEnabled">
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">ENABLE VIRTUAL HOOK</span>
+        </div>
+
+        <!-- View Switcher (Right) -->
+        <button class="view-switcher-btn" id="monitorViewBtn" onclick="toggleHistoryView('monitor')">
+            <span class="red-dot"></span>
+            Live Contract Monitor
+        </button>
+    </div>
+
+    <!-- Card Body -->
+    <div class="unified-card-body">
+        <!-- Control Section: Bot Info | P/L | Start/Reset Buttons -->
+        <div class="control-section">
+            <div class="bot-info-compact">
+                <div class="bot-icon">🤖</div>
+                <div class="bot-details">
+                    <h4>Ghost AI Bot</h4>
+                    <span class="bot-strategy-badge">RAMMY AUTO STRATEGY</span>
+                </div>
+            </div>
+
+            <div class="bot-profit-display">
+                <span class="profit-label">TOTAL P/L</span>
+                <span id="botProfitLossDisplay" class="profit-value">$0.00</span>
+            </div>
+
+            <div class="bot-action-buttons">
+                <button id="ghost-ai-toggle-button" class="btn-bot btn-start">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Start Bot</span>
+                </button>
+                <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Reset Bot Locks</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Section: 3x2 Grid -->
+        <div class="bot-stats">
+            <div class="stat-item">
+                <div class="stat-label">Win Rate</div>
+                <div class="stat-value" id="botWinRateDisplay">0.0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Trades</div>
+                <div class="stat-value" id="botTradesCountDisplay">0W/0L</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Timer</div>
+                <div class="stat-value" id="botTimerDisplay">00:00:00</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Stake</div>
+                <div class="stat-value" id="botTotalStakeDisplay">$0.00</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Payout</div>
+                <div class="stat-value" id="botTotalPayoutDisplay">$0.00</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">No. of Runs</div>
+                <div class="stat-value" id="botRunsCountDisplay">0</div>
+            </div>
+        </div>
+
+        <!-- View Section: Toggleable between History Table and Monitor -->
+        <div class="view-container">
+            <!-- History View (Default) -->
+            <div class="history-view active" id="historyView">
+                <div class="view-header">
+                    <h5>TIMESTAMP</h5>
+                    <h5>REFERENCE</h5>
+                    <h5>TYPE</h5>
+                    <h5>ENTRY SPOT</h5>
+                    <h5>EXIT SPOT</h5>
+                    <h5>BUY PRICE</h5>
+                    <h5>PROFIT/LOSS</h5>
+                </div>
+                <table id="bot-history-table" class="ticker-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Timestamp</th>
+                            <th>Reference</th>
+                            <th>Type</th>
+                            <th>Entry Spot</th>
+                            <th>Exit Spot</th>
+                            <th>Buy Price</th>
+                            <th>Profit/Loss</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Monitor View (Hidden by default) -->
+            <div class="monitor-view" id="monitorView" style="display: none;">
+                <div id="live-contracts-container" class="bot-log">
+                    <div class="log-info">No active contracts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bot Controls (Collapsible Configuration Panel) - Moved Outside Main Card -->
+<div class="bot-controls-sidebar">
+    <!-- All the existing bot configuration controls go here -->
+    <!-- This keeps the main card clean and focused -->
+</div>

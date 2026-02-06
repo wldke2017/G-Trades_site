@@ -771,16 +771,23 @@ function finalizeLiveContract(contractId, isWin, profit) {
         liveContractMonitor[contractId].profit = profit;
         renderLiveContracts();
 
-        // Auto-remove after 10 seconds to keep UI clean and prevent "screen vibration"
-        setTimeout(() => {
-            if (liveContractMonitor[contractId]) {
-                delete liveContractMonitor[contractId];
-                renderLiveContracts();
-            }
-        }, 10000);
+        // Removed auto-clear - contracts now persist until manually cleared by user
     }
 }
 window.finalizeLiveContract = finalizeLiveContract;
+
+// Clear completed (finalized) contracts from monitor
+function clearLiveContracts() {
+    // Remove only finalized contracts
+    Object.keys(liveContractMonitor).forEach(contractId => {
+        if (liveContractMonitor[contractId].isFinalized) {
+            delete liveContractMonitor[contractId];
+        }
+    });
+    renderLiveContracts();
+    console.log('✅ Cleared completed contracts from Live Monitor');
+}
+window.clearLiveContracts = clearLiveContracts;
 
 function handleBotTick(tick) {
     const symbol = tick.symbol;

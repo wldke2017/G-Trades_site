@@ -542,6 +542,44 @@ function showCommunityPopup() {
     }
 }
 
+// Toggle between History and Monitor views in Unified Trade Card
+function toggleUnifiedView(viewName) {
+    const historyView = document.getElementById('historyViewUnified');
+    const monitorView = document.getElementById('monitorViewUnified');
+    const monitorBtn = document.getElementById('monitorViewBtn');
+
+    if (!historyView || !monitorView || !monitorBtn) {
+        console.warn('⚠️ Unified view elements not found');
+        return;
+    }
+
+    if (viewName === 'monitor') {
+        // Show Monitor, Hide History
+        historyView.style.display = 'none';
+        historyView.classList.remove('active');
+        monitorView.style.display = 'block';
+        monitorView.classList.add('active');
+
+        // Update button to show "Trade History" option
+        monitorBtn.innerHTML = '<span class="red-dot-indicator"></span> Trade History';
+        monitorBtn.onclick = () => toggleUnifiedView('history');
+
+        console.log('✅ Switched to Monitor View');
+    } else {
+        // Show History, Hide Monitor
+        monitorView.style.display = 'none';
+        monitorView.classList.remove('active');
+        historyView.style.display = 'block';
+        historyView.classList.add('active');
+
+        // Update button to show "Live Contract Monitor" option
+        monitorBtn.innerHTML = '<span class="red-dot-indicator"></span> Live Contract Monitor';
+        monitorBtn.onclick = () => toggleUnifiedView('monitor');
+
+        console.log('✅ Switched to History View');
+    }
+}
+
 // Initial show delay (10 seconds after page loads)
 // Increased delay slightly to not annoy users immediately
 window.addEventListener('DOMContentLoaded', () => {
@@ -551,3 +589,4 @@ window.addEventListener('DOMContentLoaded', () => {
 // Ensure functions are globally available
 window.closeCommunityPopup = closeCommunityPopup;
 window.showCommunityPopup = showCommunityPopup;
+window.toggleUnifiedView = toggleUnifiedView;
