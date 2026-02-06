@@ -8,115 +8,59 @@
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: 0;
-    box-shadow: var(--shadow-md);
     margin-bottom: var(--spacing-lg);
 }
 
-/* Card Header: Title | Toggle | Button */
+/* Card Header: Multi-row layout */
 .unified-card-header {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.header-top-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-lg) var(--spacing-xl);
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    gap: var(--spacing-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.unified-card-header .card-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    flex-shrink: 0;
-}
-
-/* Virtual Hook Toggle in Header (Center) */
-.virtual-hook-toggle-wrapper {
+.header-controls-row {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
     justify-content: center;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.1);
 }
 
-.toggle-switch-inline {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
+.header-nav-row {
+    padding: 10px;
 }
 
-.toggle-switch-inline input[type="checkbox"] {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider-inline {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #666;
-    transition: 0.4s;
-    border-radius: 24px;
-}
-
-.toggle-slider-inline:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-}
-
-.toggle-switch-inline input:checked+.toggle-slider-inline {
-    background-color: var(--success-color);
-}
-
-.toggle-switch-inline input:checked+.toggle-slider-inline:before {
-    transform: translateX(26px);
-}
-
-.toggle-label-inline {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* View Switcher Button (Right) */
 .view-switcher-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    width: 100%;
+    justify-content: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--text-secondary);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-base);
-    flex-shrink: 0;
 }
 
 .view-switcher-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary-color);
-    transform: translateY(-1px);
 }
 
 .red-dot-indicator {
@@ -148,10 +92,10 @@
     gap: var(--spacing-lg);
 }
 
-/* Control Section: Bot Info | P/L | Buttons */
+/* Control Section: P/L | Buttons */
 .control-section-unified {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: var(--spacing-lg);
     align-items: center;
     padding: var(--spacing-md);
@@ -310,7 +254,9 @@
     .unified-card-body {
         padding: var(--spacing-md);
     }
-}/* Clear History Button Styling */
+}
+
+/* Clear History Button Styling */
 .header-left-section {
     display: flex;
     align-items: center;
@@ -342,6 +288,7 @@
     width: 16px;
     height: 16px;
 }
+
 /* Monitor View Controls Styling */
 .monitor-header-controls {
     display: flex;
@@ -379,12 +326,13 @@
 
 /* Mobile Optimization for Icons & Buttons */
 @media (max-width: 768px) {
+
     /* Reduce Start/Reset button icons */
     .bot-action-buttons-unified button svg {
         width: 18px;
         height: 18px;
     }
-    
+
     .bot-action-buttons-unified button {
         padding: 8px 12px;
         font-size: 0.85rem;
@@ -395,6 +343,7 @@
         width: 28px;
         height: 28px;
     }
+
     .btn-clear-history svg {
         width: 14px;
         height: 14px;
@@ -405,22 +354,24 @@
         padding: 6px 12px;
         font-size: 0.75rem;
     }
+
     .btn-clear-monitor svg {
         width: 14px;
         height: 14px;
     }
-    
+
     /* Reduce View Switcher Button */
     .view-switcher-btn {
         padding: 8px 12px;
         font-size: 0.8rem;
     }
-    
+
     /* Reduce Bot Icon */
     .bot-icon-wrapper {
         width: 32px;
         height: 32px;
     }
+
     .bot-icon {
         font-size: 1.2rem;
     }

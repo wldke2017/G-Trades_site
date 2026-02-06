@@ -1147,40 +1147,24 @@
 
             <!-- Unified Trade Card -->
             <div class="unified-trade-card">
-                <!-- Card Header: Title | Virtual Hook Toggle | View Switcher -->
+                <!-- Card Header -->
                 <div class="unified-card-header">
-                    <div class="header-left-section">
-                        <h3 class="card-title">Trade History</h3>
-                        <button id="clear-ghost-ai-history" class="btn-clear-history" title="Clear trade history">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                        </button>
-                    </div>
+                    <!-- Row 1: Title & Bot Info -->
+                    <div class="header-top-row">
+                        <div class="header-left-section">
+                            <h3 class="card-title">Trade History</h3>
+                            <button id="clear-ghost-ai-history" class="btn-clear-history" title="Clear trade history"
+                                onclick="clearTradeHistory()">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </div>
 
-                    <!-- Virtual Hook Toggle (Center) -->
-                    <div class="virtual-hook-toggle-wrapper">
-                        <label class="toggle-switch-inline">
-                            <input type="checkbox" id="ghostaiVirtualHookEnabled" name="ghostaiVirtualHookEnabled">
-                            <span class="toggle-slider-inline"></span>
-                        </label>
-                        <span class="toggle-label-inline">ENABLE VIRTUAL HOOK</span>
-                    </div>
-
-                    <!-- View Switcher Button (Right) -->
-                    <button class="view-switcher-btn" id="monitorViewBtn" onclick="toggleUnifiedView('monitor')">
-                        <span class="red-dot-indicator"></span>
-                        Live Contract Monitor
-                    </button>
-                </div>
-
-                <!-- Card Body -->
-                <div class="unified-card-body">
-                    <!-- Control Section: Bot Info | P/L | Action Buttons -->
-                    <div class="control-section-unified">
+                        <!-- Bot Info - Moved to Header -->
                         <div class="bot-info-compact">
                             <div class="bot-icon-wrapper">
                                 <span class="bot-icon">🤖</span>
@@ -1190,6 +1174,32 @@
                                 <span class="bot-strategy-badge">RAMMY AUTO STRATEGY</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Row 2: Virtual Hook Toggle -->
+                    <div class="header-controls-row">
+                        <div class="virtual-hook-toggle-wrapper">
+                            <label class="toggle-switch-inline">
+                                <input type="checkbox" id="ghostaiVirtualHookEnabled" name="ghostaiVirtualHookEnabled">
+                                <span class="toggle-slider-inline"></span>
+                            </label>
+                            <span class="toggle-label-inline">ENABLE VIRTUAL HOOK</span>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Live Contract Monitor Button -->
+                    <div class="header-nav-row">
+                        <button class="view-switcher-btn" id="monitorViewBtn" onclick="toggleUnifiedView('monitor')">
+                            <span class="red-dot-indicator"></span>
+                            Live Contract Monitor
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="unified-card-body">
+                    <!-- Control Section: P/L & Action Buttons Only -->
+                    <div class="control-section-unified">
 
                         <div class="bot-profit-display-unified">
                             <span class="profit-label-unified">TOTAL P/L</span>
