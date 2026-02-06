@@ -68,17 +68,16 @@ def reorder_ui():
     # Header: Start up to Unified
     header = lines[:unified_idx]
     
-    # New Order: Activity -> Controls -> Unified
+    # New Order: Controls -> Activity -> Unified
+    # Wait, original file order was Activity -> Controls -> Unified (after my last run)
     
-    # Footer: From Next Section onwards
-    footer = lines[next_section_idx:]
-    
-    new_content = header + activity_block + controls_block + unified_block + footer
+    # Let's simple swap Activity and Controls variables in the concat
+    new_content = header + controls_block + activity_block + unified_block + footer
     
     with open(file_path, 'w', encoding='utf-8') as f:
         f.writelines(new_content)
     
-    print("Success: Reordered UI sections.")
+    print("Success: Reordered UI sections to Config -> Activity -> Unified.")
 
 if __name__ == "__main__":
     reorder_ui()

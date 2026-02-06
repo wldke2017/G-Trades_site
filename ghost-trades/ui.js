@@ -348,9 +348,7 @@ function updateTradeMessageUI(htmlContent) {
  * @param {boolean} isRunning - Whether the bot is running
  */
 function updateGhostAIButtonStates(isRunning) {
-    const buttons = [
-        document.getElementById('ghost-ai-toggle-button')
-    ];
+    const buttons = document.querySelectorAll('.ghost-ai-multi-toggle');
 
     buttons.forEach(button => {
         if (button) {

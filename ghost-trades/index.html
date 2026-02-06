@@ -657,48 +657,7 @@
         <!-- Ghost AI Bot Interface -->
         <section class="ghostai-interface" id="ghostai-interface" style="display: none;">
             <!-- Header Controls Removed for Mobile Optimization -->
-            <!-- Unified Trade Card: Consolidates Controls, Stats, History, and Monitor -->
-            <div class="bot-status">
-                <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
-                    <span>Activity Log</span>
-                    <svg class="collapse-arrow collapsed" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </h4>
-
-                <!-- Trade Progress Tracker (Timeline Style) -->
-                <div id="ghostai-progress-container" class="progress-tracker-container"
-                    style="display: none; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px;">
-                    <div class="progress-timeline">
-                        <div class="timeline-step" id="step-attempting">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Attempting to Buy</span>
-                        </div>
-                        <div class="timeline-line" id="line-1"></div>
-                        <div class="timeline-step" id="step-succeeded">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Buy Succeeded</span>
-                        </div>
-                        <div class="timeline-line" id="line-2"></div>
-                        <div class="timeline-step" id="step-closed">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Contract Closed</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: block;">
-                    <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
-                </div>
-                <div class="collapsible-content collapsed" id="activity-log-ghost-ai">
-                    <div id="bot-log-container" class="bot-log">
-                        <div class="log-info">[--:--:--] Waiting for initialization...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bot Configuration Sidebar (Collapsible) -->
+            <!-- Bot Configuration -->
             <div class="bot-controls">
                 <h4 class="collapsible-header" onclick="toggleSection('bot-config-ghost-ai')">
                     <span>Bot Configuration</span>
@@ -1127,7 +1086,7 @@
                         <div style="margin-top: 20px;"></div>
                     </div>
 
-                    <button id="ghost-ai-toggle-button" class="btn-bot btn-start">
+                    <button id="ghost-ai-toggle-config" class="btn-bot btn-start ghost-ai-multi-toggle">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -1150,6 +1109,49 @@
             </div>
 
 
+            <!-- Activity Log -->
+            <div class="bot-status">
+                <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
+                    <span>Activity Log</span>
+                    <svg class="collapse-arrow collapsed" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </h4>
+
+                <!-- Trade Progress Tracker (Timeline Style) -->
+                <div id="ghostai-progress-container" class="progress-tracker-container"
+                    style="display: none; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px;">
+                    <div class="progress-timeline">
+                        <div class="timeline-step" id="step-attempting">
+                            <div class="step-circle"></div>
+                            <span class="step-label">Attempting to Buy</span>
+                        </div>
+                        <div class="timeline-line" id="line-1"></div>
+                        <div class="timeline-step" id="step-succeeded">
+                            <div class="step-circle"></div>
+                            <span class="step-label">Buy Succeeded</span>
+                        </div>
+                        <div class="timeline-line" id="line-2"></div>
+                        <div class="timeline-step" id="step-closed">
+                            <div class="step-circle"></div>
+                            <span class="step-label">Contract Closed</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: block;">
+                    <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
+                </div>
+                <div class="collapsible-content collapsed" id="activity-log-ghost-ai">
+                    <div id="bot-log-container" class="bot-log">
+                        <div class="log-info">[--:--:--] Waiting for initialization...</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Unified Trade Card -->
             <div class="unified-trade-card">
                 <!-- Card Header: Title | Virtual Hook Toggle | View Switcher -->
                 <div class="unified-card-header">
@@ -1201,7 +1203,7 @@
                         </div>
 
                         <div class="bot-action-buttons-unified">
-                            <button id="ghost-ai-toggle-button" class="btn-bot btn-start">
+                            <button id="ghost-ai-toggle-unified" class="btn-bot btn-start ghost-ai-multi-toggle">
                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round" />
@@ -1293,7 +1295,6 @@
                 </div>
             </div>
 
-            <!-- Activity Log Section -->
             <!-- GHOST E/ODD Bot Interface -->
             <section class="ghostai-interface" id="ghost-eodd-interface" style="display: none;">
                 <div class="bot-header-controls">
