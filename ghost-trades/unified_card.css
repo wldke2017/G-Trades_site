@@ -376,3 +376,52 @@
     width: 16px;
     height: 16px;
 }
+
+/* Mobile Optimization for Icons & Buttons */
+@media (max-width: 768px) {
+    /* Reduce Start/Reset button icons */
+    .bot-action-buttons-unified button svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .bot-action-buttons-unified button {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Reduce Clear History (Trash icon) */
+    .btn-clear-history {
+        width: 28px;
+        height: 28px;
+    }
+    .btn-clear-history svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Reduce Monitor Clear Button */
+    .btn-clear-monitor {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+    .btn-clear-monitor svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    /* Reduce View Switcher Button */
+    .view-switcher-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    /* Reduce Bot Icon */
+    .bot-icon-wrapper {
+        width: 32px;
+        height: 32px;
+    }
+    .bot-icon {
+        font-size: 1.2rem;
+    }
+}
