@@ -99,7 +99,6 @@
     }
 }
 
-/* --- Main Layout Grid --- */
 /* --- Main Layout Grid: Command & Control --- */
 .ai-main-dashboard {
     display: grid;
@@ -574,35 +573,18 @@
     height: 300px;
 }
 
-/* --- Parameters Grid --- */
+/* Configuration Grid */
 .ai-parameters-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-md);
-    background: rgba(255, 255, 255, 0.03);
-    padding: var(--spacing-lg);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: var(--radius-lg);
+    padding: 0;
     margin: 0;
-    box-sizing: border-box;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 640px) {
     .ai-parameters-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--spacing-lg);
-    }
-}
-
-@media (min-width: 1024px) {
-    .ai-parameters-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1440px) {
-    .ai-parameters-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr;
     }
 }
 
@@ -950,103 +932,24 @@
         font-size: 1.5rem;
     }
 
-    .ai-card,
-    .ai-parameters-card,
-    .ai-market-card,
-    .ai-code-card,
-    .ai-logs-card,
-    .ai-strategy-card,
-    .ai-prompt-card {
+    .ai-main-dashboard {
+        gap: var(--spacing-md);
+    }
+
+    .ai-strategy-card-simple,
+    .ai-market-card-compact,
+    .ai-params-card-main,
+    .ai-editor-card {
         padding: var(--spacing-md);
-    }
-
-    .ai-actions {
-        flex-direction: column;
-    }
-
-    .btn-ai-primary,
-    .btn-ai-secondary,
-    .btn-ai-analyze,
-    .btn-ai-generate {
-        min-width: unset;
-        width: 100%;
-    }
-
-    .ai-parameters-grid {
-        grid-template-columns: 1fr;
-        padding: var(--spacing-md);
-    }
-
-    #ai-market-checkboxes {
-        grid-template-columns: 1fr;
-    }
-
-    .ai-code-editor,
-    .ai-logs-container {
-        min-height: 300px;
-        max-height: 400px;
-    }
-
-    .ai-status-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .ai-control-btns {
-        width: 100%;
-        justify-content: stretch;
-    }
-
-    .btn-run,
-    .btn-stop {
-        flex: 1;
     }
 }
 
-/* --- Extra Small Screens --- */
 @media (max-width: 480px) {
-    .ghostai-interface {
-        padding: var(--spacing-xs);
-    }
 
-    .ghostai-header {
-        padding: var(--spacing-md);
-    }
-
-    .ghostai-title {
-        font-size: 1.3rem;
-    }
-
-    .ai-card,
-    .ai-parameters-card,
-    .ai-market-card,
-    .ai-code-card,
-    .ai-logs-card,
-    .ai-strategy-card,
-    .ai-prompt-card {
-        padding: var(--spacing-sm);
-        border-radius: var(--radius-lg);
-    }
-
-    .ai-prompt-textarea {
-        min-height: 100px;
-        font-size: 0.9rem;
-    }
-
-    .btn-ai-primary,
-    .btn-ai-secondary,
-    .btn-ai-analyze,
-    .btn-ai-generate {
-        font-size: 0.9rem;
-        padding: var(--spacing-md);
-    }
-
-    .ai-parameters-grid {
-        padding: var(--spacing-sm);
-        gap: var(--spacing-sm);
-    }
-
-    .ai-market-selector-wrapper {
+    .ai-strategy-card-simple,
+    .ai-market-card-compact,
+    .ai-params-card-main,
+    .ai-editor-card {
         padding: var(--spacing-sm);
     }
 }
