@@ -513,6 +513,15 @@ function updateAIStatus(status) {
     aiStatusIndicator.textContent = text;
     aiStatusIndicator.style.color = color;
     aiStatusIndicator.style.borderColor = color;
+
+    // Toggle animation classes
+    if (status === 'RUNNING') {
+        aiStatusIndicator.classList.remove('status-badge-idle');
+        aiStatusIndicator.classList.add('status-badge-running');
+    } else {
+        aiStatusIndicator.classList.remove('status-badge-running');
+        aiStatusIndicator.classList.add('status-badge-idle');
+    }
 }
 
 function updateAIButtons(isRunning) {
