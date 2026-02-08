@@ -1298,662 +1298,656 @@
                     </div>
                 </div>
             </div>
+        </section>
+        <!-- GHOST E/ODD Bot Interface -->
+        <section class="ghostai-interface" id="ghost-eodd-interface" style="display: none;">
+            <div class="bot-header-controls">
+                <h3 class="ghost-ai-heading">GHOST E/ODD</h3>
+            </div>
+            <div class="bot-grid">
+                <div class="bot-controls">
+                    <h4 class="collapsible-header" onclick="toggleSection('bot-config-eodd')">
+                        <span>Bot Configuration</span>
+                        <svg class="collapse-arrow" id="arrow-bot-config-eodd" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </h4>
+                    <div class="collapsible-content" id="bot-config-eodd">
+                        <div class="control-group">
+                            <label for="eoddInitialStake">Initial Stake</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="eoddInitialStake" name="eoddInitialStake" value="0.35"
+                                    min="0.35" step="0.01">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="eoddTargetProfit">Target Profit</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="eoddTargetProfit" name="eoddTargetProfit" value="1" min="1">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="eoddStopLoss">Stop Loss</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="eoddStopLoss" name="eoddStopLoss" value="999.0" min="1">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="eoddMartingaleFactor">Martingale Factor</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="eoddMartingaleFactor" name="eoddMartingaleFactor" value="2.12"
+                                    min="1" step="0.01">
+                                <span class="unit">x</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="eoddMartingaleLevel">Martingale Level</label>
+                            <input type="number" id="eoddMartingaleLevel" name="eoddMartingaleLevel" value="7" min="0">
+                        </div>
 
-            <!-- GHOST E/ODD Bot Interface -->
-            <section class="ghostai-interface" id="ghost-eodd-interface" style="display: none;">
-                <div class="bot-header-controls">
-                    <h3 class="ghost-ai-heading">GHOST E/ODD</h3>
-                </div>
-                <div class="bot-grid">
-                    <div class="bot-controls">
-                        <h4 class="collapsible-header" onclick="toggleSection('bot-config-eodd')">
-                            <span>Bot Configuration</span>
-                            <svg class="collapse-arrow" id="arrow-bot-config-eodd" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
+                        <!-- Virtual Hook Configuration -->
+                        <h5 class="collapsible-header" style="margin-top: 20px; color: var(--accent-color);"
+                            onclick="toggleSection('virtual-hook-config')">
+                            <span>Virtual Hook Configuration (Advanced)</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-virtual-hook-config" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round" />
                             </svg>
-                        </h4>
-                        <div class="collapsible-content" id="bot-config-eodd">
+                        </h5>
+                        <div class="collapsible-content collapsed" id="virtual-hook-config">
                             <div class="control-group">
-                                <label for="eoddInitialStake">Initial Stake</label>
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="eoddVirtualHookEnabled" name="eoddVirtualHookEnabled"
+                                        style="width: auto;">
+                                    <span>Enable Virtual Hook</span>
+                                </label>
+                            </div>
+
+                            <!-- Granular VH Controls -->
+                            <div class="control-group"
+                                style="margin-left: 20px; border-left: 2px solid var(--border-color); padding-left: 10px;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9em;">
+                                    <input type="checkbox" id="eoddVHEnabledInitial" name="eoddVHEnabledInitial" checked
+                                        style="width: auto;">
+                                    <span>Apply VH to Initial Entry</span>
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 10px; font-size: 0.9em; margin-top: 5px;">
+                                    <input type="checkbox" id="eoddVHEnabledMartingale" name="eoddVHEnabledMartingale"
+                                        checked style="width: auto;">
+                                    <span>Apply VH to Martingale Entry (Recovery)</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="eoddPostLossBehavior">After REAL Loss Behavior</label>
+                                <select id="eoddPostLossBehavior" name="eoddPostLossBehavior" class="control-select">
+                                    <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)
+                                    </option>
+                                    <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="eoddVirtualHookStartWhen">Start when (Virtual Result)</label>
+                                <select id="eoddVirtualHookStartWhen" name="eoddVirtualHookStartWhen"
+                                    class="control-select">
+                                    <option value="LOSS" selected>Loss</option>
+                                    <option value="WIN">Win</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="eoddVirtualHookTrigger">Trigger Streak</label>
+                                <input type="number" id="eoddVirtualHookTrigger" name="eoddVirtualHookTrigger" value="1"
+                                    min="1" max="50"
+                                    title="Number of consecutive virtual results to trigger real trade">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="eoddVirtualHookFixedStake">Fixed Stake (Override)</label>
                                 <div class="input-with-unit">
-                                    <input type="number" id="eoddInitialStake" name="eoddInitialStake" value="0.35"
-                                        min="0.35" step="0.01">
+                                    <input type="number" id="eoddVirtualHookFixedStake" name="eoddVirtualHookFixedStake"
+                                        placeholder="Optional" min="0.35" step="0.01">
                                     <span class="unit">USD</span>
                                 </div>
+                                <small
+                                    style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">
+                                    Leave empty to use standard Money Management stake
+                                </small>
                             </div>
-                            <div class="control-group">
-                                <label for="eoddTargetProfit">Target Profit</label>
-                                <div class="input-with-unit">
-                                    <input type="number" id="eoddTargetProfit" name="eoddTargetProfit" value="1"
-                                        min="1">
-                                    <span class="unit">USD</span>
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label for="eoddStopLoss">Stop Loss</label>
-                                <div class="input-with-unit">
-                                    <input type="number" id="eoddStopLoss" name="eoddStopLoss" value="999.0" min="1">
-                                    <span class="unit">USD</span>
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label for="eoddMartingaleFactor">Martingale Factor</label>
-                                <div class="input-with-unit">
-                                    <input type="number" id="eoddMartingaleFactor" name="eoddMartingaleFactor"
-                                        value="2.12" min="1" step="0.01">
-                                    <span class="unit">x</span>
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label for="eoddMartingaleLevel">Martingale Level</label>
-                                <input type="number" id="eoddMartingaleLevel" name="eoddMartingaleLevel" value="7"
-                                    min="0">
-                            </div>
+                        </div>
 
-                            <!-- Virtual Hook Configuration -->
-                            <h5 class="collapsible-header" style="margin-top: 20px; color: var(--accent-color);"
-                                onclick="toggleSection('virtual-hook-config')">
-                                <span>Virtual Hook Configuration (Advanced)</span>
-                                <svg class="collapse-arrow collapsed" id="arrow-virtual-hook-config" viewBox="0 0 24 24"
-                                    fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </h5>
-                            <div class="collapsible-content collapsed" id="virtual-hook-config">
-                                <div class="control-group">
-                                    <label style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox" id="eoddVirtualHookEnabled" name="eoddVirtualHookEnabled"
-                                            style="width: auto;">
-                                        <span>Enable Virtual Hook</span>
-                                    </label>
-                                </div>
+                        <button id="even-odd-toggle-button" class="btn-bot btn-start">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span>Start Bot</span>
+                        </button>
 
-                                <!-- Granular VH Controls -->
-                                <div class="control-group"
-                                    style="margin-left: 20px; border-left: 2px solid var(--border-color); padding-left: 10px;">
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9em;">
-                                        <input type="checkbox" id="eoddVHEnabledInitial" name="eoddVHEnabledInitial"
-                                            checked style="width: auto;">
-                                        <span>Apply VH to Initial Entry</span>
-                                    </label>
-                                    <label
-                                        style="display: flex; align-items: center; gap: 10px; font-size: 0.9em; margin-top: 5px;">
-                                        <input type="checkbox" id="eoddVHEnabledMartingale"
-                                            name="eoddVHEnabledMartingale" checked style="width: auto;">
-                                        <span>Apply VH to Martingale Entry (Recovery)</span>
-                                    </label>
-                                </div>
-
-                                <div class="control-group">
-                                    <label for="eoddPostLossBehavior">After REAL Loss Behavior</label>
-                                    <select id="eoddPostLossBehavior" name="eoddPostLossBehavior"
-                                        class="control-select">
-                                        <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)
-                                        </option>
-                                        <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
-                                    </select>
-                                </div>
-
-                                <div class="control-group">
-                                    <label for="eoddVirtualHookStartWhen">Start when (Virtual Result)</label>
-                                    <select id="eoddVirtualHookStartWhen" name="eoddVirtualHookStartWhen"
-                                        class="control-select">
-                                        <option value="LOSS" selected>Loss</option>
-                                        <option value="WIN">Win</option>
-                                    </select>
-                                </div>
-
-                                <div class="control-group">
-                                    <label for="eoddVirtualHookTrigger">Trigger Streak</label>
-                                    <input type="number" id="eoddVirtualHookTrigger" name="eoddVirtualHookTrigger"
-                                        value="1" min="1" max="50"
-                                        title="Number of consecutive virtual results to trigger real trade">
-                                </div>
-
-                                <div class="control-group">
-                                    <label for="eoddVirtualHookFixedStake">Fixed Stake (Override)</label>
-                                    <div class="input-with-unit">
-                                        <input type="number" id="eoddVirtualHookFixedStake"
-                                            name="eoddVirtualHookFixedStake" placeholder="Optional" min="0.35"
-                                            step="0.01">
-                                        <span class="unit">USD</span>
-                                    </div>
-                                    <small
-                                        style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">
-                                        Leave empty to use standard Money Management stake
-                                    </small>
-                                </div>
-                            </div>
-
-                            <button id="even-odd-toggle-button" class="btn-bot btn-start">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <span>Start Bot</span>
-                            </button>
-
-                            <div class="bot-info-panel">
-                                <h5>Pattern Configuration</h5>
-                                <div class="strategy-details">
-                                    <p><strong>Select Active Patterns (O=ODD, E=EVEN)</strong></p>
-                                    <div class="pattern-checkboxes"
-                                        style="max-height: 200px; overflow-y: auto; margin: 10px 0;">
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-22222"
-                                                value="22222" data-action="DIGITODD">
-                                            <span style="flex: 0 0 auto;">EEEEE →</span>
-                                            <select class="pattern-action-select" name="pattern-action-22222"
-                                                data-pattern="22222"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN">EVEN</option>
-                                                <option value="DIGITODD" selected>ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-11111"
-                                                value="11111" data-action="DIGITEVEN">
-                                            <span style="flex: 0 0 auto;">OOOOO →</span>
-                                            <select class="pattern-action-select" name="pattern-action-11111"
-                                                data-pattern="11111"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN" selected>EVEN</option>
-                                                <option value="DIGITODD">ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-12121"
-                                                value="12121" data-action="DIGITODD">
-                                            <span style="flex: 0 0 auto;">OEOEO →</span>
-                                            <select class="pattern-action-select" name="pattern-action-12121"
-                                                data-pattern="12121"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN">EVEN</option>
-                                                <option value="DIGITODD" selected>ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-21212"
-                                                value="21212" data-action="DIGITEVEN">
-                                            <span style="flex: 0 0 auto;">EOEOE →</span>
-                                            <select class="pattern-action-select" name="pattern-action-21212"
-                                                data-pattern="21212"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN" selected>EVEN</option>
-                                                <option value="DIGITODD">ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-22122"
-                                                value="22122" data-action="DIGITODD">
-                                            <span style="flex: 0 0 auto;">EEOEE →</span>
-                                            <select class="pattern-action-select" name="pattern-action-22122"
-                                                data-pattern="22122"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN">EVEN</option>
-                                                <option value="DIGITODD" selected>ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-11211"
-                                                value="11211" data-action="DIGITODD">
-                                            <span style="flex: 0 0 auto;">OOEOO →</span>
-                                            <select class="pattern-action-select" name="pattern-action-11211"
-                                                data-pattern="11211"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN">EVEN</option>
-                                                <option value="DIGITODD" selected>ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-11122"
-                                                value="11122" data-action="DIGITEVEN">
-                                            <span style="flex: 0 0 auto;">OOOEE →</span>
-                                            <select class="pattern-action-select" name="pattern-action-11122"
-                                                data-pattern="11122"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN" selected>EVEN</option>
-                                                <option value="DIGITODD">ODD</option>
-                                            </select>
-                                        </label>
-                                        <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
-                                            <input type="checkbox" class="pattern-checkbox" name="pattern-22211"
-                                                value="22211" data-action="DIGITODD">
-                                            <span style="flex: 0 0 auto;">EEEOO →</span>
-                                            <select class="pattern-action-select" name="pattern-action-22211"
-                                                data-pattern="22211"
-                                                style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
-                                                <option value="DIGITEVEN">EVEN</option>
-                                                <option value="DIGITODD" selected>ODD</option>
-                                            </select>
-                                        </label>
-                                    </div>
-
-                                    <h5 style="margin-top: 15px;">Custom Pattern</h5>
-                                    <div class="control-group">
-                                        <label for="customPattern">Pattern (O and E, up to 10 digits, e.g.,
-                                            OOOOOOOOOO)</label>
-                                        <input type="text" id="customPattern" name="customPattern"
-                                            placeholder="e.g., OOOOOOOOOO" pattern="[OEoe]{1,10}" maxlength="10"
-                                            style="width: 100%;">
-                                    </div>
-                                    <div class="control-group">
-                                        <label for="customPatternAction">Contract Type</label>
-                                        <select id="customPatternAction" name="customPatternAction"
-                                            class="control-select" style="width: 100%;">
+                        <div class="bot-info-panel">
+                            <h5>Pattern Configuration</h5>
+                            <div class="strategy-details">
+                                <p><strong>Select Active Patterns (O=ODD, E=EVEN)</strong></p>
+                                <div class="pattern-checkboxes"
+                                    style="max-height: 200px; overflow-y: auto; margin: 10px 0;">
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-22222"
+                                            value="22222" data-action="DIGITODD">
+                                        <span style="flex: 0 0 auto;">EEEEE →</span>
+                                        <select class="pattern-action-select" name="pattern-action-22222"
+                                            data-pattern="22222"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
                                             <option value="DIGITEVEN">EVEN</option>
+                                            <option value="DIGITODD" selected>ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-11111"
+                                            value="11111" data-action="DIGITEVEN">
+                                        <span style="flex: 0 0 auto;">OOOOO →</span>
+                                        <select class="pattern-action-select" name="pattern-action-11111"
+                                            data-pattern="11111"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN" selected>EVEN</option>
                                             <option value="DIGITODD">ODD</option>
                                         </select>
-                                    </div>
-                                    <button id="addCustomPattern" class="btn-bot btn-start"
-                                        style="width: 100%; margin-top: 10px;">
-                                        <span>Add Custom Pattern</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bot-status">
-                        <h4 class="collapsible-header" onclick="toggleSection('activity-log-eodd')">
-                            <span>Activity Log</span>
-                            <svg class="collapse-arrow" id="arrow-activity-log-eodd" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                        </h4>
-                        <div class="collapsed-placeholder" id="placeholder-activity-log-eodd" style="display: none;">
-                            <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
-                        </div>
-                        <div class="collapsible-content" id="activity-log-eodd">
-                            <div id="eodd-bot-log-container" class="bot-log">
-                                <div class="log-info">[--:--:--] Pattern analysis ready...</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bot-history">
-                        <div class="bot-stats-header">
-                            <div class="history-header-top">
-                                <h4>Trade History</h4>
-                                <button id="clear-eodd-history" class="btn-secondary"
-                                    style="padding: 6px 12px; font-size: 12px; margin-right: 8px;"
-                                    title="Clear trade history">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                        style="width: 14px; height: 14px;">
-                                        <path
-                                            d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="bot-header-section">
-                                <div class="bot-title-info">
-                                    <h2>GHOST E/ODD Bot</h2>
-                                    <span class="bot-strategy-badge">Pattern Recognition Strategy</span>
-                                </div>
-                                <div class="bot-profit-display">
-                                    <span class="profit-label">Total P/L</span>
-                                    <span id="eoddProfitLossDisplay" class="profit-value">$0.00</span>
-                                </div>
-                            </div>
-                            <div class="bot-stats">
-                                <div class="stat-item">
-                                    <div class="stat-label">Win Rate</div>
-                                    <div class="stat-value" id="eoddWinRateDisplay">0.0%</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Trades</div>
-                                    <div class="stat-value" id="eoddTradesCountDisplay">0W/0L</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Timer</div>
-                                    <div class="stat-value" id="eoddTimerDisplay">00:00:00</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Current Pattern</div>
-                                    <div class="stat-value" id="currentPatternDisplay">None</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Total Stake</div>
-                                    <div class="stat-value" id="eoddTotalStakeDisplay">$0.00</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Total Payout</div>
-                                    <div class="stat-value" id="eoddTotalPayoutDisplay">$0.00</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="market-watch-container">
-                            <table id="eodd-bot-history-table" class="ticker-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Contract</th>
-                                        <th>P/L</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-
-
-            <!-- AI Strategy Interface -->
-            <section class="ai-strategy-interface" id="ai-strategy-interface" style="display: none;">
-                <div class="ai-container">
-                    <div class="ai-header">
-                        <h3>🤖 Ghost AI Generator</h3>
-                        <p class="ai-subtitle">Describe your strategy in plain English, and AI will code it for you.</p>
-                    </div>
-
-                    <div class="ai-input-group">
-                        <textarea id="ai-prompt-input" class="ai-prompt-box"
-                            placeholder="Describe your strategy... (e.g. 'Buy Call on Volatility 100 if the last digit is even')"></textarea>
-                        <div id="ai-prompt-counter"
-                            style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: -15px; margin-bottom: 10px; padding-right: 5px;">
-                            0 / 2000</div>
-
-                        <div
-                            style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                            <button id="ai-generate-btn" class="btn-primary">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                    style="width:16px;margin-right:8px;">
-                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                Analyze Strategy
-                            </button>
-                        </div>
-
-                        <!-- AI Consultant Analysis Box -->
-                        <div id="ai-analysis-container" class="glass-card"
-                            style="display: none; margin-top: 20px; border-left: 4px solid var(--primary-color); padding: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4
-                                    style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
-                                    🤖 AI Consultant Analysis
-                                </h4>
-                                <span id="ai-analysis-status"
-                                    style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
-                            </div>
-                            <div id="ai-summary-display"
-                                style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 20px; white-space: pre-wrap;">
-                                <!-- Summary will be injected here -->
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="ai-confirm-generate-btn" class="btn-primary"
-                                    style="flex: 2; border-color: #2ecc71;">
-                                    Looks Good, Generate Code
-                                </button>
-                                <button id="ai-cancel-analysis-btn" class="btn-secondary" style="flex: 1;">
-                                    Clear
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- AI Parameters Grid -->
-                        <div class="ai-parameters-grid">
-                            <div class="ai-param-group">
-                                <label for="ai-stake-input">STAKE ($)</label>
-                                <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-target-profit">TAKE PROFIT ($)</label>
-                                <input type="number" id="ai-target-profit" value="0.5" min="0.1" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-stop-loss">STOP LOSS ($)</label>
-                                <input type="number" id="ai-stop-loss" value="50" min="1" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-analysis-period">ANALYSIS PERIOD</label>
-                                <input type="number" id="ai-analysis-period" value="15" min="5" max="100" step="1"
-                                    title="Number of ticks to analyze for digit percentages">
-                            </div>
-
-                            <!-- Smart Recovery Toggle Wrapper -->
-                            <div class="ai-param-group smart-recovery-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="ai-smart-recovery-toggle" checked>
-                                    Smart Recovery
-                                </label>
-                            </div>
-
-                            <!-- Virtual Hook Toggle for AI Strategy -->
-                            <div class="ai-param-group virtual-hook-config-group"
-                                style="display: flex; flex-direction: column; gap: 8px;">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="ai-virtual-hook-toggle">
-                                    🪝 Virtual Hook
-                                </label>
-                                <div class="streak-input-row"
-                                    style="display: flex; align-items: center; gap: 10px; font-size: 0.75rem;">
-                                    <label for="ai-virtual-hook-streak"
-                                        style="color: var(--text-muted); white-space: nowrap;">TRIGGER STREAK:</label>
-                                    <input type="number" id="ai-virtual-hook-streak" value="1" min="1" max="10"
-                                        style="width: 50px; padding: 2px 5px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 4px; color: white;">
-                                </div>
-                            </div>
-
-                            <!-- Martingale Inputs (Swappable) -->
-                            <div id="ai-martingale-container" class="ai-param-group" style="display: none;">
-                                <label for="ai-martingale-input">MARTINGALE</label>
-                                <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1">
-                            </div>
-
-                            <div id="ai-payout-container" class="ai-param-group">
-                                <div class="label-row">
-                                    <label for="ai-payout-input">PAYOUT %</label>
-                                    <label class="auto-label">
-                                        <input type="checkbox" id="ai-payout-auto" checked> Auto
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-12121"
+                                            value="12121" data-action="DIGITODD">
+                                        <span style="flex: 0 0 auto;">OEOEO →</span>
+                                        <select class="pattern-action-select" name="pattern-action-12121"
+                                            data-pattern="12121"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN">EVEN</option>
+                                            <option value="DIGITODD" selected>ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-21212"
+                                            value="21212" data-action="DIGITEVEN">
+                                        <span style="flex: 0 0 auto;">EOEOE →</span>
+                                        <select class="pattern-action-select" name="pattern-action-21212"
+                                            data-pattern="21212"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN" selected>EVEN</option>
+                                            <option value="DIGITODD">ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-22122"
+                                            value="22122" data-action="DIGITODD">
+                                        <span style="flex: 0 0 auto;">EEOEE →</span>
+                                        <select class="pattern-action-select" name="pattern-action-22122"
+                                            data-pattern="22122"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN">EVEN</option>
+                                            <option value="DIGITODD" selected>ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-11211"
+                                            value="11211" data-action="DIGITODD">
+                                        <span style="flex: 0 0 auto;">OOEOO →</span>
+                                        <select class="pattern-action-select" name="pattern-action-11211"
+                                            data-pattern="11211"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN">EVEN</option>
+                                            <option value="DIGITODD" selected>ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-11122"
+                                            value="11122" data-action="DIGITEVEN">
+                                        <span style="flex: 0 0 auto;">OOOEE →</span>
+                                        <select class="pattern-action-select" name="pattern-action-11122"
+                                            data-pattern="11122"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN" selected>EVEN</option>
+                                            <option value="DIGITODD">ODD</option>
+                                        </select>
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin: 5px 0; gap: 10px;">
+                                        <input type="checkbox" class="pattern-checkbox" name="pattern-22211"
+                                            value="22211" data-action="DIGITODD">
+                                        <span style="flex: 0 0 auto;">EEEOO →</span>
+                                        <select class="pattern-action-select" name="pattern-action-22211"
+                                            data-pattern="22211"
+                                            style="flex: 0 0 auto; padding: 2px 5px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px;">
+                                            <option value="DIGITEVEN">EVEN</option>
+                                            <option value="DIGITODD" selected>ODD</option>
+                                        </select>
                                     </label>
                                 </div>
-                                <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1">
+
+                                <h5 style="margin-top: 15px;">Custom Pattern</h5>
+                                <div class="control-group">
+                                    <label for="customPattern">Pattern (O and E, up to 10 digits, e.g.,
+                                        OOOOOOOOOO)</label>
+                                    <input type="text" id="customPattern" name="customPattern"
+                                        placeholder="e.g., OOOOOOOOOO" pattern="[OEoe]{1,10}" maxlength="10"
+                                        style="width: 100%;">
+                                </div>
+                                <div class="control-group">
+                                    <label for="customPatternAction">Contract Type</label>
+                                    <select id="customPatternAction" name="customPatternAction" class="control-select"
+                                        style="width: 100%;">
+                                        <option value="DIGITEVEN">EVEN</option>
+                                        <option value="DIGITODD">ODD</option>
+                                    </select>
+                                </div>
+                                <button id="addCustomPattern" class="btn-bot btn-start"
+                                    style="width: 100%; margin-top: 10px;">
+                                    <span>Add Custom Pattern</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Market Selector for AI -->
-                <div class="ai-market-selector-wrapper"
-                    style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted);">SELECT MARKETS TO
-                            TRADE (Bot will run on ALL checked):</label>
-                        <div style="display: flex; gap: 5px;">
-                            <button id="ai-select-all-markets" class="btn-micro"
-                                style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">All</button>
-                            <button id="ai-clear-markets" class="btn-micro"
-                                style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">Clear</button>
-                        </div>
+                <div class="bot-status">
+                    <h4 class="collapsible-header" onclick="toggleSection('activity-log-eodd')">
+                        <span>Activity Log</span>
+                        <svg class="collapse-arrow" id="arrow-activity-log-eodd" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </h4>
+                    <div class="collapsed-placeholder" id="placeholder-activity-log-eodd" style="display: none;">
+                        <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
                     </div>
-                    <div id="ai-market-checkboxes"
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                        <!-- Checkboxes populated by JS -->
-                        <span style="color: #666; font-size: 0.8rem;">Loading markets...</span>
+                    <div class="collapsible-content" id="activity-log-eodd">
+                        <div id="eodd-bot-log-container" class="bot-log">
+                            <div class="log-info">[--:--:--] Pattern analysis ready...</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="ai-workspace">
-                    <!-- Strategy Management UI -->
-                    <div class="ai-strategy-controls"
-                        style="margin-bottom: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span
-                                style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">Library</span>
-                            <button id="ai-save-strategy-btn" class="btn-secondary"
-                                style="padding: 4px 10px; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
-                                💾 Save Current
+                <div class="bot-history">
+                    <div class="bot-stats-header">
+                        <div class="history-header-top">
+                            <h4>Trade History</h4>
+                            <button id="clear-eodd-history" class="btn-secondary"
+                                style="padding: 6px 12px; font-size: 12px; margin-right: 8px;"
+                                title="Clear trade history">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width: 14px; height: 14px;">
+                                    <path
+                                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
                             </button>
                         </div>
-
-                        <div id="ai-strategies-list"
-                            style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;">
-                            <!-- Strategies populated by JS -->
-                            <div
-                                style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem;">
-                                Loading strategies...
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ai-editor-section">
-                        <h4>Generated Strategy Code</h4>
-                        <textarea id="ai-code-editor" class="code-editor" spellcheck="false"
-                            placeholder="// Generated code will appear here..."></textarea>
-
-                        <div class="ai-controls">
-                            <div class="status-box">
-                                Status: <span id="ai-status-indicator" class="status-text">IDLE</span>
-                            </div>
-                            <div class="control-buttons">
-                                <button id="ai-run-btn" class="btn-bot btn-start">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                        style="width:16px;margin-right:5px;">
-                                        <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" />
-                                    </svg>
-                                    Run
-                                </button>
-                                <button id="ai-stop-btn" class="btn-secondary"
-                                    style="display: none; border-color: #e74c3c; color: #e74c3c;">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                        style="width:16px;margin-right:5px;">
-                                        <rect x="6" y="6" width="12" height="12" fill="currentColor" />
-                                    </svg>
-                                    Stop
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ai-logs-section">
-                        <h4>Live Logs</h4>
-                        <div id="ai-log-container" class="ai-logs">
-                            <div class="log-entry log-info">[System] Ready to generate strategies...</div>
-                        </div>
-                    </div>
-
-                    <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
-                    <div class="ai-history-section" style="margin-top: 20px;">
-
-                        <!-- AI Stats Dashboard -->
                         <div class="bot-header-section">
                             <div class="bot-title-info">
-                                <h2>AI Strategy Bot</h2>
-                                <span class="bot-strategy-badge">Generated Strategy</span>
+                                <h2>GHOST E/ODD Bot</h2>
+                                <span class="bot-strategy-badge">Pattern Recognition Strategy</span>
                             </div>
                             <div class="bot-profit-display">
                                 <span class="profit-label">Total P/L</span>
-                                <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
+                                <span id="eoddProfitLossDisplay" class="profit-value">$0.00</span>
                             </div>
                         </div>
-
                         <div class="bot-stats">
                             <div class="stat-item">
                                 <div class="stat-label">Win Rate</div>
-                                <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                                <div class="stat-value" id="eoddWinRateDisplay">0.0%</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Trades</div>
-                                <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
+                                <div class="stat-value" id="eoddTradesCountDisplay">0W/0L</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Timer</div>
-                                <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
+                                <div class="stat-value" id="eoddTimerDisplay">00:00:00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Current Pattern</div>
+                                <div class="stat-value" id="currentPatternDisplay">None</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Stake</div>
-                                <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
+                                <div class="stat-value" id="eoddTotalStakeDisplay">$0.00</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Payout</div>
-                                <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">No. of Runs</div>
-                                <div class="stat-value" id="aiRunsCountDisplay">0</div>
+                                <div class="stat-value" id="eoddTotalPayoutDisplay">$0.00</div>
                             </div>
                         </div>
-
-                        <!-- History Table -->
-                        <div class="market-watch-container">
-                            <table id="ai-history-table" class="ticker-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Contract</th>
-                                        <th>P/L</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                    </div>
+                    <div class="market-watch-container">
+                        <table id="eodd-bot-history-table" class="ticker-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Contract</th>
+                                    <th>P/L</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- Community Popup Modal (Mockup Style) -->
-            <div id="community-modal" class="modal" style="display: none;">
-                <div class="modal-content community-modal-content">
-                    <div class="community-header">
-                        <div class="community-title-row">
-                            <span class="rocket-emoji">🚀</span>
-                            <h2>Join Our Trading Community</h2>
-                        </div>
-                        <p class="community-subtitle">Connect & Grow Together</p>
+
+
+        <!-- AI Strategy Interface -->
+        <section class="ai-strategy-interface" id="ai-strategy-interface" style="display: none;">
+            <div class="ai-container">
+                <div class="ai-header">
+                    <h3>🤖 Ghost AI Generator</h3>
+                    <p class="ai-subtitle">Describe your strategy in plain English, and AI will code it for you.</p>
+                </div>
+
+                <div class="ai-input-group">
+                    <textarea id="ai-prompt-input" class="ai-prompt-box"
+                        placeholder="Describe your strategy... (e.g. 'Buy Call on Volatility 100 if the last digit is even')"></textarea>
+                    <div id="ai-prompt-counter"
+                        style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: -15px; margin-bottom: 10px; padding-right: 5px;">
+                        0 / 2000</div>
+
+                    <div
+                        style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                        <button id="ai-generate-btn" class="btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                style="width:16px;margin-right:8px;">
+                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Analyze Strategy
+                        </button>
                     </div>
 
-                    <div class="community-body">
-                        <div class="community-description-box">
-                            <p>Connect with fellow traders! Share your trading experiences, strategies, and get the
-                                latest
-                                updates on new features and classes.</p>
+                    <!-- AI Consultant Analysis Box -->
+                    <div id="ai-analysis-container" class="glass-card"
+                        style="display: none; margin-top: 20px; border-left: 4px solid var(--primary-color); padding: 20px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4
+                                style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                                🤖 AI Consultant Analysis
+                            </h4>
+                            <span id="ai-analysis-status"
+                                style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
+                        </div>
+                        <div id="ai-summary-display"
+                            style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 20px; white-space: pre-wrap;">
+                            <!-- Summary will be injected here -->
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="ai-confirm-generate-btn" class="btn-primary"
+                                style="flex: 2; border-color: #2ecc71;">
+                                Looks Good, Generate Code
+                            </button>
+                            <button id="ai-cancel-analysis-btn" class="btn-secondary" style="flex: 1;">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Parameters Grid -->
+                    <div class="ai-parameters-grid">
+                        <div class="ai-param-group">
+                            <label for="ai-stake-input">STAKE ($)</label>
+                            <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01">
                         </div>
 
-                        <div class="community-buttons-grid">
-                            <a href="https://chat.whatsapp.com/CypiIGGCDea7CBNpfxJ9dk" target="_blank"
-                                class="btn-community btn-whatsapp">
-                                Join WhatsApp Group
-                            </a>
-                            <a href="#" target="_blank" class="btn-community btn-telegram">
-                                Join Telegram Group
-                            </a>
+                        <div class="ai-param-group">
+                            <label for="ai-target-profit">TAKE PROFIT ($)</label>
+                            <input type="number" id="ai-target-profit" value="0.5" min="0.1" step="0.01">
                         </div>
 
+                        <div class="ai-param-group">
+                            <label for="ai-stop-loss">STOP LOSS ($)</label>
+                            <input type="number" id="ai-stop-loss" value="50" min="1" step="0.01">
+                        </div>
 
-                        <div class="community-action-footer">
-                            <button onclick="closeCommunityPopup('never')" class="btn-community-action btn-no-thanks">NO
-                                THANKS</button>
-                            <button onclick="closeCommunityPopup('later')"
-                                class="btn-community-action btn-maybe-later">MAYBE LATER</button>
+                        <div class="ai-param-group">
+                            <label for="ai-analysis-period">ANALYSIS PERIOD</label>
+                            <input type="number" id="ai-analysis-period" value="15" min="5" max="100" step="1"
+                                title="Number of ticks to analyze for digit percentages">
+                        </div>
+
+                        <!-- Smart Recovery Toggle Wrapper -->
+                        <div class="ai-param-group smart-recovery-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="ai-smart-recovery-toggle" checked>
+                                Smart Recovery
+                            </label>
+                        </div>
+
+                        <!-- Virtual Hook Toggle for AI Strategy -->
+                        <div class="ai-param-group virtual-hook-config-group"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="ai-virtual-hook-toggle">
+                                🪝 Virtual Hook
+                            </label>
+                            <div class="streak-input-row"
+                                style="display: flex; align-items: center; gap: 10px; font-size: 0.75rem;">
+                                <label for="ai-virtual-hook-streak"
+                                    style="color: var(--text-muted); white-space: nowrap;">TRIGGER STREAK:</label>
+                                <input type="number" id="ai-virtual-hook-streak" value="1" min="1" max="10"
+                                    style="width: 50px; padding: 2px 5px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 4px; color: white;">
+                            </div>
+                        </div>
+
+                        <!-- Martingale Inputs (Swappable) -->
+                        <div id="ai-martingale-container" class="ai-param-group" style="display: none;">
+                            <label for="ai-martingale-input">MARTINGALE</label>
+                            <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1">
+                        </div>
+
+                        <div id="ai-payout-container" class="ai-param-group">
+                            <div class="label-row">
+                                <label for="ai-payout-input">PAYOUT %</label>
+                                <label class="auto-label">
+                                    <input type="checkbox" id="ai-payout-auto" checked> Auto
+                                </label>
+                            </div>
+                            <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <footer class="main-footer">
-                <div class="footer-content">
-                    <div class="footer-contact">
-                        <span>📞 Support: <a href="tel:+254719417644" class="contact-link">+254 719 417 644</a></span>
-                    </div>
-                    <div class="footer-copyright">
-                        &copy; 2026 Ghost Trades. All rights reserved.
+            <!-- Market Selector for AI -->
+            <div class="ai-market-selector-wrapper"
+                style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted);">SELECT MARKETS TO
+                        TRADE (Bot will run on ALL checked):</label>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="ai-select-all-markets" class="btn-micro"
+                            style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">All</button>
+                        <button id="ai-clear-markets" class="btn-micro"
+                            style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer;">Clear</button>
                     </div>
                 </div>
-            </footer>
+                <div id="ai-market-checkboxes"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Checkboxes populated by JS -->
+                    <span style="color: #666; font-size: 0.8rem;">Loading markets...</span>
+                </div>
+            </div>
+
+            <div class="ai-workspace">
+                <!-- Strategy Management UI -->
+                <div class="ai-strategy-controls"
+                    style="margin-bottom: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span
+                            style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">Library</span>
+                        <button id="ai-save-strategy-btn" class="btn-secondary"
+                            style="padding: 4px 10px; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
+                            💾 Save Current
+                        </button>
+                    </div>
+
+                    <div id="ai-strategies-list"
+                        style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;">
+                        <!-- Strategies populated by JS -->
+                        <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem;">
+                            Loading strategies...
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-editor-section">
+                    <h4>Generated Strategy Code</h4>
+                    <textarea id="ai-code-editor" class="code-editor" spellcheck="false"
+                        placeholder="// Generated code will appear here..."></textarea>
+
+                    <div class="ai-controls">
+                        <div class="status-box">
+                            Status: <span id="ai-status-indicator" class="status-text">IDLE</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button id="ai-run-btn" class="btn-bot btn-start">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width:16px;margin-right:5px;">
+                                    <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                                Run
+                            </button>
+                            <button id="ai-stop-btn" class="btn-secondary"
+                                style="display: none; border-color: #e74c3c; color: #e74c3c;">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width:16px;margin-right:5px;">
+                                    <rect x="6" y="6" width="12" height="12" fill="currentColor" />
+                                </svg>
+                                Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-logs-section">
+                    <h4>Live Logs</h4>
+                    <div id="ai-log-container" class="ai-logs">
+                        <div class="log-entry log-info">[System] Ready to generate strategies...</div>
+                    </div>
+                </div>
+
+                <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
+                <div class="ai-history-section" style="margin-top: 20px;">
+
+                    <!-- AI Stats Dashboard -->
+                    <div class="bot-header-section">
+                        <div class="bot-title-info">
+                            <h2>AI Strategy Bot</h2>
+                            <span class="bot-strategy-badge">Generated Strategy</span>
+                        </div>
+                        <div class="bot-profit-display">
+                            <span class="profit-label">Total P/L</span>
+                            <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="bot-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Win Rate</div>
+                            <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Trades</div>
+                            <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Timer</div>
+                            <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Stake</div>
+                            <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Payout</div>
+                            <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">No. of Runs</div>
+                            <div class="stat-value" id="aiRunsCountDisplay">0</div>
+                        </div>
+                    </div>
+
+                    <!-- History Table -->
+                    <div class="market-watch-container">
+                        <table id="ai-history-table" class="ticker-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Contract</th>
+                                    <th>P/L</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Popup Modal (Mockup Style) -->
+        <div id="community-modal" class="modal" style="display: none;">
+            <div class="modal-content community-modal-content">
+                <div class="community-header">
+                    <div class="community-title-row">
+                        <span class="rocket-emoji">🚀</span>
+                        <h2>Join Our Trading Community</h2>
+                    </div>
+                    <p class="community-subtitle">Connect & Grow Together</p>
+                </div>
+
+                <div class="community-body">
+                    <div class="community-description-box">
+                        <p>Connect with fellow traders! Share your trading experiences, strategies, and get the
+                            latest
+                            updates on new features and classes.</p>
+                    </div>
+
+                    <div class="community-buttons-grid">
+                        <a href="https://chat.whatsapp.com/CypiIGGCDea7CBNpfxJ9dk" target="_blank"
+                            class="btn-community btn-whatsapp">
+                            Join WhatsApp Group
+                        </a>
+                        <a href="#" target="_blank" class="btn-community btn-telegram">
+                            Join Telegram Group
+                        </a>
+                    </div>
+
+
+                    <div class="community-action-footer">
+                        <button onclick="closeCommunityPopup('never')" class="btn-community-action btn-no-thanks">NO
+                            THANKS</button>
+                        <button onclick="closeCommunityPopup('later')"
+                            class="btn-community-action btn-maybe-later">MAYBE LATER</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-contact">
+                    <span>📞 Support: <a href="tel:+254719417644" class="contact-link">+254 719 417 644</a></span>
+                </div>
+                <div class="footer-copyright">
+                    &copy; 2026 Ghost Trades. All rights reserved.
+                </div>
+            </div>
+        </footer>
     </main>
 
     <!-- Core Utilities -->
