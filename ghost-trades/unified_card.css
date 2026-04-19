@@ -5,10 +5,13 @@
 
 /* Main Container */
 .unified-trade-card {
+    grid-area: history;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     margin-bottom: var(--spacing-lg);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Card Header: Multi-row layout */

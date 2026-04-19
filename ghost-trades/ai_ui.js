@@ -211,11 +211,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
     let count = 0;
     sortedSymbols.forEach(symbol => {
         const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.gap = '5px';
-        wrapper.style.fontSize = '0.75rem';
-        wrapper.style.color = '#cbd5e1';
+        wrapper.className = 'ai-market-pill-wrapper';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -226,8 +222,10 @@ window.updateAIMarketSelector = function (activeSymbols) {
 
         const label = document.createElement('label');
         label.htmlFor = `ai-chk-${symbol.symbol}`;
-        label.textContent = symbol.display_name || symbol.symbol;
-        label.style.cursor = 'pointer';
+        
+        let displayName = symbol.display_name || symbol.symbol;
+        displayName = displayName.replace('Volatility ', 'V').replace(' Index', '');
+        label.textContent = displayName;
 
         wrapper.appendChild(checkbox);
         wrapper.appendChild(label);
@@ -242,11 +240,7 @@ window.updateAIMarketSelector = function (activeSymbols) {
         console.warn('⚠️ AI UI: No synthetic markets found, showing all symbols');
         activeSymbols.forEach(symbol => {
             const wrapper = document.createElement('div');
-            wrapper.style.display = 'flex';
-            wrapper.style.alignItems = 'center';
-            wrapper.style.gap = '5px';
-            wrapper.style.fontSize = '0.75rem';
-            wrapper.style.color = '#cbd5e1';
+            wrapper.className = 'ai-market-pill-wrapper';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -256,8 +250,10 @@ window.updateAIMarketSelector = function (activeSymbols) {
 
             const label = document.createElement('label');
             label.htmlFor = `ai-chk-${symbol.symbol}`;
-            label.textContent = symbol.display_name || symbol.symbol;
-            label.style.cursor = 'pointer';
+            
+            let displayName = symbol.display_name || symbol.symbol;
+            displayName = displayName.replace('Volatility ', 'V').replace(' Index', '');
+            label.textContent = displayName;
 
             wrapper.appendChild(checkbox);
             wrapper.appendChild(label);
@@ -963,3 +959,37 @@ function handleDeleteStrategy(id) {
         loadSavedStrategies();
     }
 }
+
+// ===================================
+// AI UI TAB NAVIGATION
+// ===================================
+window.switchAiTab = function (tabId) {
+    // Hide all tab contents
+    const allTabs = document.querySelectorAll('.ai-tab-content');
+    allTabs.forEach(tab => {
+        tab.classList.remove('active');
+        setTimeout(() => {
+            if (!tab.classList.contains('active')) {
+                tab.style.display = 'none';
+            }
+        }, 50); // slight delay for smooth transitions if needed
+    });
+
+    // Remove active state from all nav buttons
+    const allBtns = document.querySelectorAll('.ai-tab-btn');
+    allBtns.forEach(btn => btn.classList.remove('active'));
+
+    // Show the requested tab
+    const requestedTab = document.getElementById(`ai-tab-${tabId}`);
+    if (requestedTab) {
+        requestedTab.style.display = 'block';
+        // Add active class slightly after display block for CSS animation to trigger
+        setTimeout(() => requestedTab.classList.add('active'), 10);
+    }
+
+    // Highlight the clicked button
+    const activeBtn = Array.from(allBtns).find(btn => btn.getAttribute('onclick').includes(tabId));
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+};

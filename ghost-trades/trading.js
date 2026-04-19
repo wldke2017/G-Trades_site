@@ -113,6 +113,12 @@ function subscribeToAllVolatilities() {
             row.insertCell(2).textContent = '--';
         }
     });
+
+    // Hide skeleton and show ticker table after populating rows
+    const marketWatchSkeleton = document.getElementById('marketWatchSkeleton');
+    const tickerTable = document.getElementById('tickerTable');
+    if (marketWatchSkeleton) marketWatchSkeleton.style.display = 'none';
+    if (tickerTable) tickerTable.style.display = 'table';
 }
 
 /**

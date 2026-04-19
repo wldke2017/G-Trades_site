@@ -25,7 +25,7 @@ const redisClient = redis.createClient({
         connectTimeout: 10000
     }
 });
-redisClient.on('error', err => console.error('🚨 Redis API Error:', err.message));
+redisClient.on('error', err => console.error('🚨 Redis API Error:', err));
 
 // Connect to Redis on start
 (async () => {

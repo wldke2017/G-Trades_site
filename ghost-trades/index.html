@@ -656,643 +656,650 @@
 
         <!-- Ghost AI Bot Interface -->
         <section class="ghostai-interface" id="ghostai-interface" style="display: none;">
-            <!-- Header Controls Removed for Mobile Optimization -->
-            <!-- Bot Configuration -->
-            <div class="bot-controls">
-                <h4 class="collapsible-header" onclick="toggleSection('bot-config-ghost-ai')">
-                    <span>Bot Configuration</span>
-                    <svg class="collapse-arrow" id="arrow-bot-config-ghost-ai" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </h4>
-                <div class="collapsible-content" id="bot-config-ghost-ai">
-                    <div class="control-group">
-                        <label for="botInitialStake">Initial Stake</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="botInitialStake" name="botInitialStake" value="0.35" min="0.35"
-                                step="0.01">
-                            <span class="unit">USD</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label for="botTargetProfit">Target Profit</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="botTargetProfit" name="botTargetProfit" value="0.5" min="1">
-                            <span class="unit">USD</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label for="botPayoutPercentage">Payout %</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="botPayoutPercentage" name="botPayoutPercentage" value="75" min="1"
-                                max="100">
-                            <span class="unit">%</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label for="botStopLoss">Stop Loss</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="botStopLoss" name="botStopLoss" value="50" min="1">
-                            <span class="unit">USD</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label for="botMaxMartingale">Max Martingale Steps</label>
-                        <input type="number" id="botMaxMartingale" name="botMaxMartingale" value="15" min="0">
-                    </div>
-
-                    <div class="control-group">
-                        <label for="botAnalysisDigits">Analysis Digits (Last N)</label>
-                        <input type="number" id="botAnalysisDigits" name="botAnalysisDigits" value="15" min="10"
-                            max="100" title="Number of last digits to use for percentage analysis">
-                    </div>
-
-
-
-                    <!-- Virtual Hook Configuration for Ghost AI -->
-                    <h5 class="collapsible-header" style="margin-top: 20px; color: #ff9800;"
-                        onclick="toggleSection('ghostai-virtual-hook-config')">
-                        <span>🪝 Virtual Hook (Advanced)</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-ghostai-virtual-hook-config" viewBox="0 0 24 24"
-                            fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </h5>
-                    <div class="collapsible-content collapsed" id="ghostai-virtual-hook-config">
-                        <!-- NOTE: Virtual Hook Enable checkbox moved to main card header -->
-                        <div class="control-group">
-                            <small
-                                style="color: var(--text-muted); font-size: 0.9em; display: block; margin-bottom: 15px;">
-                                ℹ️ Use the "ENABLE VIRTUAL HOOK" toggle in the main card header to enable/disable
-                                virtual trading.
-                            </small>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="ghostaiVirtualHookStartWhen">Start Real Trade After</label>
-                            <select id="ghostaiVirtualHookStartWhen" name="ghostaiVirtualHookStartWhen"
-                                class="control-select">
-                                <option value="LOSS" selected>Virtual Loss</option>
-                                <option value="WIN">Virtual Win</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="ghostaiVirtualHookTrigger">Trigger Streak</label>
-                            <input type="number" id="ghostaiVirtualHookTrigger" name="ghostaiVirtualHookTrigger"
-                                value="1" min="1" max="50"
-                                title="Number of consecutive virtual results to trigger real trade">
-                        </div>
-
-                        <div class="control-group"
-                            style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                            <label style="font-weight: 600; color: #ff9800; margin-bottom: 10px; display: block;">VH
-                                Granularity</label>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                    <input type="checkbox" id="ghostaiVHEnabledS1" name="ghostaiVHEnabledS1" checked
-                                        style="width: auto;">
-                                    <span>Apply VH to S1 (Entries)</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                    <input type="checkbox" id="ghostaiVHEnabledS2" name="ghostaiVHEnabledS2" checked
-                                        style="width: auto;">
-                                    <span>Apply VH to S2 (Recovery)</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="control-group" style="margin-top: 15px;">
-                            <label for="ghostaiPostLossBehavior" style="font-weight: 600; color: #ff9800;">After
-                                REAL Loss Behavior</label>
-                            <select id="ghostaiPostLossBehavior" name="ghostaiPostLossBehavior" class="control-select">
-                                <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)</option>
-                                <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
-                            </select>
-                            <small
-                                style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px; line-height: 1.3;">
-                                <b>Option A:</b> S2 stays on REAL account until win.<br>
-                                <b>Option B:</b> Goes back to Virtual and waits for VH trigger.
-                            </small>
-                        </div>
-
-
-                    </div>
-
-                    <h5 class="collapsible-header" style="margin-top: 20px; color: var(--primary-color);"
-                        onclick="toggleSection('s1-config')">
-                        <span>S1 Strategy Configuration</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-s1-config" viewBox="0 0 24 24" fill="none"
+            <div class="bot-grid">
+                <!-- Header Controls Removed for Mobile Optimization -->
+                <!-- Bot Configuration -->
+                <div class="bot-controls">
+                    <h4 class="collapsible-header" onclick="toggleSection('bot-config-ghost-ai')">
+                        <span>Bot Configuration</span>
+                        <svg class="collapse-arrow" id="arrow-bot-config-ghost-ai" viewBox="0 0 24 24" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </h5>
-                    <div class="collapsible-content collapsed" id="s1-config">
-                        <div class="control-group">
-                            <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="botS1UseDigitCheck" name="botS1UseDigitCheck" checked
-                                    style="width: auto;">
-                                <span>Enable "Check Last N Digits"</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS1CheckDigits">S1: Check Last N Digits</label>
-                            <input type="number" id="botS1CheckDigits" name="botS1CheckDigits" value="4" min="1"
-                                max="10" title="Number of last digits to check for S1 condition">
-                        </div>
-
-                        <div class="control-group">
-                            <label>S1: Digit Comparison</label>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="botS1DigitOperator" name="botS1DigitOperator" class="control-select"
-                                    style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
-                                    title="Comparison operator for digits">
-                                    <option value="<=" selected>≤</option>
-                                    <option value=">=">≥</option>
-                                    <option value="=">=</option>
-                                    <option value="<">
-                                        << /option>
-                                    <option value=">">></option>
-                                </select>
-                                <div class="input-with-unit" style="flex: 1;">
-                                    <input type="number" id="botS1MaxDigit" name="botS1MaxDigit" value="3" min="0"
-                                        max="9" title="Comparison value for digits">
-                                    <span class="unit">Value</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="control-group">
-                            <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="botS1UsePercentage" name="botS1UsePercentage" checked
-                                    style="width: auto;">
-                                <span>Enable "Min Percentage"</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS1Prediction">S1: Prediction Barrier</label>
-                            <input type="number" id="botS1Prediction" name="botS1Prediction" value="2" min="0" max="9"
-                                title="Barrier for OVER prediction">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS1Percentage">S1: Min Percentage</label>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="botS1PercentageOperator" name="botS1PercentageOperator"
-                                    class="control-select"
-                                    style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
-                                    title="Comparison operator">
-                                    <option value=">">></option>
-                                    <option value=">=" selected>≥</option>
-                                    <option value="=">=</option>
-                                    <option value="<=">≤</option>
-                                    <option value="<">
-                                        << /option>
-                                </select>
-                                <div class="input-with-unit" style="flex: 1;">
-                                    <input type="number" id="botS1Percentage" name="botS1Percentage" value="70" min="0"
-                                        max="100">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS1ContractType">S1: Contract Type</label>
-                            <select id="botS1ContractType" name="botS1ContractType" class="control-select">
-                                <option value="OVER" selected>OVER (Digits above barrier)</option>
-                                <option value="UNDER">UNDER (Digits below barrier)</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS1MaxLosses">S1: Max Consecutive Losses</label>
-                            <input type="number" id="botS1MaxLosses" name="botS1MaxLosses" value="1" min="1" max="10"
-                                title="Stop S1 after this many consecutive losses until recovery">
-                        </div>
-                    </div>
-
-                    <h5 class="collapsible-header" style="margin-top: 20px; color: var(--accent-color);"
-                        onclick="toggleSection('s2-config')">
-                        <span>S2 Recovery Configuration</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-s2-config" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </h5>
-                    <div class="collapsible-content collapsed" id="s2-config">
-                        <div class="control-group">
-                            <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="botS2UseDigitCheck" name="botS2UseDigitCheck" checked
-                                    style="width: auto;">
-                                <span>Enable "Check Last N Digits"</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS2CheckDigits">S2: Check Last N Digits</label>
-                            <input type="number" id="botS2CheckDigits" name="botS2CheckDigits" value="6" min="1"
-                                max="10" title="Number of last digits to check for S2 condition">
-                        </div>
-
-                        <div class="control-group">
-                            <label>S2: Digit Comparison</label>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="botS2DigitOperator" name="botS2DigitOperator" class="control-select"
-                                    style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
-                                    title="Comparison operator for digits">
-                                    <option value="<=" selected>≤</option>
-                                    <option value=">=">≥</option>
-                                    <option value="=">=</option>
-                                    <option value="<">
-                                        << /option>
-                                    <option value=">">></option>
-                                </select>
-                                <div class="input-with-unit" style="flex: 1;">
-                                    <input type="number" id="botS2MaxDigit" name="botS2MaxDigit" value="4" min="0"
-                                        max="9" title="Comparison value for digits">
-                                    <span class="unit">Value</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="control-group">
-                            <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="botS2UsePercentage" name="botS2UsePercentage" checked
-                                    style="width: auto;">
-                                <span>Enable "Min Percentage"</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS2Prediction">S2: Prediction Barrier</label>
-                            <input type="number" id="botS2Prediction" name="botS2Prediction" value="4" min="0" max="9"
-                                title="Barrier for prediction">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS2ContractType">S2: Contract Type</label>
-                            <select id="botS2ContractType" name="botS2ContractType" class="control-select">
-                                <option value="UNDER">UNDER (Digits below barrier)</option>
-                                <option value="OVER" selected>OVER (Digits above barrier)</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="botS2Percentage">S2: Min Percentage</label>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="botS2PercentageOperator" name="botS2PercentageOperator"
-                                    class="control-select"
-                                    style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
-                                    title="Comparison operator">
-                                    <option value=">">></option>
-                                    <option value=">=" selected>≥</option>
-                                    <option value="=">=</option>
-                                    <option value="<=">≤</option>
-                                    <option value="<">
-                                        << /option>
-                                </select>
-                                <div class="input-with-unit" style="flex: 1;">
-                                    <input type="number" id="botS2Percentage" name="botS2Percentage" value="45" min="0"
-                                        max="100">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Markets Configuration -->
-                    <h4 class="collapsible-header" style="margin-top: 15px;"
-                        onclick="toggleSection('ghost-market-selector')">
-                        <span>Active Markets</span>
-                        <svg class="collapse-arrow collapsed" id="arrow-ghost-market-selector" viewBox="0 0 24 24"
-                            fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" />
                         </svg>
                     </h4>
-                    <div class="collapsible-content collapsed" id="ghost-market-selector">
-                        <div class="market-grid-selector"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="R_100" checked> Vol 100
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="R_10" checked> Vol 10
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="R_25" checked> Vol 25
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="R_50" checked> Vol 50
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="R_75" checked> Vol 75
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ10V" checked> Vol 10
-                                (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ25V" checked> Vol 25
-                                (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ50V" checked> Vol 50
-                                (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ75V" checked> Vol 75
-                                (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ100V" checked> Vol
-                                100 (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ200V" checked> Vol
-                                200 (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="1HZ300V" checked> Vol
-                                300 (1s)
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="JD10" checked> Jump 10
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="JD25" checked> Jump 25
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="JD50" checked> Jump 50
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="JD75" checked> Jump 75
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="JD100" checked> Jump 100
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="RDBEAR" checked> Bear
-                                Market
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="RDBULL" checked> Bull
-                                Market
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <input type="checkbox" class="ghost-market-checkbox" value="STPIDX" checked> Step
-                                Index
-                            </label>
+                    <div class="collapsible-content" id="bot-config-ghost-ai">
+                        <div class="control-group">
+                            <label for="botInitialStake">Initial Stake</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="botInitialStake" name="botInitialStake" value="0.35" min="0.35"
+                                    step="0.01">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="botTargetProfit">Target Profit</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="botTargetProfit" name="botTargetProfit" value="0.5" min="1">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="botPayoutPercentage">Payout %</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="botPayoutPercentage" name="botPayoutPercentage" value="75"
+                                    min="1" max="100">
+                                <span class="unit">%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="botStopLoss">Stop Loss</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="botStopLoss" name="botStopLoss" value="50" min="1">
+                                <span class="unit">USD</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="botMaxMartingale">Max Martingale Steps</label>
+                            <input type="number" id="botMaxMartingale" name="botMaxMartingale" value="15" min="0">
                         </div>
 
-                        <!-- Serial Mode Toggle -->
-                        <h5 class="collapsible-header" style="margin-top: 20px; color: #4caf50;"
-                            onclick="toggleSection('ghostai-safety-config')">
-                            <span>🛡️ Safety Settings</span>
-                            <svg class="collapse-arrow" id="arrow-ghostai-safety-config" viewBox="0 0 24 24" fill="none"
+                        <div class="control-group">
+                            <label for="botAnalysisDigits">Analysis Digits (Last N)</label>
+                            <input type="number" id="botAnalysisDigits" name="botAnalysisDigits" value="15" min="10"
+                                max="100" title="Number of last digits to use for percentage analysis">
+                        </div>
+
+
+
+                        <!-- Virtual Hook Configuration for Ghost AI -->
+                        <h5 class="collapsible-header" style="margin-top: 20px; color: #ff9800;"
+                            onclick="toggleSection('ghostai-virtual-hook-config')">
+                            <span>🪝 Virtual Hook (Advanced)</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-ghostai-virtual-hook-config"
+                                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h5>
+                        <div class="collapsible-content collapsed" id="ghostai-virtual-hook-config">
+                            <!-- NOTE: Virtual Hook Enable checkbox moved to main card header -->
+                            <div class="control-group">
+                                <small
+                                    style="color: var(--text-muted); font-size: 0.9em; display: block; margin-bottom: 15px;">
+                                    ℹ️ Use the "ENABLE VIRTUAL HOOK" toggle in the main card header to enable/disable
+                                    virtual trading.
+                                </small>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="ghostaiVirtualHookStartWhen">Start Real Trade After</label>
+                                <select id="ghostaiVirtualHookStartWhen" name="ghostaiVirtualHookStartWhen"
+                                    class="control-select">
+                                    <option value="LOSS" selected>Virtual Loss</option>
+                                    <option value="WIN">Virtual Win</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="ghostaiVirtualHookTrigger">Trigger Streak</label>
+                                <input type="number" id="ghostaiVirtualHookTrigger" name="ghostaiVirtualHookTrigger"
+                                    value="1" min="1" max="50"
+                                    title="Number of consecutive virtual results to trigger real trade">
+                            </div>
+
+                            <div class="control-group"
+                                style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                <label style="font-weight: 600; color: #ff9800; margin-bottom: 10px; display: block;">VH
+                                    Granularity</label>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiVHEnabledS1" name="ghostaiVHEnabledS1" checked
+                                            style="width: auto;">
+                                        <span>Apply VH to S1 (Entries)</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiVHEnabledS2" name="ghostaiVHEnabledS2" checked
+                                            style="width: auto;">
+                                        <span>Apply VH to S2 (Recovery)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="control-group" style="margin-top: 15px;">
+                                <label for="ghostaiPostLossBehavior" style="font-weight: 600; color: #ff9800;">After
+                                    REAL Loss Behavior</label>
+                                <select id="ghostaiPostLossBehavior" name="ghostaiPostLossBehavior"
+                                    class="control-select">
+                                    <option value="OPTION_A" selected>Option A: Stay on Real (Fast Recovery)</option>
+                                    <option value="OPTION_B">Option B: Return to Virtual (Conservative)</option>
+                                </select>
+                                <small
+                                    style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px; line-height: 1.3;">
+                                    <b>Option A:</b> S2 stays on REAL account until win.<br>
+                                    <b>Option B:</b> Goes back to Virtual and waits for VH trigger.
+                                </small>
+                            </div>
+
+
+                        </div>
+
+                        <h5 class="collapsible-header" style="margin-top: 20px; color: var(--primary-color);"
+                            onclick="toggleSection('s1-config')">
+                            <span>S1 Strategy Configuration</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-s1-config" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round" />
                             </svg>
                         </h5>
-                        <div class="collapsible-content" id="ghostai-safety-config">
+                        <div class="collapsible-content collapsed" id="s1-config">
                             <div class="control-group">
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                    <input type="checkbox" id="ghostaiSerialMode" name="ghostaiSerialMode"
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="botS1UseDigitCheck" name="botS1UseDigitCheck" checked
                                         style="width: auto;">
-                                    <span style="font-weight: 600;">Serial Trading Mode</span>
+                                    <span>Enable "Check Last N Digits"</span>
                                 </label>
-                                <small
-                                    style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 5px; line-height: 1.4;">
-                                    One trade at a time. Waits 2s after closure before new signal.
-                                </small>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS1CheckDigits">S1: Check Last N Digits</label>
+                                <input type="number" id="botS1CheckDigits" name="botS1CheckDigits" value="4" min="1"
+                                    max="10" title="Number of last digits to check for S1 condition">
+                            </div>
+
+                            <div class="control-group">
+                                <label>S1: Digit Comparison</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <select id="botS1DigitOperator" name="botS1DigitOperator" class="control-select"
+                                        style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
+                                        title="Comparison operator for digits">
+                                        <option value="<=" selected>≤</option>
+                                        <option value=">=">≥</option>
+                                        <option value="=">=</option>
+                                        <option value="<">
+                                            << /option>
+                                        <option value=">">></option>
+                                    </select>
+                                    <div class="input-with-unit" style="flex: 1;">
+                                        <input type="number" id="botS1MaxDigit" name="botS1MaxDigit" value="3" min="0"
+                                            max="9" title="Comparison value for digits">
+                                        <span class="unit">Value</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="botS1UsePercentage" name="botS1UsePercentage" checked
+                                        style="width: auto;">
+                                    <span>Enable "Min Percentage"</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS1Prediction">S1: Prediction Barrier</label>
+                                <input type="number" id="botS1Prediction" name="botS1Prediction" value="2" min="0"
+                                    max="9" title="Barrier for OVER prediction">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS1Percentage">S1: Min Percentage</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <select id="botS1PercentageOperator" name="botS1PercentageOperator"
+                                        class="control-select"
+                                        style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
+                                        title="Comparison operator">
+                                        <option value=">">></option>
+                                        <option value=">=" selected>≥</option>
+                                        <option value="=">=</option>
+                                        <option value="<=">≤</option>
+                                        <option value="<">
+                                            << /option>
+                                    </select>
+                                    <div class="input-with-unit" style="flex: 1;">
+                                        <input type="number" id="botS1Percentage" name="botS1Percentage" value="70"
+                                            min="0" max="100">
+                                        <span class="unit">%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS1ContractType">S1: Contract Type</label>
+                                <select id="botS1ContractType" name="botS1ContractType" class="control-select">
+                                    <option value="OVER" selected>OVER (Digits above barrier)</option>
+                                    <option value="UNDER">UNDER (Digits below barrier)</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS1MaxLosses">S1: Max Consecutive Losses</label>
+                                <input type="number" id="botS1MaxLosses" name="botS1MaxLosses" value="1" min="1"
+                                    max="10" title="Stop S1 after this many consecutive losses until recovery">
                             </div>
                         </div>
 
-                        <div style="margin-top: 20px;"></div>
-                    </div>
+                        <h5 class="collapsible-header" style="margin-top: 20px; color: var(--accent-color);"
+                            onclick="toggleSection('s2-config')">
+                            <span>S2 Recovery Configuration</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-s2-config" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h5>
+                        <div class="collapsible-content collapsed" id="s2-config">
+                            <div class="control-group">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="botS2UseDigitCheck" name="botS2UseDigitCheck" checked
+                                        style="width: auto;">
+                                    <span>Enable "Check Last N Digits"</span>
+                                </label>
+                            </div>
 
-                    <button id="ghost-ai-toggle-config" class="btn-bot btn-start ghost-ai-multi-toggle">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span>Start Bot</span>
-                    </button>
+                            <div class="control-group">
+                                <label for="botS2CheckDigits">S2: Check Last N Digits</label>
+                                <input type="number" id="botS2CheckDigits" name="botS2CheckDigits" value="6" min="1"
+                                    max="10" title="Number of last digits to check for S2 condition">
+                            </div>
 
-                    <!-- Manual Reset Button for Global Silence Fix -->
-                    <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset"
-                        style="margin-top: 10px; background-color: #f39c12; color: white;">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                            style="width: 18px; height: 18px; margin-right: 8px;">
-                            <path
-                                d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span>Reset Bot Locks</span>
-                    </button>
-                </div>
-            </div>
+                            <div class="control-group">
+                                <label>S2: Digit Comparison</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <select id="botS2DigitOperator" name="botS2DigitOperator" class="control-select"
+                                        style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
+                                        title="Comparison operator for digits">
+                                        <option value="<=" selected>≤</option>
+                                        <option value=">=">≥</option>
+                                        <option value="=">=</option>
+                                        <option value="<">
+                                            << /option>
+                                        <option value=">">></option>
+                                    </select>
+                                    <div class="input-with-unit" style="flex: 1;">
+                                        <input type="number" id="botS2MaxDigit" name="botS2MaxDigit" value="4" min="0"
+                                            max="9" title="Comparison value for digits">
+                                        <span class="unit">Value</span>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <div class="control-group">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="botS2UsePercentage" name="botS2UsePercentage" checked
+                                        style="width: auto;">
+                                    <span>Enable "Min Percentage"</span>
+                                </label>
+                            </div>
 
-            <!-- Activity Log -->
-            <div class="bot-status">
-                <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
-                    <span>Activity Log</span>
-                    <svg class="collapse-arrow" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </h4>
+                            <div class="control-group">
+                                <label for="botS2Prediction">S2: Prediction Barrier</label>
+                                <input type="number" id="botS2Prediction" name="botS2Prediction" value="4" min="0"
+                                    max="9" title="Barrier for prediction">
+                            </div>
 
-                <!-- Trade Progress Tracker (Timeline Style) -->
-                <div id="ghostai-progress-container" class="progress-tracker-container"
-                    style="display: none; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px;">
-                    <div class="progress-timeline">
-                        <div class="timeline-step" id="step-attempting">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Attempting to Buy</span>
+                            <div class="control-group">
+                                <label for="botS2ContractType">S2: Contract Type</label>
+                                <select id="botS2ContractType" name="botS2ContractType" class="control-select">
+                                    <option value="UNDER">UNDER (Digits below barrier)</option>
+                                    <option value="OVER" selected>OVER (Digits above barrier)</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="botS2Percentage">S2: Min Percentage</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <select id="botS2PercentageOperator" name="botS2PercentageOperator"
+                                        class="control-select"
+                                        style="flex: 0 0 auto; width: 60px; padding: 8px 4px; font-size: 18px; text-align: center;"
+                                        title="Comparison operator">
+                                        <option value=">">></option>
+                                        <option value=">=" selected>≥</option>
+                                        <option value="=">=</option>
+                                        <option value="<=">≤</option>
+                                        <option value="<">
+                                            << /option>
+                                    </select>
+                                    <div class="input-with-unit" style="flex: 1;">
+                                        <input type="number" id="botS2Percentage" name="botS2Percentage" value="45"
+                                            min="0" max="100">
+                                        <span class="unit">%</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="timeline-line" id="line-1"></div>
-                        <div class="timeline-step" id="step-succeeded">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Buy Succeeded</span>
-                        </div>
-                        <div class="timeline-line" id="line-2"></div>
-                        <div class="timeline-step" id="step-closed">
-                            <div class="step-circle"></div>
-                            <span class="step-label">Contract Closed</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: none;">
-                    <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
-                </div>
-                <div class="collapsible-content" id="activity-log-ghost-ai">
-                    <div id="bot-log-container" class="bot-log">
-                        <div class="log-info">[--:--:--] Waiting for initialization...</div>
-                    </div>
-                </div>
-            </div>
 
+                        <!-- Active Markets Configuration -->
+                        <h4 class="collapsible-header" style="margin-top: 15px;"
+                            onclick="toggleSection('ghost-market-selector')">
+                            <span>Active Markets</span>
+                            <svg class="collapse-arrow collapsed" id="arrow-ghost-market-selector" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </h4>
+                        <div class="collapsible-content collapsed" id="ghost-market-selector">
+                            <div class="market-grid-selector"
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_100" checked> Vol 100
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_10" checked> Vol 10
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_25" checked> Vol 25
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_50" checked> Vol 50
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="R_75" checked> Vol 75
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ10V" checked> Vol 10
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ25V" checked> Vol 25
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ50V" checked> Vol 50
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ75V" checked> Vol 75
+                                    (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ100V" checked> Vol
+                                    100 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ200V" checked> Vol
+                                    200 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="1HZ300V" checked> Vol
+                                    300 (1s)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD10" checked> Jump 10
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD25" checked> Jump 25
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD50" checked> Jump 50
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD75" checked> Jump 75
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="JD100" checked> Jump 100
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="RDBEAR" checked> Bear
+                                    Market
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="RDBULL" checked> Bull
+                                    Market
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <input type="checkbox" class="ghost-market-checkbox" value="STPIDX" checked> Step
+                                    Index
+                                </label>
+                            </div>
 
-            <!-- Unified Trade Card -->
-            <div class="unified-trade-card">
-                <!-- Card Header -->
-                <div class="unified-card-header">
-                    <!-- Row 1: Title & Bot Info -->
-                    <div class="header-top-row">
-                        <div class="header-left-section">
-                            <h3 class="card-title">Trade History</h3>
-                            <button id="clear-ghost-ai-history" class="btn-clear-history" title="Clear trade history"
-                                onclick="clearTradeHistory()">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
+                            <!-- Serial Mode Toggle -->
+                            <h5 class="collapsible-header" style="margin-top: 20px; color: #4caf50;"
+                                onclick="toggleSection('ghostai-safety-config')">
+                                <span>🛡️ Safety Settings</span>
+                                <svg class="collapse-arrow" id="arrow-ghostai-safety-config" viewBox="0 0 24 24"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
-                            </button>
-                        </div>
-
-                        <!-- Bot Info - Moved to Header -->
-                        <div class="bot-info-compact">
-                            <div class="bot-icon-wrapper">
-                                <span class="bot-icon">🤖</span>
+                            </h5>
+                            <div class="collapsible-content" id="ghostai-safety-config">
+                                <div class="control-group">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="ghostaiSerialMode" name="ghostaiSerialMode"
+                                            style="width: auto;">
+                                        <span style="font-weight: 600;">Serial Trading Mode</span>
+                                    </label>
+                                    <small
+                                        style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 5px; line-height: 1.4;">
+                                        One trade at a time. Waits 2s after closure before new signal.
+                                    </small>
+                                </div>
                             </div>
-                            <div class="bot-details-compact">
-                                <h4 class="bot-name">Ghost AI Bot</h4>
-                                <span class="bot-strategy-badge">RAMMY AUTO STRATEGY</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Row 2: Virtual Hook Toggle -->
-                    <div class="header-controls-row">
-                        <div class="virtual-hook-toggle-wrapper">
-                            <label class="toggle-switch-inline">
-                                <input type="checkbox" id="ghostaiVirtualHookEnabled" name="ghostaiVirtualHookEnabled">
-                                <span class="toggle-slider-inline"></span>
-                            </label>
-                            <span class="toggle-label-inline">ENABLE VIRTUAL HOOK</span>
+                            <div style="margin-top: 20px;"></div>
                         </div>
-                    </div>
 
-                    <!-- Row 3: Live Contract Monitor Button -->
-                    <div class="header-nav-row">
-                        <button class="view-switcher-btn" id="monitorViewBtn" onclick="toggleUnifiedView('monitor')">
-                            <span class="red-dot-indicator"></span>
-                            Live Contract Monitor
+                        <button id="ghost-ai-toggle-config" class="btn-bot btn-start ghost-ai-multi-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span>Start Bot</span>
+                        </button>
+
+                        <!-- Manual Reset Button for Global Silence Fix -->
+                        <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset"
+                            style="margin-top: 10px; background-color: #f39c12; color: white;">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                style="width: 18px; height: 18px; margin-right: 8px;">
+                                <path
+                                    d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            <span>Reset Bot Locks</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Card Body -->
-                <div class="unified-card-body">
-                    <!-- Control Section: P/L & Action Buttons Only -->
-                    <div class="control-section-unified">
 
-                        <div class="bot-profit-display-unified">
-                            <span class="profit-label-unified">TOTAL P/L</span>
-                            <span id="botProfitLossDisplay" class="profit-value-unified">$0.00</span>
-                        </div>
+                <!-- Activity Log -->
+                <div class="bot-status">
+                    <h4 class="collapsible-header" onclick="toggleSection('activity-log-ghost-ai')">
+                        <span>Activity Log</span>
+                        <svg class="collapse-arrow" id="arrow-activity-log-ghost-ai" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </h4>
 
-                        <div class="bot-action-buttons-unified">
-                            <button id="ghost-ai-toggle-unified" class="btn-bot btn-start ghost-ai-multi-toggle">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <span>Start Bot</span>
-                            </button>
-                            <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                                <span>Reset Bot Locks</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Stats Section: 3x2 Grid -->
-                    <div class="bot-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Win Rate</div>
-                            <div class="stat-value" id="botWinRateDisplay">0.0%</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Trades</div>
-                            <div class="stat-value" id="botTradesCountDisplay">0W/0L</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Timer</div>
-                            <div class="stat-value" id="botTimerDisplay">00:00:00</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Total Stake</div>
-                            <div class="stat-value" id="botTotalStakeDisplay">$0.00</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Total Payout</div>
-                            <div class="stat-value" id="botTotalPayoutDisplay">$0.00</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">No. of Runs</div>
-                            <div class="stat-value" id="botRunsCountDisplay">0</div>
-                        </div>
-                    </div>
-
-                    <!-- View Section: Toggleable between History Table and Live Monitor -->
-                    <div class="view-container-unified">
-                        <!-- History View (Default/Active) -->
-                        <div class="unified-view history-view-unified active" id="historyViewUnified">
-                            <div class="market-watch-container">
-                                <table id="bot-history-table" class="ticker-table">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>Timestamp</th>
-                                            <th>Reference</th>
-                                            <th>Type</th>
-                                            <th>Entry Spot</th>
-                                            <th>Exit Spot</th>
-                                            <th>Buy Price</th>
-                                            <th>Profit/Loss</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
+                    <!-- Trade Progress Tracker (Timeline Style) -->
+                    <div id="ghostai-progress-container" class="progress-tracker-container"
+                        style="display: none; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px;">
+                        <div class="progress-timeline">
+                            <div class="timeline-step" id="step-attempting">
+                                <div class="step-circle"></div>
+                                <span class="step-label">Attempting to Buy</span>
+                            </div>
+                            <div class="timeline-line" id="line-1"></div>
+                            <div class="timeline-step" id="step-succeeded">
+                                <div class="step-circle"></div>
+                                <span class="step-label">Buy Succeeded</span>
+                            </div>
+                            <div class="timeline-line" id="line-2"></div>
+                            <div class="timeline-step" id="step-closed">
+                                <div class="step-circle"></div>
+                                <span class="step-label">Contract Closed</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="collapsed-placeholder" id="placeholder-activity-log-ghost-ai" style="display: none;">
+                        <img src="images/back.jpg" alt="Activity Log Collapsed" class="collapsed-image">
+                    </div>
+                    <div class="collapsible-content" id="activity-log-ghost-ai">
+                        <div id="bot-log-container" class="bot-log">
+                            <div class="log-info">[--:--:--] Waiting for initialization...</div>
+                        </div>
+                    </div>
+                </div>
 
-                        <!-- Monitor View (Hidden by default) -->
-                        <div class="unified-view monitor-view-unified" id="monitorViewUnified" style="display: none;">
-                            <div class="monitor-header-controls">
-                                <button id="clear-live-contracts-btn" class="btn-clear-monitor"
-                                    onclick="clearLiveContracts()" title="Clear completed contracts">
+
+                <!-- Unified Trade Card -->
+                <div class="unified-trade-card">
+                    <!-- Card Header -->
+                    <div class="unified-card-header">
+                        <!-- Row 1: Title & Bot Info -->
+                        <div class="header-top-row">
+                            <div class="header-left-section">
+                                <h3 class="card-title">Trade History</h3>
+                                <button id="clear-ghost-ai-history" class="btn-clear-history"
+                                    title="Clear trade history" onclick="clearTradeHistory()">
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" />
                                     </svg>
-                                    Clear Completed
                                 </button>
                             </div>
-                            <div id="live-contracts-container" class="bot-log">
-                                <div class="log-info">No active contracts</div>
+
+                            <!-- Bot Info - Moved to Header -->
+                            <div class="bot-info-compact">
+                                <div class="bot-icon-wrapper">
+                                    <span class="bot-icon">🤖</span>
+                                </div>
+                                <div class="bot-details-compact">
+                                    <h4 class="bot-name">Ghost AI Bot</h4>
+                                    <span class="bot-strategy-badge">RAMMY AUTO STRATEGY</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Virtual Hook Toggle -->
+                        <div class="header-controls-row">
+                            <div class="virtual-hook-toggle-wrapper">
+                                <label class="toggle-switch-inline">
+                                    <input type="checkbox" id="ghostaiVirtualHookEnabled"
+                                        name="ghostaiVirtualHookEnabled">
+                                    <span class="toggle-slider-inline"></span>
+                                </label>
+                                <span class="toggle-label-inline">ENABLE VIRTUAL HOOK</span>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Live Contract Monitor Button -->
+                        <div class="header-nav-row">
+                            <button class="view-switcher-btn" id="monitorViewBtn"
+                                onclick="toggleUnifiedView('monitor')">
+                                <span class="red-dot-indicator"></span>
+                                Live Contract Monitor
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="unified-card-body">
+                        <!-- Control Section: P/L & Action Buttons Only -->
+                        <div class="control-section-unified">
+
+                            <div class="bot-profit-display-unified">
+                                <span class="profit-label-unified">TOTAL P/L</span>
+                                <span id="botProfitLossDisplay" class="profit-value-unified">$0.00</span>
+                            </div>
+
+                            <div class="bot-action-buttons-unified">
+                                <button id="ghost-ai-toggle-unified" class="btn-bot btn-start ghost-ai-multi-toggle">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <span>Start Bot</span>
+                                </button>
+                                <button id="ghost-ai-reset-locks-button" class="btn-bot btn-reset">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M4 4V9H4.58152M4.58152 9C5.53067 6.03396 8.5191 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.4809 20 5.49248 17.966 4.54333 15"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                    <span>Reset Bot Locks</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stats Section: 3x2 Grid -->
+                        <div class="bot-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Win Rate</div>
+                                <div class="stat-value" id="botWinRateDisplay">0.0%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Trades</div>
+                                <div class="stat-value" id="botTradesCountDisplay">0W/0L</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Timer</div>
+                                <div class="stat-value" id="botTimerDisplay">00:00:00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Stake</div>
+                                <div class="stat-value" id="botTotalStakeDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Payout</div>
+                                <div class="stat-value" id="botTotalPayoutDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">No. of Runs</div>
+                                <div class="stat-value" id="botRunsCountDisplay">0</div>
+                            </div>
+                        </div>
+
+                        <!-- View Section: Toggleable between History Table and Live Monitor -->
+                        <div class="view-container-unified">
+                            <!-- History View (Default/Active) -->
+                            <div class="unified-view history-view-unified active" id="historyViewUnified">
+                                <div class="market-watch-container">
+                                    <table id="bot-history-table" class="ticker-table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Timestamp</th>
+                                                <th>Reference</th>
+                                                <th>Type</th>
+                                                <th>Entry Spot</th>
+                                                <th>Exit Spot</th>
+                                                <th>Buy Price</th>
+                                                <th>Profit/Loss</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Monitor View (Hidden by default) -->
+                            <div class="unified-view monitor-view-unified" id="monitorViewUnified"
+                                style="display: none;">
+                                <div class="monitor-header-controls">
+                                    <button id="clear-live-contracts-btn" class="btn-clear-monitor"
+                                        onclick="clearLiveContracts()" title="Clear completed contracts">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" />
+                                        </svg>
+                                        Clear Completed
+                                    </button>
+                                </div>
+                                <div id="live-contracts-container" class="bot-log">
+                                    <div class="log-info">No active contracts</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1651,28 +1658,127 @@
                     <p class="ai-subtitle">Describe your strategy in plain English, and AI will code it for you.</p>
                 </div>
 
-                <div class="ai-input-group">
-                    <textarea id="ai-prompt-input" class="ai-prompt-box"
-                        placeholder="Describe your strategy... (e.g. 'Buy Call on Volatility 100 if the last digit is even')"></textarea>
-                    <div id="ai-prompt-counter"
-                        style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: -15px; margin-bottom: 10px; padding-right: 5px;">
-                        0 / 2000</div>
+                <!-- Navigation Tabs -->
+                <div class="ai-tabs-nav">
+                    <button class="ai-tab-btn active" onclick="switchAiTab('builder')">🛠️ Strategy Builder</button>
+                    <button class="ai-tab-btn" onclick="switchAiTab('code')">💻 Code View</button>
+                    <button class="ai-tab-btn" onclick="switchAiTab('monitor')">📊 Live Monitor</button>
+                </div>
 
-                    <div
-                        style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                        <button id="ai-generate-btn" class="btn-primary">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                style="width:16px;margin-right:8px;">
-                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            Analyze Strategy
-                        </button>
+                <!-- TAB 1: BUILDER -->
+                <div id="ai-tab-builder" class="ai-tab-content active">
+                    <div class="ai-input-group">
+                        <textarea id="ai-prompt-input" class="ai-prompt-box"
+                            placeholder="Describe your strategy... (e.g. 'Buy Call on Volatility 100 if the last digit is even')"></textarea>
+                        <div id="ai-prompt-counter"
+                            style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: -15px; margin-bottom: 10px; padding-right: 5px;">
+                            0 / 2000</div>
+
+                        <div
+                            style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <button id="ai-generate-btn" class="btn-primary">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    style="width:16px;margin-right:8px;">
+                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                Analyze Strategy
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- AI Consultant Analysis Box -->
+                    <div class="ai-main-dashboard">
+                        <!-- Column 1: Resources (Library & Markets) -->
+                        <div class="ai-column ai-resources-col">
+                            <div class="ai-strategy-card-simple">
+                                <div class="card-header-simple">
+                                    <span class="card-title-text">STRATEGY LIBRARY</span>
+                                    <button id="ai-save-strategy-btn" class="btn-micro-action" title="Save Current Strategy">
+                                        💾 SAVE
+                                    </button>
+                                </div>
+                                <div id="ai-strategies-list" class="ai-library-list">
+                                    <div class="loading-spinner-small">Loading strategies...</div>
+                                </div>
+                            </div>
+
+                            <div class="ai-market-card-compact">
+                                <div class="card-header-simple">
+                                    <span class="card-title-text">SELECT MARKETS</span>
+                                    <div class="header-actions-micro">
+                                        <button id="ai-select-all-markets" class="btn-micro-link">ALL</button>
+                                        <button id="ai-clear-markets" class="btn-micro-link">CLEAR</button>
+                                    </div>
+                                </div>
+                                <div id="ai-market-checkboxes" class="ai-market-grid-compact">
+                                    <span class="loading-text-micro">Loading markets...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Configuration (Parameters) -->
+                        <div class="ai-column ai-config-col">
+                            <div class="ai-params-card-main">
+                                <div class="card-header-simple">
+                                    <span class="card-title-text">CONFIGURATION</span>
+                                    <span class="badge-blue">ACTIVE</span>
+                                </div>
+                                <div class="ai-parameters-grid">
+                                    <div class="ai-param-group">
+                                        <label for="ai-stake-input">STAKE ($)</label>
+                                        <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01">
+                                    </div>
+                                    <div class="ai-param-group">
+                                        <label for="ai-target-profit">TAKE PROFIT ($)</label>
+                                        <input type="number" id="ai-target-profit" value="0.5" min="0.1" step="0.01">
+                                    </div>
+                                    <div class="ai-param-group">
+                                        <label for="ai-stop-loss">STOP LOSS ($)</label>
+                                        <input type="number" id="ai-stop-loss" value="50" min="1" step="0.01">
+                                    </div>
+                                    <div class="ai-param-group">
+                                        <label for="ai-analysis-period">ANALYSIS PERIOD</label>
+                                        <input type="number" id="ai-analysis-period" value="15" min="5" max="100" step="1">
+                                    </div>
+                                    <div class="ai-param-group smart-recovery-group">
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="ai-smart-recovery-toggle" checked>
+                                            Smart Recovery
+                                        </label>
+                                    </div>
+                                    <div class="ai-param-group virtual-hook-config-group">
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="ai-virtual-hook-toggle">
+                                            🪝 Virtual Hook
+                                        </label>
+                                        <div class="streak-input-row" style="margin-top: 5px;">
+                                            <label for="ai-virtual-hook-streak">STREAK:</label>
+                                            <input type="number" id="ai-virtual-hook-streak" value="1" min="1" max="10">
+                                        </div>
+                                    </div>
+                                    <div id="ai-martingale-container" class="ai-param-group" style="display: none;">
+                                        <label for="ai-martingale-input">MARTINGALE</label>
+                                        <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1">
+                                    </div>
+                                    <div id="ai-payout-container" class="ai-param-group">
+                                        <div class="label-row" style="display: flex; justify-content: space-between;">
+                                            <label for="ai-payout-input">PAYOUT %</label>
+                                            <label class="auto-label" style="font-size: 0.65rem;">
+                                                <input type="checkbox" id="ai-payout-auto" checked> AUTO
+                                            </label>
+                                        </div>
+                                        <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CODE VIEW -->
+                <div id="ai-tab-code" class="ai-tab-content" style="display: none;">
                     <div id="ai-analysis-container" class="glass-card"
-                        style="display: none; margin-top: 20px; border-left: 4px solid var(--primary-color); padding: 20px;">
+                        style="display: none; margin-bottom: 20px; border-left: 4px solid var(--primary-color); padding: 20px;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h4
@@ -1684,7 +1790,6 @@
                         </div>
                         <div id="ai-summary-display"
                             style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 20px; white-space: pre-wrap;">
-                            <!-- Summary will be injected here -->
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <button id="ai-confirm-generate-btn" class="btn-primary"
@@ -1697,205 +1802,96 @@
                         </div>
                     </div>
 
-                    <!-- AI Parameters Grid Moved to Dashboard Below -->
-                </div>
-            </div>
-
-            <!-- NEW: AI Main Dashboard (3-Column Layout) -->
-            <div class="ai-main-dashboard">
-                <!-- Column 1: Resources (Library & Markets) -->
-                <div class="ai-column ai-resources-col">
-                    <!-- Strategy Management (Library) -->
-                    <div class="ai-strategy-card-simple">
-                        <div class="card-header-simple">
-                            <span class="card-title-text">STRATEGY LIBRARY</span>
-                            <button id="ai-save-strategy-btn" class="btn-micro-action" title="Save Current Strategy">
-                                💾 SAVE
-                            </button>
-                        </div>
-                        <div id="ai-strategies-list" class="ai-library-list">
-                            <!-- Strategies populated by JS -->
-                            <div class="loading-spinner-small">Loading strategies...</div>
-                        </div>
-                    </div>
-
-                    <!-- Market Selector -->
-                    <div class="ai-market-card-compact">
-                        <div class="card-header-simple">
-                            <span class="card-title-text">SELECT MARKETS</span>
-                            <div class="header-actions-micro">
-                                <button id="ai-select-all-markets" class="btn-micro-link">ALL</button>
-                                <button id="ai-clear-markets" class="btn-micro-link">CLEAR</button>
-                            </div>
-                        </div>
-                        <div id="ai-market-checkboxes" class="ai-market-grid-compact">
-                            <!-- Checkboxes populated by JS -->
-                            <span class="loading-text-micro">Loading markets...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Column 2: Configuration (Parameters) -->
-                <div class="ai-column ai-config-col">
-                    <div class="ai-params-card-main">
-                        <div class="card-header-simple">
-                            <span class="card-title-text">CONFIGURATION</span>
-                            <span class="badge-blue">ACTIVE</span>
-                        </div>
-                        <div class="ai-parameters-grid">
-                            <div class="ai-param-group">
-                                <label for="ai-stake-input">STAKE ($)</label>
-                                <input type="number" id="ai-stake-input" value="0.35" min="0.35" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-target-profit">TAKE PROFIT ($)</label>
-                                <input type="number" id="ai-target-profit" value="0.5" min="0.1" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-stop-loss">STOP LOSS ($)</label>
-                                <input type="number" id="ai-stop-loss" value="50" min="1" step="0.01">
-                            </div>
-
-                            <div class="ai-param-group">
-                                <label for="ai-analysis-period">ANALYSIS PERIOD</label>
-                                <input type="number" id="ai-analysis-period" value="15" min="5" max="100" step="1">
-                            </div>
-
-                            <div class="ai-param-group smart-recovery-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="ai-smart-recovery-toggle" checked>
-                                    Smart Recovery
-                                </label>
-                            </div>
-
-                            <div class="ai-param-group virtual-hook-config-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="ai-virtual-hook-toggle">
-                                    🪝 Virtual Hook
-                                </label>
-                                <div class="streak-input-row" style="margin-top: 5px;">
-                                    <label for="ai-virtual-hook-streak">STREAK:</label>
-                                    <input type="number" id="ai-virtual-hook-streak" value="1" min="1" max="10">
-                                </div>
-                            </div>
-
-                            <div id="ai-martingale-container" class="ai-param-group" style="display: none;">
-                                <label for="ai-martingale-input">MARTINGALE</label>
-                                <input type="number" id="ai-martingale-input" value="2.1" min="1.0" step="0.1">
-                            </div>
-
-                            <div id="ai-payout-container" class="ai-param-group">
-                                <div class="label-row" style="display: flex; justify-content: space-between;">
-                                    <label for="ai-payout-input">PAYOUT %</label>
-                                    <label class="auto-label" style="font-size: 0.65rem;">
-                                        <input type="checkbox" id="ai-payout-auto" checked> AUTO
-                                    </label>
-                                </div>
-                                <input type="number" id="ai-payout-input" value="70" min="1" max="1000" step="1">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Column 3: Operations (Code, Run, Logs) -->
-                <div class="ai-column ai-ops-col">
-                    <!-- Code Editor Section -->
                     <div class="ai-editor-card">
                         <div class="card-header-simple">
                             <span class="card-title-text">GENERATED CODE</span>
                             <div id="ai-status-indicator" class="status-badge-idle">IDLE</div>
                         </div>
                         <textarea id="ai-code-editor" class="code-editor-mini" spellcheck="false"
-                            placeholder="// Code will appear here..."></textarea>
+                            placeholder="// Code will appear here..." style="min-height: 500px; font-size: 15px;"></textarea>
+                    </div>
+                </div>
 
-                        <div class="ai-ops-buttons">
-                            <button id="ai-run-btn" class="btn-ops btn-run-new">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                    style="width:14px;">
-                                    <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
-                                </svg>
-                                RUN STRATEGY
-                            </button>
-                            <button id="ai-stop-btn" class="btn-ops btn-stop-new" style="display: none;">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                    style="width:14px;">
-                                    <rect x="6" y="6" width="12" height="12" fill="currentColor" />
-                                </svg>
-                                STOP BOT
-                            </button>
-                        </div>
+                <!-- TAB 3: LIVE MONITOR -->
+                <div id="ai-tab-monitor" class="ai-tab-content" style="display: none;">
+                    <div class="ai-ops-buttons" style="margin-bottom: 20px; max-width: 400px;">
+                        <button id="ai-run-btn" class="btn-ops btn-run-new">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                style="width:14px;">
+                                <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+                            </svg>
+                            RUN STRATEGY
+                        </button>
+                        <button id="ai-stop-btn" class="btn-ops btn-stop-new" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                style="width:14px;">
+                                <rect x="6" y="6" width="12" height="12" fill="currentColor" />
+                            </svg>
+                            STOP BOT
+                        </button>
                     </div>
 
-                    <!-- Mini Logs Section -->
-                    <div class="ai-logs-card-mini">
+                    <div class="ai-logs-card-mini" style="margin-bottom: 20px;">
                         <div class="card-header-simple">
                             <span class="card-title-text">LIVE ACTIVITY</span>
                         </div>
-                        <div id="ai-log-container" class="ai-logs-viewport">
+                        <div id="ai-log-container" class="ai-logs-viewport" style="height: 250px;">
                             <div class="log-entry log-info">[System] Dashboard ready...</div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- AI Strategy Stats & History (Mirrors Ghost AI) -->
-            <div class="ai-history-section" style="margin-top: 20px;">
+                    <div class="ai-history-section">
+                        <div class="bot-header-section">
+                            <div class="bot-title-info">
+                                <h2>AI Strategy Bot</h2>
+                                <span class="bot-strategy-badge">Generated Strategy</span>
+                            </div>
+                            <div class="bot-profit-display">
+                                <span class="profit-label">Total P/L</span>
+                                <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
+                            </div>
+                        </div>
 
-                <!-- AI Stats Dashboard -->
-                <div class="bot-header-section">
-                    <div class="bot-title-info">
-                        <h2>AI Strategy Bot</h2>
-                        <span class="bot-strategy-badge">Generated Strategy</span>
-                    </div>
-                    <div class="bot-profit-display">
-                        <span class="profit-label">Total P/L</span>
-                        <span id="aiProfitLossDisplay" class="profit-value">$0.00</span>
-                    </div>
-                </div>
+                        <div class="bot-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Win Rate</div>
+                                <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Trades</div>
+                                <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Timer</div>
+                                <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Stake</div>
+                                <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Payout</div>
+                                <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">No. of Runs</div>
+                                <div class="stat-value" id="aiRunsCountDisplay">0</div>
+                            </div>
+                        </div>
 
-                <div class="bot-stats">
-                    <div class="stat-item">
-                        <div class="stat-label">Win Rate</div>
-                        <div class="stat-value" id="aiWinRateDisplay">0.0%</div>
+                        <div class="market-watch-container">
+                            <table id="ai-history-table" class="ticker-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Contract</th>
+                                        <th>P/L</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Trades</div>
-                        <div class="stat-value" id="aiTradesCountDisplay">0W/0L</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Timer</div>
-                        <div class="stat-value" id="aiTimerDisplay">00:00:00</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Total Stake</div>
-                        <div class="stat-value" id="aiTotalStakeDisplay">$0.00</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Total Payout</div>
-                        <div class="stat-value" id="aiTotalPayoutDisplay">$0.00</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">No. of Runs</div>
-                        <div class="stat-value" id="aiRunsCountDisplay">0</div>
-                    </div>
-                </div>
-
-                <!-- History Table -->
-                <div class="market-watch-container">
-                    <table id="ai-history-table" class="ticker-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Contract</th>
-                                <th>P/L</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
             </div>
         </section>
 
