@@ -213,7 +213,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                                 new Function('data', 'signal', 'log', '"use strict";\n' + cleaned);
                             } catch (syntaxError) {
                                 console.warn(`❌ [GEMINI] Syntax Error: ${syntaxError.message}`);
-                                lastError = `Syntax Error: ${syntaxError.message}`;
+                                lastError = `Syntax Error: ${syntaxError.message} | Snippet: ${cleaned.substring(0, 30)}...`;
                                 continue;
                             }
 
@@ -269,7 +269,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             new Function('data', 'signal', 'log', '"use strict";\n' + cleaned);
                         } catch (syntaxError) {
                             console.warn(`❌ [GROQ] Syntax Error: ${syntaxError.message}`);
-                            lastError = `Syntax Error: ${syntaxError.message}`;
+                            lastError = `Syntax Error: ${syntaxError.message} | Snippet: ${cleaned.substring(0, 30)}...`;
                             continue;
                         }
 

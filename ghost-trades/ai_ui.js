@@ -3,15 +3,15 @@
 // ===================================
 
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const isProduction = window.location.hostname === 'ghost-trades.site';
+const isProduction = window.location.hostname === 'ghost-trades.site' || window.location.hostname === 'www.ghost-trades.site';
 
 // API Configuration - Uses relative paths by default for better portability
 // Fallback to local 4000/3000 if running via file system or specific dev setups
 const getApiBase = () => {
     // Priority 1: Current origin if not file://
     if (window.location.protocol !== 'file:') {
-        // If we are on ghost-trades.site, use the production API
-        if (isProduction) return 'https://ghost-trades.site/api/ai';
+        // If we are on production, return absolute path for clarity across subdomains
+        if (isProduction) return `https://${window.location.hostname}/api/ai`;
         // If we are on a different domain/port (e.g. dev server), use relative path
         return '/api/ai';
     }
