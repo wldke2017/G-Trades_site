@@ -95,6 +95,45 @@ FORMAT:
 Keep it concise, professional, and confidence-inspiring.
 `;
 
+// Helper to clean AI output
+const cleanOutput = (text) => {
+    let result = text;
+    // Remove markdown code fences
+    result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
+    // Remove common "thinking" markers
+    result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+    
+    // Remove labels and delimiters (flexible regex handles colon or no colon)
+    result = result.replace(/^(JAVASCRIPT BODY|CODE ONLY|CODE|ANALYSIS|SUMMARY|### (CODE|SUMMARY) START ###)[:\s-]*/im, '');
+    
+    // Line-by-line failsafe to remove non-code headers
+    const lines = result.split('\n');
+    while (lines.length > 0) {
+        const line = lines[0].trim();
+        if (line === '' || line.startsWith('###') || line.toUpperCase().includes('CODE START') || line.toUpperCase().includes('SUMMARY START')) {
+            lines.shift();
+        } else {
+            break;
+        }
+    }
+    result = lines.join('\n');
+
+    // Failsafe: if the code starts with a property-like 'code:', strip it
+    if (result.trim().toLowerCase().startsWith('code:')) {
+        result = result.replace(/^code:\s*/i, '');
+    }
+
+    // If the AI returned an object-like string accidentally
+    const trimmed = result.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}') && trimmed.includes('"code"')) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.code) result = parsed.code;
+        } catch(e) {}
+    }
+    return result.trim();
+};
+
 router.post('/generate', apiLimiter, async (req, res) => {
     try {
         const { prompt, mode } = req.body;
@@ -103,7 +142,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
         if (keys.length === 0 && !GROQ_API_KEY) {
             console.warn('⚠️ No AI API keys found. Returning mock response.');
             return res.json({
-                code: mode === 'analyze' ? null : `// MOCK MODE: API Key missing\nlog('Mock Strategy Active');`,
+                code: mode === 'analyze' ? null : "// MOCK MODE: API Key missing\nlog('Mock Strategy Active');",
                 summary: mode === 'analyze' ? "MOCK SUMMARY: This strategy will trade based on even digits." : null
             });
         }
@@ -114,20 +153,17 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         const isAnalyze = mode === 'analyze';
         const systemPrompt = isAnalyze ? SYSTEM_PROMPT_ANALYZE : SYSTEM_PROMPT_CODE;
+        const delimiter = isAnalyze ? '### SUMMARY START ###' : '### CODE START ###';
 
         let lastError = null;
 
         // ===== PHASE 1: TRY GEMINI =====
         if (keys.length > 0) {
-            console.log(`🔷 [GEMINI] Trying ${GEMINI_MODELS.length} models with ${keys.length} keys...`);
-
             for (const model of GEMINI_MODELS) {
                 const apiUrl = `${GEMINI_BASE_URL}/${model}:generateContent`;
 
                 for (let attempt = 0; attempt < keys.length; attempt++) {
                     const currentKey = keys[keyIndex % keys.length];
-                    console.log(`🤖 [GEMINI] ${model} / Key ${keyIndex % keys.length}`);
-
                     try {
                         const response = await fetch(`${apiUrl}?key=${currentKey}`, {
                             method: 'POST',
@@ -135,18 +171,17 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [{
-                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? '### SUMMARY START ###' : '### CODE START ###'} `
+                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${delimiter} `
                                     }]
                                 }],
                                 generationConfig: {
-                                    temperature: 0.1, // Lower temperature for more stable code
+                                    temperature: 0.1,
                                     maxOutputTokens: 1024,
                                 }
                             })
                         });
 
                         if (response.status === 429) {
-                            console.warn(`⚠️ [GEMINI] Quota exhausted`);
                             keyIndex++;
                             continue;
                         }
@@ -157,60 +192,33 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         }
 
                         const responseData = await response.json();
-
-                        // Robust response extraction
                         let aiOutput = "";
                         if (responseData.candidates?.[0]?.content?.parts) {
-                            aiOutput = responseData.candidates[0].content.parts
-                                .map(p => p.text || "")
-                                .join("\n");
+                            aiOutput = responseData.candidates[0].content.parts.map(p => p.text || "").join("\n");
                         }
 
-                        const cleanOutput = (text) => {
-                            let result = text;
-                            // Remove markdown code fences
-                            result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
-                            // Remove common "thinking" markers
-                            result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
-                            // Remove common AI labels that leak into the body
-                            result = result.replace(/^(JAVASCRIPT BODY|CODE ONLY|CODE|ANALYSIS|SUMMARY|### CODE START ###):\s*/i, '');
-                            // If the AI returned an object-like string accidentally
-                            if (result.startsWith('{') && result.endsWith('}') && result.includes('"code"')) {
-                                try {
-                                    const parsed = JSON.parse(result);
-                                    if (parsed.code) result = parsed.code;
-                                } catch(e) {}
-                            }
-                            return result.trim();
-                        };
+                        const cleaned = cleanOutput(aiOutput);
 
                         if (isAnalyze) {
-                            console.log(`✅ [GEMINI] Success with ${model}`);
-                            return res.json({ summary: cleanOutput(aiOutput) });
+                            return res.json({ summary: cleaned });
                         } else {
-                            let generatedCode = cleanOutput(aiOutput);
-                            
-                            // Failsafe: if the code starts with a property-like 'code:', strip it
-                            if (generatedCode.startsWith('code:')) {
-                                generatedCode = generatedCode.replace(/^code:\s*/i, '').trim();
-                            }
+                            // Security check
                             const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
-                            if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                            if (dangerousKeywords.some(kw => cleaned.includes(kw))) {
                                 return res.status(400).json({ error: 'Generated code failed security check.' });
                             }
 
+                            // Syntax check
                             try {
-                                new Function('data', 'signal', 'log', '"use strict";\n' + generatedCode);
+                                new Function('data', 'signal', 'log', '"use strict";\n' + cleaned);
                             } catch (syntaxError) {
-                                console.warn(`❌ [GEMINI] Syntax Error in generated code: ${syntaxError.message}`);
+                                console.warn(`❌ [GEMINI] Syntax Error: ${syntaxError.message}`);
                                 lastError = `Syntax Error: ${syntaxError.message}`;
                                 continue;
                             }
 
-                            console.log(`✅ [GEMINI] Success with ${model}`);
-                            return res.json({ code: generatedCode });
+                            return res.json({ code: cleaned });
                         }
-
                     } catch (err) {
                         lastError = err.message;
                         keyIndex++;
@@ -221,11 +229,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         // ===== PHASE 2: TRY GROQ =====
         if (GROQ_API_KEY) {
-            console.log(`🟢 [GROQ] Gemini exhausted. Switching to Groq...`);
-
             for (const model of GROQ_MODELS) {
-                console.log(`🤖 [GROQ] Trying ${model}`);
-
                 try {
                     const response = await fetch(GROQ_BASE_URL, {
                         method: 'POST',
@@ -240,74 +244,39 @@ router.post('/generate', apiLimiter, async (req, res) => {
                                 content: systemPrompt
                             }, {
                                 role: 'user',
-                                content: `${prompt}\n\n${isAnalyze ? '### SUMMARY START ###' : '### CODE START ###'}`
+                                content: `${prompt}\n\n${delimiter}`
                             }],
                             temperature: 0.2,
                             max_tokens: 1024
                         })
                     });
 
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`❌ [GROQ] ${response.status}: ${errorText}`);
-                        continue;
-                    }
+                    if (!response.ok) continue;
 
                     const responseData = await response.json();
                     let aiOutput = responseData.choices?.[0]?.message?.content || '';
+                    const cleaned = cleanOutput(aiOutput);
 
                     if (isAnalyze) {
-                        console.log(`✅ [GROQ] Success with ${model}`);
-                        return res.json({ summary: aiOutput.trim() });
+                        return res.json({ summary: cleaned });
                     } else {
-                        // Clean up output: Remove markdown code blocks, labels, and conversational filler
-                        const cleanOutput = (text) => {
-                            let result = text;
-                            // Remove markdown code fences
-                            result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
-                            // Remove common "thinking" markers
-                            result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
-                            // Remove common AI labels that leak into the body
-                            result = result.replace(/^(JAVASCRIPT BODY|CODE ONLY|CODE|ANALYSIS|SUMMARY):\s*/i, '');
-                            // If the AI returned an object-like string accidentally
-                            if (result.startsWith('{') && result.endsWith('}') && result.includes('"code"')) {
-                                try {
-                                    const parsed = JSON.parse(result);
-                                    if (parsed.code) result = parsed.code;
-                                } catch(e) {}
-                            }
-                            return result.trim();
-                        };
-
-                        let generatedCode = cleanOutput(aiOutput);
-                        
-                        // Failsafe: if the code starts with a property-like 'code:', strip it
-                        if (generatedCode.startsWith('code:')) {
-                            generatedCode = generatedCode.replace(/^code:\s*/i, '').trim();
-                        }
-
-                        // Security check
                         const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
-                        if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
+                        if (dangerousKeywords.some(kw => cleaned.includes(kw))) {
                             return res.status(400).json({ error: 'Generated code failed security check.' });
                         }
 
-                        // Syntax check (Phase 3: Auto-Correction Loop - Basic)
                         try {
-                            new Function('data', 'signal', 'log', '"use strict";\n' + generatedCode);
+                            new Function('data', 'signal', 'log', '"use strict";\n' + cleaned);
                         } catch (syntaxError) {
-                            console.warn(`❌ [GROQ] Syntax Error in generated code: ${syntaxError.message}`);
+                            console.warn(`❌ [GROQ] Syntax Error: ${syntaxError.message}`);
                             lastError = `Syntax Error: ${syntaxError.message}`;
                             continue;
                         }
 
-                        console.log(`✅ [GROQ] Success with ${model}`);
-                        return res.json({ code: generatedCode });
+                        return res.json({ code: cleaned });
                     }
-
                 } catch (err) {
                     lastError = err.message;
-                    console.error(`❌ [GROQ] ${model}: ${err.message}`);
                 }
             }
         }
