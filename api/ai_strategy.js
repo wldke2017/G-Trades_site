@@ -135,7 +135,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [{
-                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'CONFIRMATION SUMMARY:' : 'JAVASCRIPT BODY (CODE ONLY):'} `
+                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? '### SUMMARY START ###' : '### CODE START ###'} `
                                     }]
                                 }],
                                 generationConfig: {
@@ -168,8 +168,19 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
                         const cleanOutput = (text) => {
                             let result = text;
+                            // Remove markdown code fences
                             result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
+                            // Remove common "thinking" markers
                             result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+                            // Remove common AI labels that leak into the body
+                            result = result.replace(/^(JAVASCRIPT BODY|CODE ONLY|CODE|ANALYSIS|SUMMARY|### CODE START ###):\s*/i, '');
+                            // If the AI returned an object-like string accidentally
+                            if (result.startsWith('{') && result.endsWith('}') && result.includes('"code"')) {
+                                try {
+                                    const parsed = JSON.parse(result);
+                                    if (parsed.code) result = parsed.code;
+                                } catch(e) {}
+                            }
                             return result.trim();
                         };
 
@@ -178,6 +189,11 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             return res.json({ summary: cleanOutput(aiOutput) });
                         } else {
                             let generatedCode = cleanOutput(aiOutput);
+                            
+                            // Failsafe: if the code starts with a property-like 'code:', strip it
+                            if (generatedCode.startsWith('code:')) {
+                                generatedCode = generatedCode.replace(/^code:\s*/i, '').trim();
+                            }
                             const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                             if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                                 return res.status(400).json({ error: 'Generated code failed security check.' });
@@ -224,7 +240,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                                 content: systemPrompt
                             }, {
                                 role: 'user',
-                                content: `${prompt}\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'}`
+                                content: `${prompt}\n\n${isAnalyze ? '### SUMMARY START ###' : '### CODE START ###'}`
                             }],
                             temperature: 0.2,
                             max_tokens: 1024
@@ -244,19 +260,39 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         console.log(`✅ [GROQ] Success with ${model}`);
                         return res.json({ summary: aiOutput.trim() });
                     } else {
+                        // Clean up output: Remove markdown code blocks, labels, and conversational filler
                         const cleanOutput = (text) => {
                             let result = text;
+                            // Remove markdown code fences
                             result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
+                            // Remove common "thinking" markers
                             result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+                            // Remove common AI labels that leak into the body
+                            result = result.replace(/^(JAVASCRIPT BODY|CODE ONLY|CODE|ANALYSIS|SUMMARY):\s*/i, '');
+                            // If the AI returned an object-like string accidentally
+                            if (result.startsWith('{') && result.endsWith('}') && result.includes('"code"')) {
+                                try {
+                                    const parsed = JSON.parse(result);
+                                    if (parsed.code) result = parsed.code;
+                                } catch(e) {}
+                            }
                             return result.trim();
                         };
 
                         let generatedCode = cleanOutput(aiOutput);
+                        
+                        // Failsafe: if the code starts with a property-like 'code:', strip it
+                        if (generatedCode.startsWith('code:')) {
+                            generatedCode = generatedCode.replace(/^code:\s*/i, '').trim();
+                        }
+
+                        // Security check
                         const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                         if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                             return res.status(400).json({ error: 'Generated code failed security check.' });
                         }
 
+                        // Syntax check (Phase 3: Auto-Correction Loop - Basic)
                         try {
                             new Function('data', 'signal', 'log', '"use strict";\n' + generatedCode);
                         } catch (syntaxError) {
