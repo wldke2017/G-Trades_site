@@ -533,43 +533,81 @@ function formatTime(timestamp) {
 
 function calculateEMA(data, period) {
     if (data.length < period) return null;
-
     const multiplier = 2 / (period + 1);
     let ema = data[0];
-
     for (let i = 1; i < data.length; i++) {
         ema = (data[i] * multiplier) + (ema * (1 - multiplier));
     }
-
     return ema;
 }
 
 function calculateSMA(data, period) {
     if (data.length < period) return null;
-
     const sum = data.slice(-period).reduce((acc, val) => acc + val, 0);
     return sum / period;
 }
 
-function updateTechnicalIndicators() {
-    // Get current tick data from any subscribed market
-    const symbols = Object.keys(marketTickHistory);
-    if (symbols.length === 0) return;
-
-    // Use the first symbol for technical indicators (could be made configurable)
-    const symbol = symbols[0];
-    const tickData = marketTickHistory[symbol];
-
-    if (tickData && tickData.length >= 50) { // Minimum data for SMA
-        emaValue = calculateEMA(tickData, 100); // EMA period 100
-        smaValue = calculateSMA(tickData, 50);  // SMA period 50
-
-        // Log technical indicators occasionally
-        if (Math.random() < 0.01) { // Log ~1% of the time to avoid spam
-            addBotLog(`📊 EMA(100): ${emaValue ? emaValue.toFixed(4) : 'N/A'} | SMA(50): ${smaValue ? smaValue.toFixed(4) : 'N/A'}`);
-        }
+function calculateRSI(data, period = 14) {
+    if (data.length <= period) return null;
+    
+    let gains = 0;
+    let losses = 0;
+    
+    // First average gain/loss
+    for (let i = 1; i <= period; i++) {
+        const change = data[i] - data[i - 1];
+        if (change > 0) gains += change;
+        else losses -= change;
     }
+    
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    
+    // Smoothed calculations for the rest
+    for (let i = period + 1; i < data.length; i++) {
+        const change = data[i] - data[i - 1];
+        let currentGain = 0;
+        let currentLoss = 0;
+        
+        if (change > 0) currentGain = change;
+        else currentLoss = -change;
+        
+        avgGain = ((avgGain * (period - 1)) + currentGain) / period;
+        avgLoss = ((avgLoss * (period - 1)) + currentLoss) / period;
+    }
+    
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
 }
+
+function calculateStandardDeviation(data) {
+    const n = data.length;
+    const mean = data.reduce((a, b) => a + b) / n;
+    const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+    return Math.sqrt(variance);
+}
+
+function calculateBollingerBands(data, period = 20, multiplier = 2) {
+    if (data.length < period) return null;
+    const slice = data.slice(-period);
+    const sma = calculateSMA(slice, period);
+    const stdDev = calculateStandardDeviation(slice);
+    return {
+        middle: sma,
+        upper: sma + (multiplier * stdDev),
+        lower: sma - (multiplier * stdDev)
+    };
+}
+
+// Map globally for the AI Execution Engine and App
+window.TechnicalIndicators = {
+    calculateEMA,
+    calculateSMA,
+    calculateRSI,
+    calculateStandardDeviation,
+    calculateBollingerBands
+};
 
 // ===================================
 // DIGIT ANALYSIS FUNCTIONS

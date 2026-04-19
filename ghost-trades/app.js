@@ -485,6 +485,21 @@ function handleIncomingMessage(msg) {
 
                     // Calculate percentages using shared utility
                     const percentages = calculateDigitPercentages(symbol, analysisCount);
+                    
+                    // Technical Indicators calculations
+                    const ticks = marketTickHistory[symbol] || [];
+                    const indicators = {};
+                    
+                    if (window.TechnicalIndicators && ticks.length >= 14) {
+                        indicators.RSI_14 = window.TechnicalIndicators.calculateRSI(ticks, 14);
+                        indicators.SMA_20 = window.TechnicalIndicators.calculateSMA(ticks, 20);
+                        indicators.EMA_20 = window.TechnicalIndicators.calculateEMA(ticks, 20);
+                        indicators.BOLLINGER_20 = window.TechnicalIndicators.calculateBollingerBands(ticks, 20, 2);
+                        
+                        if (ticks.length >= 50) {
+                            indicators.SMA_50 = window.TechnicalIndicators.calculateSMA(ticks, 50);
+                        }
+                    }
 
                     const aiTickContext = {
                         symbol: symbol,
@@ -492,6 +507,7 @@ function handleIncomingMessage(msg) {
                         digits: marketFullTickDigits[symbol] || [],
                         lastDigit: parseInt(price.toString().slice(-1)),
                         percentages: percentages, // Add calculated percentages
+                        indicators: indicators,   // Attach Technical Indicators for AI
                         analysis: { count: analysisCount } // Meta info
                     };
                     window.aiStrategyRunner.execute(aiTickContext);

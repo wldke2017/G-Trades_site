@@ -14,6 +14,19 @@ class AIStrategyRunner {
         this.errors = 0;
         this.consecutiveErrors = 0;
         this.allowedMarkets = []; // List of symbols allowed to trade
+        
+        // Advanced State Memory for Strategies
+        this.memoryStore = {};
+        this.memoryApi = {
+            get: (key, def = null) => this.memoryStore[key] !== undefined ? this.memoryStore[key] : def,
+            set: (key, value) => { this.memoryStore[key] = value; },
+            increment: (key, amount = 1) => { 
+                this.memoryStore[key] = (this.memoryStore[key] || 0) + amount; 
+                return this.memoryStore[key];
+            },
+            delete: (key) => { delete this.memoryStore[key]; },
+            clear: () => { this.memoryStore = {}; }
+        };
     }
 
     /**
@@ -206,6 +219,9 @@ class AIStrategyRunner {
         const log = (msg) => this.log(msg, 'info');
 
         try {
+            // Attach Memory API to context seamlessly
+            tickContext.memory = this.memoryApi;
+            
             // Execute the strategy
             this.compiledStrategy(tickContext, signal, log);
             this.executionCount++;
