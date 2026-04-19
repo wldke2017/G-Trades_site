@@ -16,8 +16,8 @@ const GEMINI_MODELS = [
 ];
 
 // Groq Configuration (Fallback Provider)
-const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS = [
     'llama-3.1-70b-versatile',
     'llama-3.1-8b-instant'
@@ -103,7 +103,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
         if (keys.length === 0 && !GROQ_API_KEY) {
             console.warn('⚠️ No AI API keys found. Returning mock response.');
             return res.json({
-                code: mode === 'analyze' ? null : \`// MOCK MODE: API Key missing\\nlog('Mock Strategy Active');\`,
+                code: mode === 'analyze' ? null : `// MOCK MODE: API Key missing\nlog('Mock Strategy Active');`,
                 summary: mode === 'analyze' ? "MOCK SUMMARY: This strategy will trade based on even digits." : null
             });
         }
@@ -119,23 +119,23 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         // ===== PHASE 1: TRY GEMINI =====
         if (keys.length > 0) {
-            console.log(\`🔷 [GEMINI] Trying \${GEMINI_MODELS.length} models with \${keys.length} keys...\`);
+            console.log(`🔷 [GEMINI] Trying ${GEMINI_MODELS.length} models with ${keys.length} keys...`);
 
             for (const model of GEMINI_MODELS) {
-                const apiUrl = \`\${GEMINI_BASE_URL}/\${model}:generateContent\`;
+                const apiUrl = `${GEMINI_BASE_URL}/${model}:generateContent`;
 
                 for (let attempt = 0; attempt < keys.length; attempt++) {
                     const currentKey = keys[keyIndex % keys.length];
-                    console.log(\`🤖 [GEMINI] \${model} / Key \${keyIndex % keys.length}\`);
+                    console.log(`🤖 [GEMINI] ${model} / Key ${keyIndex % keys.length}`);
 
                     try {
-                        const response = await fetch(\`\${apiUrl}?key=\${currentKey}\`, {
+                        const response = await fetch(`${apiUrl}?key=${currentKey}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [{
-                                        text: \`\${systemPrompt} \\n\\nUSER PROMPT: "\${prompt}"\\n\\n\${isAnalyze ? 'CONFIRMATION SUMMARY:' : 'JAVASCRIPT BODY (CODE ONLY):'} \`
+                                        text: `${systemPrompt} \n\nUSER PROMPT: "${prompt}"\n\n${isAnalyze ? 'CONFIRMATION SUMMARY:' : 'JAVASCRIPT BODY (CODE ONLY):'} `
                                     }]
                                 }],
                                 generationConfig: {
@@ -146,33 +146,29 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         });
 
                         if (response.status === 429) {
-                            console.warn(\`⚠️ [GEMINI] Quota exhausted\`);
+                            console.warn(`⚠️ [GEMINI] Quota exhausted`);
                             keyIndex++;
                             continue;
                         }
 
                         if (!response.ok) {
                             if (response.status === 404) break;
-                            throw new Error(\`Gemini \${response.status}\`);
+                            throw new Error(`Gemini ${response.status}`);
                         }
 
                         const responseData = await response.json();
 
-                        // Robust response extraction (handles different GEMINI response formats and thinking blocks)
+                        // Robust response extraction
                         let aiOutput = "";
                         if (responseData.candidates?.[0]?.content?.parts) {
                             aiOutput = responseData.candidates[0].content.parts
                                 .map(p => p.text || "")
-                                .join("\\n");
+                                .join("\n");
                         }
 
-                        // Clean up output: Remove markdown code blocks and any "thinking" artifacts
                         const cleanOutput = (text) => {
                             let result = text;
-                            // Remove markdown code fences
-                            result = result.replace(/\`\`\`[a-z]*\\n?/gi, '').replace(/\`\`\`/g, '');
                             result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
-                            // Remove common "thinking" markers if they leaked
                             result = result.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
                             return result.trim();
                         };
@@ -182,20 +178,15 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             return res.json({ summary: cleanOutput(aiOutput) });
                         } else {
                             let generatedCode = cleanOutput(aiOutput);
-                            
-                            // Security check
                             const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                             if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                                 return res.status(400).json({ error: 'Generated code failed security check.' });
                             }
 
-                            // Syntax check (Phase 3: Auto-Correction Loop - Basic)
                             try {
                                 new Function('data', 'signal', 'log', '"use strict";\n' + generatedCode);
                             } catch (syntaxError) {
                                 console.warn(`❌ [GEMINI] Syntax Error in generated code: ${syntaxError.message}`);
-                                // In a full implementation, we would send this back for self-correction.
-                                // For now, we continue the loop to try another model or provider.
                                 lastError = `Syntax Error: ${syntaxError.message}`;
                                 continue;
                             }
@@ -214,16 +205,16 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
         // ===== PHASE 2: TRY GROQ =====
         if (GROQ_API_KEY) {
-            console.log(\`🟢 [GROQ] Gemini exhausted. Switching to Groq...\`);
+            console.log(`🟢 [GROQ] Gemini exhausted. Switching to Groq...`);
 
             for (const model of GROQ_MODELS) {
-                console.log(\`🤖 [GROQ] Trying \${model}\`);
+                console.log(`🤖 [GROQ] Trying ${model}`);
 
                 try {
                     const response = await fetch(GROQ_BASE_URL, {
                         method: 'POST',
                         headers: {
-                            'Authorization': \`Bearer \${GROQ_API_KEY}\`,
+                            'Authorization': `Bearer ${GROQ_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
@@ -233,7 +224,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                                 content: systemPrompt
                             }, {
                                 role: 'user',
-                                content: \`\${prompt}\\n\\n\${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'}\`
+                                content: `${prompt}\n\n${isAnalyze ? 'ANALYSIS SUMMARY:' : 'JAVASCRIPT BODY:'}`
                             }],
                             temperature: 0.2,
                             max_tokens: 1024
@@ -242,7 +233,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.error(\`❌ [GROQ] \${response.status}: \${errorText}\`);
+                        console.error(`❌ [GROQ] ${response.status}: ${errorText}`);
                         continue;
                     }
 
@@ -253,7 +244,6 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         console.log(`✅ [GROQ] Success with ${model}`);
                         return res.json({ summary: aiOutput.trim() });
                     } else {
-                        // Clean up output: Remove markdown code blocks and any "thinking" artifacts
                         const cleanOutput = (text) => {
                             let result = text;
                             result = result.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '');
@@ -262,14 +252,11 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         };
 
                         let generatedCode = cleanOutput(aiOutput);
-                        
-                        // Security check
                         const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                         if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                             return res.status(400).json({ error: 'Generated code failed security check.' });
                         }
 
-                        // Syntax check (Phase 3: Auto-Correction Loop - Basic)
                         try {
                             new Function('data', 'signal', 'log', '"use strict";\n' + generatedCode);
                         } catch (syntaxError) {
@@ -293,7 +280,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
 
     } catch (error) {
         console.error('AI Generation Error:', error);
-        res.status(500).json({ error: \`Failed to generate strategy: \${error.message}\` });
+        res.status(500).json({ error: `Failed to generate strategy: ${error.message}` });
     }
 });
 module.exports = router;
