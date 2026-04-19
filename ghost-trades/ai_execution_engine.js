@@ -233,6 +233,16 @@ class AIStrategyRunner {
             return;
         }
 
+        // Clean up accidentally passed symbols as barriers (e.g. if AI hallucinates it)
+        if (typeof barrier === 'string' && (barrier.includes('HZ') || barrier.includes('R_') || barrier.includes('JD'))) {
+            barrier = null;
+        }
+
+        // Standard CALL/PUT (Rise/Fall) do NOT use barriers in basic execution
+        if (type === 'CALL' || type === 'PUT' || type === 'DIGITEVEN' || type === 'DIGITODD') {
+            barrier = null;
+        }
+
         // --- VIRTUAL HOOK LOGIC CHECK ---
         let isRealTrade = true;
 
