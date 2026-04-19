@@ -181,8 +181,28 @@ class AIStrategyRunner {
         }
         // -------------------------------
 
-        // Prepare safe API functions
-        const signal = (type, stake, barrier) => this.handleSignal(type, stake, tickContext.symbol, barrier);
+        // Prepare safe API functions with flexible argument parsing
+        const signal = (...args) => {
+            let sType = args[0];
+            let sStake = args[1];
+            let sSymbol = tickContext.symbol; // Default to current tick context
+            let sBarrier = null;
+
+            if (args.length >= 4) {
+                // e.g. signal('DIGITUNDER', 0.35, 'JD100', 4)
+                sSymbol = args[2];
+                sBarrier = args[3];
+            } else if (args.length === 3) {
+                // e.g. signal('CALL', 0.35, 'JD100') OR signal('DIGITOVER', 0.35, 5)
+                if (typeof args[2] === 'string' && (args[2].includes('HZ') || args[2].includes('R_') || args[2].includes('JD'))) {
+                    sSymbol = args[2];
+                } else {
+                    sBarrier = args[2];
+                }
+            }
+            
+            this.handleSignal(sType, sStake, sSymbol, sBarrier);
+        };
         const log = (msg) => this.log(msg, 'info');
 
         try {
