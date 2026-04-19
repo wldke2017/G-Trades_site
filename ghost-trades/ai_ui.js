@@ -425,11 +425,14 @@ async function handleGenerateStrategy() {
 
 function handleRunStrategy() {
     console.log('🏃 handleRunStrategy: Processing...');
-    const code = aiCodeEditor?.value?.trim();
+    let code = aiCodeEditor?.value?.trim();
     if (!code) {
         showToast('No code to run.', 'error');
         return;
     }
+
+    // Sanitize in case the API returned markdown blocks like ```javascript or ```
+    code = code.replace(/```javascript/gi, '').replace(/```js/gi, '').replace(/```/gi, '').trim();
 
     if (!window.aiStrategyRunner) {
         showToast('AI Engine not initialized.', 'error');
@@ -473,9 +476,16 @@ function handleRunStrategy() {
         if (started) {
             updateAIStatus('RUNNING');
             updateAIButtons(true);
+            switchAiTab('monitor');
+            showToast('Ghost AI Engine Started', 'success');
+        } else {
+            showToast('Engine failed to start. Review logs (Real Account?).', 'error');
+            updateAIButtons(false);
         }
     } else {
-        showToast('Compilation Failed. Check logs.', 'error');
+        showToast('Compilation Failed. Check the code and logs.', 'error');
+        updateAIStatus('ERROR');
+        updateAIButtons(false);
     }
 }
 

@@ -209,15 +209,27 @@ class AIStrategyRunner {
     handleSignal(type, stake, symbol, barrier = null) {
         if (!this.isActive) return;
 
-        // Validate signal
+        // Validations & defaults
+        if (typeof stake === 'string' && isNaN(parseFloat(stake))) {
+            // IF AI called signal('CALL', 'R_100') missing the stake parameter
+            barrier = symbol;
+            symbol = stake;
+            stake = undefined;
+        }
+
+        // Default to current tracking state if stake is missing or invalid
+        if (stake === undefined || isNaN(stake) || stake <= 0) {
+            stake = window.aiTradingState?.currentStake || 0.35;
+        }
+        
+        if (!symbol) {
+             this.log(`Signal error: Missing symbol`, 'error');
+             return;
+        }
+
         const validTypes = ['CALL', 'PUT', 'DIGITOVER', 'DIGITUNDER', 'DIGITMATCH', 'DIGITDIFF', 'DIGITEVEN', 'DIGITODD'];
         if (!validTypes.includes(type)) {
             this.log(`Invalid signal type: ${type}`, 'warning');
-            return;
-        }
-
-        if (isNaN(stake) || stake <= 0) {
-            this.log(`Invalid stake: ${stake}`, 'warning');
             return;
         }
 

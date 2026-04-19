@@ -1225,3 +1225,46 @@
     color: var(--success-color);
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
+
+/* ===================================
+   LIVE MONITOR RESPONSE (bot-stats)
+   =================================== */
+
+.ai-history-section {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .ai-history-section .bot-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px !important;
+    }
+    
+    .ai-history-section .stat-item {
+        padding: 8px !important;
+    }
+    
+    .ai-history-section .stat-value {
+        font-size: 0.95rem !important;
+    }
+
+    .ai-ops-buttons {
+        flex-direction: row;
+        width: 100%;
+        max-width: 100% !important;
+    }
+
+    .ai-ops-buttons .btn-ops {
+        flex: 1;
+        padding: 12px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 374px) {
+    .ai-history-section .bot-stats {
+        grid-template-columns: 1fr !important;
+    }
+}
