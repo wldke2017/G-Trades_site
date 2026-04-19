@@ -142,7 +142,6 @@ function initializeAIUI() {
         aiSmartRecoveryToggle.addEventListener('change', toggleSmartRecoveryUI);
         // Initialize UI state
         toggleSmartRecoveryUI();
-        toggleSmartRecoveryUI();
     }
 
     // Strategy Management Event Listeners

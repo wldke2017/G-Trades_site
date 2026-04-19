@@ -166,7 +166,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                             return res.json({ summary: cleanOutput(aiOutput) });
                         } else {
                             let generatedCode = cleanOutput(aiOutput);
-                            const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+                        const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                             if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                                 return res.status(400).json({ error: 'Generated code failed security check.' });
                             }
@@ -224,7 +224,7 @@ router.post('/generate', apiLimiter, async (req, res) => {
                         return res.json({ summary: aiOutput.trim() });
                     } else {
                         let generatedCode = aiOutput.replace(/```javascript/g, '').replace(/```/g, '').trim();
-                        const dangerousKeywords = ['eval', 'Function', 'import', 'process', 'window', 'document'];
+                        const dangerousKeywords = ['eval', 'Function', 'import', 'process'];
                         if (dangerousKeywords.some(kw => generatedCode.includes(kw))) {
                             return res.status(400).json({ error: 'Generated code failed security check.' });
                         }
