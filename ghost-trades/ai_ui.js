@@ -452,7 +452,8 @@ function handleRunStrategy() {
         const stakeInput = document.getElementById('ai-stake-input');
         const baseStake = parseFloat(stakeInput?.value) || 0.35;
 
-        window.aiTradingState.currentStake = baseStake;
+        window.aiTradingState.currentStake = baseStake; // Keep global for UI display
+        window.aiTradingState.marketStates = {}; // NEW: Isolated state maps tracking
         window.aiTradingState.consecutiveLosses = 0;
         window.aiTradingState.accumulatedLoss = 0;
         window.aiTradingState.totalProfit = 0;
@@ -675,25 +676,42 @@ window.handleAIStrategyResult = function (contract) {
         const payout = tradeStake + profit; // Approx payout
         window.aiTradingState.totalPayout += payout;
 
-        // Reset stake and accumulation
+        // Reset isolated state
         const baseStake = parseFloat(stakeInput?.value) || 0.35;
+        // Also keep track in global for the UI/legacy code just in case
         window.aiTradingState.currentStake = baseStake;
-        window.aiTradingState.consecutiveLosses = 0;
-        window.aiTradingState.accumulatedLoss = 0;
+        
+        // Initialize or grab isolated state
+        const stateKey = `${contract.symbol}_${contract.contract_type}`;
+        if (!window.aiTradingState.marketStates) window.aiTradingState.marketStates = {};
+        window.aiTradingState.marketStates[stateKey] = {
+            currentStake: baseStake,
+            consecutiveLosses: 0,
+            accumulatedLoss: 0
+        };
 
         if (window.aiStrategyRunner) {
-            window.aiStrategyRunner.log(`WIN: +$${profit.toFixed(2)}. Stake reset to $${baseStake}`, 'success');
+            window.aiStrategyRunner.log(`WIN: +$${profit.toFixed(2)}. ${contract.symbol} ${contract.contract_type} -> Stake reset to $${baseStake}`, 'success');
         }
     } else {
         // LOSS
         window.aiTradingState.lossCount++;
         // Payout is 0 on loss
 
-        // Smart Recovery or Martingale
-        window.aiTradingState.consecutiveLosses++;
-
-        // Add current loss to accumulation
-        window.aiTradingState.accumulatedLoss += window.aiTradingState.currentStake;
+        const stateKey = `${contract.symbol}_${contract.contract_type}`;
+        if (!window.aiTradingState.marketStates) window.aiTradingState.marketStates = {};
+        if (!window.aiTradingState.marketStates[stateKey]) {
+            const baseStake = parseFloat(stakeInput?.value) || 0.35;
+            window.aiTradingState.marketStates[stateKey] = {
+                currentStake: baseStake,
+                consecutiveLosses: 0,
+                accumulatedLoss: 0
+            };
+        }
+        
+        let mState = window.aiTradingState.marketStates[stateKey];
+        mState.consecutiveLosses++;
+        mState.accumulatedLoss += tradeStake; // Add current loss stake to accumulation
 
         const isSmartRecovery = document.getElementById('ai-smart-recovery-toggle')?.checked;
         let nextStake;
@@ -705,24 +723,23 @@ window.handleAIStrategyResult = function (contract) {
 
             // Formula: accumulatedLoss * (100 / payoutPercent)
             const recoveryMultiplier = 100 / payoutPercent;
-            nextStake = window.aiTradingState.accumulatedLoss * recoveryMultiplier;
-
-            // Safety: Ensure new stake is at least base stake (though arguably it should be calculated)
-            // But main logic is recovery. 
-
-            logMsg = `Smart Recovery: AccLoss $${window.aiTradingState.accumulatedLoss.toFixed(2)} * (100/${payoutPercent}%)`;
+            nextStake = mState.accumulatedLoss * recoveryMultiplier;
+            logMsg = `Smart Recovery: AccLoss $${mState.accumulatedLoss.toFixed(2)} * (100/${payoutPercent}%)`;
         } else {
             // Legacy Martingale
             const martingaleMultiplier = parseFloat(martingaleInput?.value) || 2.1;
-            nextStake = window.aiTradingState.currentStake * martingaleMultiplier;
+            nextStake = mState.currentStake * martingaleMultiplier;
             logMsg = `Martingale: x${martingaleMultiplier}`;
         }
 
         nextStake = Math.round(nextStake * 100) / 100;
+        mState.currentStake = nextStake;
+        
+        // Optional global update just for the main display stake placeholder
         window.aiTradingState.currentStake = nextStake;
 
         if (window.aiStrategyRunner) {
-            window.aiStrategyRunner.log(`LOSS: $${profit.toFixed(2)}. ${logMsg} -> Next Stake: $${nextStake}`, 'warning');
+            window.aiStrategyRunner.log(`LOSS: $${profit.toFixed(2)}. [${contract.symbol} ${contract.contract_type}] ${logMsg} -> Next Stake: $${nextStake}`, 'warning');
         }
     }
 

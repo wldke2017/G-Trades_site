@@ -63,6 +63,16 @@ When a user asks to "wait for X ticks", use this pattern:
       }
    }
 
+--- BEST PRACTICES for Concurrent Trades ---
+If the prompt asks to execute MULTIPLE trades at the same time (e.g. "Trade OVER 5 and UNDER 4 simultaneously"):
+Simply call signal() multiple times within the same execution block! The engine safely executes them concurrently.
+Example:
+if (data.lastDigit === 4 || data.lastDigit === 5) {
+    signal('DIGITOVER', null, data.symbol, 5);
+    signal('DIGITUNDER', null, data.symbol, 4);
+    log("Concurrent bounds trading executed.", "success");
+}
+
 EXAMPLE 1 (Sequence): "If digit 0 appears, wait 2 ticks and buy Match 7."
 if (data.lastDigit === 0) {
     data.memory.set('wait_step', 1);

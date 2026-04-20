@@ -691,23 +691,21 @@ window.executeAIStratTrade = function (type, stake, symbol, barrier = null) {
         return;
     }
 
-    // --- MANUAL STAKE & MARTINGALE LOGIC ---
-    // Ignore the 'stake' from the AI strategy and use manual configuration
+    // --- MANUAL STAKE & ISOLATED MARTINGALE LOGIC ---
     const stakeInput = document.getElementById('ai-stake-input');
-    const martingaleInput = document.getElementById('ai-martingale-input');
+    const baseStake = parseFloat(stakeInput?.value) || 0.35;
+    
+    let actualStake = baseStake;
 
-    let actualStake = 0.35; // Fallback default
-
-    if (stakeInput && martingaleInput) {
-        const baseStake = parseFloat(stakeInput.value) || 0.35;
-        // Use the tracked current stake from state
-        actualStake = window.aiTradingState.currentStake || baseStake;
-
-        // Ensure strictly no less than base stake (safety)
-        if (actualStake < baseStake) actualStake = baseStake;
-    } else {
-        actualStake = parseFloat(stake) || 0.35; // Fallback to strategy stake if inputs missing
+    if (window.aiTradingState?.marketStates) {
+        const stateKey = `${symbol}_${type}`;
+        if (window.aiTradingState.marketStates[stateKey]) {
+            actualStake = window.aiTradingState.marketStates[stateKey].currentStake || baseStake;
+        }
     }
+
+    // Ensure strictly no less than base stake (safety)
+    if (actualStake < baseStake) actualStake = baseStake;
 
     // Round to 2 decimals
     actualStake = Math.round(actualStake * 100) / 100;

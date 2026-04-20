@@ -14,6 +14,7 @@ class AIStrategyRunner {
         this.errors = 0;
         this.consecutiveErrors = 0;
         this.allowedMarkets = []; // List of symbols allowed to trade
+        this.cooldowns = {}; // symbol -> cooldown expiration timestamp
         
         // Advanced State Memory for Strategies
         this.memoryStore = {};
@@ -138,6 +139,11 @@ class AIStrategyRunner {
 
         // FILTER: Only run for selected markets
         if (!this.allowedMarkets.includes(tickContext.symbol)) {
+            return;
+        }
+
+        // COOLDOWN FILTER: Prevent duplicate executions if market is resting post-trade
+        if (this.cooldowns[tickContext.symbol] && Date.now() < this.cooldowns[tickContext.symbol]) {
             return;
         }
 
@@ -314,6 +320,10 @@ class AIStrategyRunner {
             if (typeof window.virtualHookManager !== 'undefined') {
                 window.virtualHookManager.resetSymbol('ai_strategy', symbol);
             }
+
+            // SET COOLDOWN: Block this symbol from duplicate signals for 3 seconds
+            // This prevents buying multiple times on subsequent ticks while trades settle.
+            this.cooldowns[symbol] = Date.now() + 3000;
 
         } else {
             console.warn('executeAIStratTrade function not found in global scope');
