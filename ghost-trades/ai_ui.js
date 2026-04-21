@@ -288,66 +288,29 @@ function toggleSmartRecoveryUI() {
 }
 
 async function handleAnalyzeStrategy() {
+    // Skipping Consultant Analysis per user request to directly generate code
+    handleGenerateCode();
+}
+
+async function handleGenerateCode() {
     const prompt = aiPromptInput.value.trim();
     if (!prompt) {
         showToast('Please enter a strategy description.', 'error');
         return;
     }
 
-    console.log('🤖 AI: Analyzing strategy for prompt:', prompt.substring(0, 100) + '...');
-    updateAIStatus('ANALYZING');
-    aiGenerateBtn.disabled = true;
-    aiGenerateBtn.textContent = 'Analyzing...';
-
-    // Reset and show analysis container
-    if (aiAnalysisContainer) {
-        aiAnalysisContainer.style.display = 'block';
-        aiSummaryDisplay.innerHTML = '<div class="loader-small" style="margin: 20px auto;"></div><p style="text-align:center; color: var(--text-muted);">Consultant is reviewing your strategy...</p>';
-        aiConfirmBtn.disabled = true;
-        aiAnalysisStatus.textContent = 'Working...';
-    }
-
-    try {
-        const token = localStorage.getItem('deriv_token');
-        const response = await fetch(AI_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ prompt, mode: 'analyze' })
-        });
-
-        const data = await handleAPIResponse(response);
-
-        if (aiSummaryDisplay) {
-            // Convert markdown-ish bold/bullets to HTML
-            let summaryHtml = data.summary
-                .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--primary-color)">$1</strong>')
-                .replace(/^- (.*)$/gm, '<li style="margin-left:20px; margin-bottom:5px;">$1</li>');
-
-            aiSummaryDisplay.innerHTML = `<div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">${summaryHtml}</div>`;
-            aiConfirmBtn.disabled = false;
-            aiAnalysisStatus.textContent = 'Completed';
-            updateAIStatus('REVIEW');
-            showToast('Analysis complete! Please review.', 'success');
-        }
-
-    } catch (error) {
-        handleError(error);
-    } finally {
-        aiGenerateBtn.disabled = false;
-        aiGenerateBtn.textContent = 'Analyze Strategy';
-    }
-}
-
-async function handleGenerateCode() {
-    const prompt = aiPromptInput.value.trim();
-
     console.log('🤖 AI: Generating code for prompt...');
     updateAIStatus('GENERATING');
-    aiConfirmBtn.disabled = true;
-    aiConfirmBtn.textContent = 'Generating Code...';
+    
+    if (aiConfirmBtn) {
+        aiConfirmBtn.disabled = true;
+        aiConfirmBtn.textContent = 'Generating Code...';
+    }
+    
+    if (aiGenerateBtn) {
+        aiGenerateBtn.disabled = true;
+        aiGenerateBtn.textContent = 'Generating Code...';
+    }
 
     try {
         const token = localStorage.getItem('deriv_token');
@@ -378,8 +341,14 @@ async function handleGenerateCode() {
     } catch (error) {
         handleError(error);
     } finally {
-        aiConfirmBtn.disabled = false;
-        aiConfirmBtn.textContent = 'Looks Good, Generate Code';
+        if (aiConfirmBtn) {
+            aiConfirmBtn.disabled = false;
+            aiConfirmBtn.textContent = 'Looks Good, Generate Code';
+        }
+        if (aiGenerateBtn) {
+            aiGenerateBtn.disabled = false;
+            aiGenerateBtn.textContent = 'Generate Strategy';
+        }
     }
 }
 
