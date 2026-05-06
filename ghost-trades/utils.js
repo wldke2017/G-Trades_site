@@ -15,11 +15,16 @@ const ACCOUNT_TYPES = {
 };
 
 // --- Deriv OAuth Configuration ---
+// IMPORTANT: redirect_uri MUST exactly match the URL registered in Deriv's App Manager
+// for app_id 119056. Go to https://api.deriv.com/ → App Manager to check/update it.
+const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
     app_id: '119056',
     authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
     token_url: 'https://oauth.deriv.com/oauth2/token',
-    redirect_uri: window.location.origin + window.location.pathname,
+    redirect_uri: _isLocalhost
+        ? window.location.origin + window.location.pathname  // Local dev: dynamic
+        : 'https://ghost-trades.site/',                       // Production: hardcoded to match App Manager
     scope: 'read,trade,payments,trading_information,admin',
     brand: 'deriv',
     language: 'EN',
