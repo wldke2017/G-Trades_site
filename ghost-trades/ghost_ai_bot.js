@@ -20,6 +20,10 @@ window.activeS1Symbols = new Map(); // Changed from Set to Map for timestamp tra
 window.processedContracts = new Set();
 // Track last trade time per symbol to prevent double entry
 window.lastTradeTimes = {};
+// Track technical indicators globally for the bot
+window.marketTechnicalIndicators = {};
+// Per-market cooldown to prevent immediate duplicate trades
+let symbolCooldowns = {};
 
 // Bot State Object - Tracks current strategy state
 const botState = {
@@ -579,6 +583,35 @@ function updateBotStats() {
     }
 }
 
+/**
+ * Update technical indicators for all active markets.
+ * Calculates RSI, SMA, EMA and Bollinger Bands for each symbol in marketTickHistory.
+ */
+function updateTechnicalIndicators() {
+    if (!window.TechnicalIndicators) return;
+
+    Object.keys(marketTickHistory).forEach(symbol => {
+        const ticks = marketTickHistory[symbol] || [];
+        if (ticks.length < 14) return;
+
+        const indicators = {};
+        try {
+            indicators.RSI_14 = window.TechnicalIndicators.calculateRSI(ticks, 14);
+            indicators.SMA_20 = window.TechnicalIndicators.calculateSMA(ticks, 20);
+            indicators.EMA_20 = window.TechnicalIndicators.calculateEMA(ticks, 20);
+            indicators.BOLLINGER_20 = window.TechnicalIndicators.calculateBollingerBands(ticks, 20, 2);
+
+            if (ticks.length >= 50) {
+                indicators.SMA_50 = window.TechnicalIndicators.calculateSMA(ticks, 50);
+            }
+
+            window.marketTechnicalIndicators[symbol] = indicators;
+        } catch (error) {
+            console.error(`Error updating indicators for ${symbol}:`, error);
+        }
+    });
+}
+
 // Performance optimization: Track last scan time and trade placement to avoid excessive scanning
 let lastScanTime = 0;
 const SCAN_COOLDOWN = 100; // Base cooldown between scans
@@ -852,13 +885,14 @@ function handleBotTick(tick) {
 
 
 function scanAndPlaceMultipleTrades() {
-    // === GLOBAL SILENCE ===
-    // If ANY trade is active or pending, stop scanning immediately.
+    // === GLOBAL SILENCE REFACTORED ===
+    // We now allow multiple concurrent trades up to a limit, but still prevent duplicates per symbol.
     const activeContractCount = Object.keys(window.activeContracts).length;
     const pendingStakeCount = Object.keys(expectedStakes).length;
+    const maxConcurrentTrades = 5; // Increased from 1 to allow "Dual Digit" and multi-market trades
 
-    if (activeContractCount > 0 || pendingStakeCount > 0) {
-        console.log(`🤫 Global Silence: Active (${activeContractCount}) or Pending (${pendingStakeCount}) trades. Scanning paused.`);
+    if (activeContractCount + pendingStakeCount >= maxConcurrentTrades) {
+        if (Math.random() < 0.1) console.log(`🤫 Max Concurrency reached: Active (${activeContractCount}) + Pending (${pendingStakeCount}) >= ${maxConcurrentTrades}. Scanning paused.`);
         return;
     }
 
@@ -922,7 +956,61 @@ function scanAndPlaceMultipleTrades() {
 
         if (lastDigits.length < 20 || !percentages) continue;
 
-        console.log(`✅ ${symbol}: Ready with ${lastDigits.length} ticks`);
+        // --- PER-MARKET COOLDOWN CHECK ---
+        if (symbolCooldowns[symbol] && Date.now() < symbolCooldowns[symbol]) {
+            continue;
+        }
+
+        // console.log(`✅ ${symbol}: Ready with ${lastDigits.length} ticks`);
+
+        const lastDigit = lastDigits[lastDigits.length - 1];
+
+        // --- NEW: DUAL DIGIT GAP STRATEGY ---
+        // "trade over 5 and under 4 at the same time, if the last digit is 4 or 5"
+        if (lastDigit === 4 || lastDigit === 5) {
+            console.log(`🎯 [Dual Digit] Triggered for ${symbol}: Last digit is ${lastDigit}`);
+
+            // 1. Check if we can place OVER 5
+            const over5Unique = isTradeSignatureUnique(symbol, 5, botState.initialStake, 'ghost_ai');
+            const over5Allowed = canPlaceStakeBasedTrade(symbol, botState.initialStake, 'ghost_ai');
+
+            if (over5Unique && over5Allowed) {
+                addBotLog(`🚀 [Dual Digit] Over 5 signal for ${symbol}`, 'info');
+                recordPendingStake(symbol, botState.initialStake, 'ghost_ai');
+                recordTradeSignature(symbol, 5, botState.initialStake, 'ghost_ai');
+                executeTradeWithTracking({
+                    symbol,
+                    mode: 'S1',
+                    prediction: 5,
+                    contractType: 'OVER',
+                    stake: botState.initialStake
+                });
+                
+                // Add a small cooldown to avoid immediate re-trigger for this symbol
+                symbolCooldowns[symbol] = Date.now() + 3000;
+                continue; // Skip other checks for this symbol in this tick
+            }
+
+            // 2. Check if we can place UNDER 4
+            const under4Unique = isTradeSignatureUnique(symbol, 4, botState.initialStake, 'ghost_ai');
+            const under4Allowed = canPlaceStakeBasedTrade(symbol, botState.initialStake, 'ghost_ai');
+
+            if (under4Unique && under4Allowed) {
+                addBotLog(`🚀 [Dual Digit] Under 4 signal for ${symbol}`, 'info');
+                recordPendingStake(symbol, botState.initialStake, 'ghost_ai');
+                recordTradeSignature(symbol, 4, botState.initialStake, 'ghost_ai');
+                executeTradeWithTracking({
+                    symbol,
+                    mode: 'S1',
+                    prediction: 4,
+                    contractType: 'UNDER',
+                    stake: botState.initialStake
+                });
+
+                symbolCooldowns[symbol] = Date.now() + 3000;
+                continue;
+            }
+        }
 
         // Check S1
         if (!activeS1Symbols.has(symbol) && !botState.s1Blocked) {
@@ -1068,6 +1156,10 @@ function scanAndPlaceMultipleTrades() {
         activeS1Symbols.set(selectedMarket.symbol, Date.now()); // Store timestamp for stale cleanup
 
         addBotLog(`✓ S1 Entry: ${selectedMarket.symbol} | Stake: $${selectedMarket.stake.toFixed(2)}`, 'info');
+        
+        // Apply cooldown after successful execution
+        symbolCooldowns[selectedMarket.symbol] = Date.now() + 3000;
+        
         executeTradeWithTracking(selectedMarket);
     }
 }
