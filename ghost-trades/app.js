@@ -1262,12 +1262,14 @@ function handleOAuthRedirectAndInit() {
 // function updateGhostAIButtonStates moved to ui.js
 
 // Add this line where you set up other event listeners in app.js
-document.addEventListener('DOMContentLoaded', () => {
+function attachGhostAIEvents() {
     // Ghost AI toggle buttons (Unified and Config)
     const ghostAIButtons = document.querySelectorAll('.ghost-ai-multi-toggle');
 
     ghostAIButtons.forEach(button => {
         if (button) {
+            // Remove existing listener to avoid duplicates if called multiple times
+            button.removeEventListener('click', toggleBot);
             button.addEventListener('click', toggleBot);
         }
     });
@@ -1289,7 +1291,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emergencyStopButton) {
         emergencyStopButton.addEventListener('click', emergencyStopAllBots);
     }
+}
 
+// Attach immediately if DOM is ready, otherwise on DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachGhostAIEvents);
+} else {
+    attachGhostAIEvents();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     // Restore bot settings from localStorage
     restoreBotSettingsOnLoad();
 });

@@ -106,6 +106,18 @@ async function startGhostAiBot() {
         console.warn("⚠️ Ghost AI: Ghost Service not found! Virtual Hook may fail.");
     }
 
+    // --- AUTO-SUBSCRIBE FALLBACK ---
+    // If no markets are active, auto-subscribe to Volatility 100 Index
+    const activeMarkets = Object.keys(marketTickHistory || {});
+    if (activeMarkets.length === 0) {
+        if (typeof window.requestMarketData === 'function') {
+            console.log("🔄 Auto-subscribing to default market: R_100");
+            addBotLog("🔄 No markets active. Auto-subscribing to Volatility 100 Index...", 'info');
+            window.requestMarketData('R_100');
+            // Give it a moment to initialize before the first scan
+        }
+    }
+
     // Initialize Bot State for Dual Mode
     botState.nextTradeReal = false; // Default: Trade on Ghost (Background)
     botState.s1ConsecutiveLosses = 0;
@@ -165,12 +177,15 @@ async function startGhostAiBot() {
         updateGhostAIButtonStates(true);
     }
 
-    // Load parameters from UI
-    const initialStake = parseFloat(botInitialStake.value);
-    const targetProfit = parseFloat(botTargetProfit.value);
-    const payoutPercentage = parseFloat(botPayoutPercentage.value);
-    const stopLoss = parseFloat(botStopLoss.value);
-    const maxMartingale = parseInt(botMaxMartingale.value);
+    // Load parameters from UI - ROBUST LOADING
+    const getVal = (id, fallback) => document.getElementById(id)?.value || fallback;
+    const getChecked = (id, fallback) => document.getElementById(id)?.checked ?? fallback;
+
+    const initialStake = parseFloat(getVal('botInitialStake', '0.35'));
+    const targetProfit = parseFloat(getVal('botTargetProfit', '10.0'));
+    const payoutPercentage = parseFloat(getVal('botPayoutPercentage', '95'));
+    const stopLoss = parseFloat(getVal('botStopLoss', '50'));
+    const maxMartingale = parseInt(getVal('botMaxMartingale', '10'));
 
     // Load new configuration parameters
     const analysisDigits = parseInt(document.getElementById('botAnalysisDigits')?.value || 15);
@@ -380,12 +395,6 @@ async function stopGhostAiBot() {
     stopGhostAIWatchdog();
 
     // Release Wake Lock
-    if (typeof window.wakeLockManager !== 'undefined') {
-        window.wakeLockManager.release();
-    }
-
-    // Stop bot timer
-    Lock
     if (typeof window.wakeLockManager !== 'undefined') {
         window.wakeLockManager.release();
     }
@@ -969,6 +978,7 @@ function scanAndPlaceMultipleTrades() {
         // "trade over 5 and under 4 at the same time, if the last digit is 4 or 5"
         if (lastDigit === 4 || lastDigit === 5) {
             console.log(`🎯 [Dual Digit] Triggered for ${symbol}: Last digit is ${lastDigit}`);
+            let placedAny = false;
 
             // 1. Check if we can place OVER 5
             const over5Unique = isTradeSignatureUnique(symbol, 5, botState.initialStake, 'ghost_ai');
@@ -985,10 +995,7 @@ function scanAndPlaceMultipleTrades() {
                     contractType: 'OVER',
                     stake: botState.initialStake
                 });
-                
-                // Add a small cooldown to avoid immediate re-trigger for this symbol
-                symbolCooldowns[symbol] = Date.now() + 3000;
-                continue; // Skip other checks for this symbol in this tick
+                placedAny = true;
             }
 
             // 2. Check if we can place UNDER 4
@@ -1006,7 +1013,10 @@ function scanAndPlaceMultipleTrades() {
                     contractType: 'UNDER',
                     stake: botState.initialStake
                 });
-
+                placedAny = true;
+            }
+            
+            if (placedAny) {
                 symbolCooldowns[symbol] = Date.now() + 3000;
                 continue;
             }
@@ -1106,7 +1116,6 @@ function scanAndPlaceMultipleTrades() {
     }
 
     const activeTradeCount = Object.keys(activeContracts).length;
-    const maxConcurrentTrades = 1;
 
     // === PRIORITY 1: S2 RECOVERY ===
     if (botState.martingaleStepCount > 0 && validS2Markets.length > 0 && botState.activeS2Count < 1 && activeTradeCount < maxConcurrentTrades) {
@@ -1207,7 +1216,7 @@ async function executeTradeWithTracking(marketData) {
     // recordPendingStake(marketData.symbol, marketData.stake, 'ghost_ai'); // Redundant if scan does it
 
     if (marketData.mode === 'S1' && !activeS1Symbols.has(marketData.symbol)) {
-        activeS1Symbols.add(marketData.symbol);
+        activeS1Symbols.set(marketData.symbol, Date.now());
     }
 
     if (marketData.mode === 'S2') {
