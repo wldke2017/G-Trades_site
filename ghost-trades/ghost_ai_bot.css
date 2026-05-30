@@ -332,7 +332,8 @@
 
     .bot-controls,
     .bot-status,
-    .bot-history {
+    .bot-history,
+    .unified-trade-card {
         padding: var(--spacing-md);
     }
 
@@ -360,7 +361,8 @@
 
     .bot-controls,
     .bot-status,
-    .bot-history {
+    .bot-history,
+    .unified-trade-card {
         padding: 15px !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -489,7 +491,8 @@
 
     .bot-controls,
     .bot-status,
-    .bot-history {
+    .bot-history,
+    .unified-trade-card {
         padding: 12px !important;
         border-radius: var(--radius-md) !important;
     }
