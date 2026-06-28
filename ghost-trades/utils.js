@@ -4,7 +4,7 @@
 
 // --- Core Constants ---
 const APP_ID = 119056;
-const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+const WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
 const RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
@@ -494,6 +494,12 @@ function logout() {
     if (connection && connection.readyState === WebSocket.OPEN) {
         connection.close();
     }
+
+    // Toggle header buttons
+    const headerLoginBtn = document.getElementById('headerLoginBtn');
+    const accountSwitcher = document.getElementById('accountSwitcherContainer');
+    if (headerLoginBtn) headerLoginBtn.style.display = 'block';
+    if (accountSwitcher) accountSwitcher.style.display = 'none';
 
     // Show toast
     showToast('Logged out successfully', 'success');

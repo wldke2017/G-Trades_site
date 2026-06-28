@@ -161,6 +161,22 @@ header {
     transform: scale(1.05);
 }
 
+.header-login-btn {
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-base);
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.header-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--primary-glow);
+    filter: brightness(1.1);
+}
+
 .balance-display {
     display: flex;
     align-items: center;

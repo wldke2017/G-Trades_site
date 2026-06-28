@@ -94,6 +94,15 @@ const botState = {
 async function startGhostAiBot() {
     if (isBotRunning) return;
 
+    // --- AUTHENTICATION CHECK ---
+    const token = localStorage.getItem('deriv_token');
+    if (!token) {
+        addBotLog("❌ Cannot start bot: Not logged in. Please login to your Deriv account first.", 'error');
+        showToast('Authentication required. Please login first.', 'error');
+        if (typeof showSection === 'function') showSection('auth-container');
+        return;
+    }
+
     // Initialize Ghost Service (Background WS)
     if (window.ghostService) {
         if (!window.ghostService.isConnected) {
@@ -113,7 +122,7 @@ async function startGhostAiBot() {
         if (typeof window.requestMarketData === 'function') {
             console.log("🔄 Auto-subscribing to default market: R_100");
             addBotLog("🔄 No markets active. Auto-subscribing to Volatility 100 Index...", 'info');
-            window.requestMarketData('R_100');
+            window.requestMarketData('R_100', 1); // Enable subscription
             // Give it a moment to initialize before the first scan
         }
     }

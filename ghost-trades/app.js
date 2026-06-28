@@ -116,6 +116,22 @@ function handleIncomingMessage(msg) {
     if (data.error) {
         console.error("❌ API Error:", data.error.message);
 
+        // Handle authorization failure
+        if (data.msg_type === 'authorize') {
+            console.warn('❌ Authorization failed. Clearing session and showing login...');
+            localStorage.removeItem('deriv_token');
+            
+            const headerLoginBtn = document.getElementById('headerLoginBtn');
+            const accountSwitcher = document.getElementById('accountSwitcherContainer');
+            if (headerLoginBtn) headerLoginBtn.style.display = 'block';
+            if (accountSwitcher) accountSwitcher.style.display = 'none';
+            
+            showSection('auth-container');
+            statusMessage.textContent = "Session expired or invalid. Please login again.";
+            setButtonLoading(loginButton, false);
+            return;
+        }
+
         const errorMessages = {
             'InvalidToken': 'Invalid API Token. Please check and try again.',
             'AuthorizationRequired': 'Authorization required. Please login.',
@@ -1247,15 +1263,36 @@ function handleOAuthRedirectAndInit() {
             populateAccountSwitcher(); // Loads from localStorage
         }
 
+        // Toggle header buttons
+        const headerLoginBtn = document.getElementById('headerLoginBtn');
+        const accountSwitcher = document.getElementById('accountSwitcherContainer');
+        if (headerLoginBtn) headerLoginBtn.style.display = 'none';
+        if (accountSwitcher) accountSwitcher.style.display = 'flex';
+
         // Connect and authorize with stored token
         connectAndAuthorize(storedToken);
         showSection('dashboard');
     } else {
         // 4. No token found. User needs to login.
         console.log('ℹ️ No token found. User needs to initiate login via OAuth buttons.');
+        
+        // Toggle header buttons
+        const headerLoginBtn = document.getElementById('headerLoginBtn');
+        const accountSwitcher = document.getElementById('accountSwitcherContainer');
+        if (headerLoginBtn) headerLoginBtn.style.display = 'block';
+        if (accountSwitcher) accountSwitcher.style.display = 'none';
+
         showSection('auth-container');
         // Just establish a basic connection for manual API token login
         connectToDeriv();
+
+        // Ensure active symbols are requested even without login to populate UI
+        setTimeout(() => {
+            if (typeof requestActiveSymbols === 'function') {
+                console.log('🔄 Requesting active symbols (Initial Load)...');
+                requestActiveSymbols();
+            }
+        }, 1000);
     }
 }
 
@@ -1275,16 +1312,16 @@ function attachGhostAIEvents() {
     });
 
     // Reset Bot Locks button
-    const resetLocksButton = document.getElementById('ghost-ai-reset-locks-button');
-    if (resetLocksButton) {
-        resetLocksButton.addEventListener('click', () => {
+    const resetLocksButtons = document.querySelectorAll('.ghost-ai-reset-locks-btn');
+    resetLocksButtons.forEach(button => {
+        button.addEventListener('click', () => {
             if (typeof window.resetBotLocks === 'function') {
                 window.resetBotLocks();
             } else {
                 console.error("Function resetBotLocks not found!");
             }
         });
-    }
+    });
 
     // Emergency stop button
     const emergencyStopButton = document.getElementById('emergency-stop-all');

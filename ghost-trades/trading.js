@@ -252,7 +252,7 @@ window.setDistributionLookback = function (value) {
     }
 };
 
-function requestMarketData(symbol) {
+function requestMarketData(symbol, subscribe = 0) {
     if (!currentChart) initializeChart();
     CHART_MARKET = symbol;
 
@@ -263,9 +263,17 @@ function requestMarketData(symbol) {
         "adjust_start_time": 1,
         "style": "candles",
         "granularity": CHART_INTERVAL,
-        "subscribe": 0
+        "subscribe": subscribe
     };
     sendAPIRequest(historyRequest).catch(e => console.error("Market Data Error:", e));
+
+    if (subscribe) {
+        // Also subscribe to regular ticks for the bot if requested
+        sendAPIRequest({
+            "ticks": symbol,
+            "subscribe": 1
+        }).catch(e => console.error("Tick Subscription Error:", e));
+    }
 
     tradeMessageContainer.textContent = `Loading data for ${symbol}...`;
 }

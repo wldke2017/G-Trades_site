@@ -122,6 +122,12 @@ function handleConnectionOpen(event) {
     }
 
     startHeartbeat();
+
+    // NEW: Request active symbols immediately to populate UI even before login
+    if (typeof requestActiveSymbols === 'function') {
+        console.log('🔄 Requesting active symbols on connection open...');
+        requestActiveSymbols();
+    }
 }
 
 function startHeartbeat() {

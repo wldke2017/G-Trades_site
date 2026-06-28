@@ -69,6 +69,12 @@ function updateAuthUI(data) {
         updateConnectionStatus('connected');
     }
 
+    // Toggle header buttons
+    const headerLoginBtn = document.getElementById('headerLoginBtn');
+    const accountSwitcher = document.getElementById('accountSwitcherContainer');
+    if (headerLoginBtn) headerLoginBtn.style.display = 'none';
+    if (accountSwitcher) accountSwitcher.style.display = 'flex';
+
     // Reset buttons
     const loginButton = document.getElementById('loginButton');
     if (loginButton && typeof setButtonLoading === 'function') {
