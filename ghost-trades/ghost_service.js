@@ -1,7 +1,9 @@
 class GhostBackgroundService {
     constructor() {
         this.ws = null;
-        this.token = "gaevoMo6NeKj1Dr"; // Hardcoded Ghost Token
+        // Use the user's own stored token instead of a hardcoded one.
+        // The hardcoded token was expired/disabled causing "Account is disabled" errors.
+        this.token = localStorage.getItem('deriv_token') || null;
         this.appId = 119056;
         this.isConnected = false;
         this.onTradeResult = null; // Callback (contract, isWin, profit, strategy)
@@ -11,6 +13,15 @@ class GhostBackgroundService {
     }
 
     connect() {
+        // Always pull the latest token from storage (user may have logged in after construction)
+        this.token = localStorage.getItem('deriv_token') || null;
+
+        // Don't attempt to connect if there's no token — avoids "DisabledClient" errors
+        if (!this.token) {
+            console.log('👻 Ghost Service: No token available. Skipping connection until user logs in.');
+            return;
+        }
+
         this.ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${this.appId}`);
 
         this.ws.onopen = () => {

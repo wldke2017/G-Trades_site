@@ -6,7 +6,7 @@
 // Now featuring: DYNAMIC VIRTUAL HOOK (Dual Socket)
 
 // Configuration Constants
-const GHOST_DEMO_TOKEN = "gaevoMo6NeKj1Dr"; // Hardcoded Ghost Token
+// Note: Ghost service token is now pulled dynamically from localStorage (user's own token)
 
 let isBotRunning = false;
 let botLoopInterval = null;
