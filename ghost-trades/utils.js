@@ -3,7 +3,7 @@
 // ===================================
 
 // --- Core Constants ---
-const APP_ID = 119056;
+const APP_ID = 1089; // Public Deriv testing App ID (numeric, required for WebSocket v3)
 const WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
 const RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_ATTEMPTS = 10;
@@ -15,16 +15,16 @@ const ACCOUNT_TYPES = {
 };
 
 // --- Deriv OAuth Configuration ---
-// IMPORTANT: redirect_uri MUST exactly match the URL registered in Deriv's App Manager
-// for app_id 119056. Go to https://api.deriv.com/ → App Manager to check/update it.
+// IMPORTANT: app_id here is the NEW OAuth App ID from https://developers.deriv.com
+// The redirect_uri MUST exactly match the URL registered in the Deriv App Manager (case-sensitive).
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
-    app_id: '119056',
+    app_id: '33GkIMwvie8mQnHL1kogO', // New OAuth App ID from developers.deriv.com dashboard
     authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
     token_url: 'https://oauth.deriv.com/oauth2/token',
     redirect_uri: _isLocalhost
         ? window.location.origin + window.location.pathname  // Local dev: dynamic
-        : 'https://ghost-trades.site/',                       // Production: hardcoded to match App Manager
+        : 'https://ghost-trades.site/',                       // Must match exactly what is in Deriv App Manager
     scope: 'read,trade,payments,trading_information,admin',
     brand: 'deriv',
     language: 'EN',
