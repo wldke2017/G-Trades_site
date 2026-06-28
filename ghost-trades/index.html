@@ -452,6 +452,25 @@
                 </button>
             </div>
             <div class="dashboard-grid">
+                <!-- AI Agent Live Stream Card -->
+                <div class="card stat-card highlight" style="grid-column: span 1; border-color: #2ecc71;">
+                    <div class="card-icon" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>AI Live Decision</h3>
+                        <p id="ai-action" class="stat-value" style="color: #2ecc71; font-size: 1.2rem; font-weight: 700;">WAITING...</p>
+                        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">
+                            <span>Price: <b id="ai-price" style="color: white;">--</b></span>
+                            <span>RSI: <b id="ai-rsi" style="color: white;">--</b></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card stat-card">
                     <div class="card-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1973,6 +1992,36 @@
     <script src="ui.js?v=2.7"></script>
     <script src="distribution_lookback_helper.js?v=2.7"></script>
     <script src="app.js?v=2.7"></script>
+
+    <!-- Socket.io for AI Live Updates -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const socket = io(); 
+                
+                socket.on('ai-tick', (data) => {
+                    console.log("New AI data received:", data);
+                    
+                    const actionEl = document.getElementById('ai-action');
+                    const priceEl = document.getElementById('ai-price');
+                    const rsiEl = document.getElementById('ai-rsi');
+                    
+                    if (actionEl) actionEl.innerText = data.action;
+                    if (priceEl) priceEl.innerText = `$${Number(data.price).toFixed(2)}`;
+                    if (rsiEl) rsiEl.innerText = Number(data.rsi).toFixed(2);
+                    
+                    // Add a pulse effect on update
+                    if (actionEl) {
+                        actionEl.style.transform = 'scale(1.1)';
+                        setTimeout(() => actionEl.style.transform = 'scale(1)', 200);
+                    }
+                });
+            } catch (e) {
+                console.warn("Socket.io not available or connection failed:", e.message);
+            }
+        });
+    </script>
 </body>
 
 </html>

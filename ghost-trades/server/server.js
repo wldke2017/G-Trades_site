@@ -6,6 +6,8 @@
 const express = require('express');
 const cors = require('cors');
 const redis = require('redis');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 // Configuration
@@ -13,6 +15,16 @@ const PORT = process.env.PORT || 3000;
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io with CORS allowed so your frontend can connect
+const io = new Server(server, {
+    cors: {
+        origin: "*", 
+        methods: ["GET", "POST"]
+    }
+});
+
 app.use(cors()); // Allow all origins (or restrict to your domain in prod)
 app.use(express.json());
 
@@ -25,7 +37,9 @@ const redisClient = redis.createClient({
         connectTimeout: 10000
     }
 });
-redisClient.on('error', err => console.error('🚨 Redis API Error:', err));
+redisClient.on('error', err => {
+    console.log('Redis API Error (Running without local Redis cache):', err.message);
+});
 
 // Connect to Redis on start
 (async () => {
@@ -33,7 +47,7 @@ redisClient.on('error', err => console.error('🚨 Redis API Error:', err));
         await redisClient.connect();
         console.log('✅ API Connected to Redis');
     } catch (err) {
-        console.error('❌ Redis Connection Failed:', err.message);
+        console.log("Redis connection skipped locally. Server running normally.");
     }
 })();
 
@@ -114,12 +128,30 @@ app.get('/api/snapshot', async (req, res) => {
     }
 });
 
-// Start the basic Recorder process alongside API?
+// 4. The AI Agent Bridge Endpoint
+app.post('/api/ai-update', (req, res) => {
+    try {
+        const { action, price, rsi, ema, balance } = req.body;
+        
+        // Log it to your terminal so you can see it working live
+        console.log(`[AI Agent Update] Action: ${action} | Price: ${price} | RSI: ${Number(rsi).toFixed(2)} | Balance: ${balance}`);
+        
+        // BROADCAST TO FRONTEND: Emits an event named 'ai-tick' with the payload
+        io.emit('ai-tick', { action, price, rsi, ema, balance });
+        
+        return res.status(200).json({ status: "success", message: "Metrics broadcasted" });
+    } catch (error) {
+        console.error("Error in AI endpoint:", error);
+        return res.status(500).json({ status: "error", message: error.message });
+    }
+});
+
+// Start the basic Recorder process alongside API
 // Usually better to run separately, but for simplicity in one container:
 // Start the Recorder process alongside API
 const { startRecorder } = require('./recorder');
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`🚀 API Server running on port ${PORT}`);
 
     // Start Recorder with shared safety catch and shared Redis client
