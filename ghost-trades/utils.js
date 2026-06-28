@@ -22,9 +22,7 @@ const OAUTH_CONFIG = {
     app_id: '33GkIMwvie8mQnHL1kogO', // New OAuth App ID from developers.deriv.com dashboard
     authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
     token_url: 'https://oauth.deriv.com/oauth2/token',
-    redirect_uri: _isLocalhost
-        ? window.location.origin + window.location.pathname  // Local dev: dynamic
-        : 'https://ghost-trades.site/',                       // Must match exactly what is in Deriv App Manager
+    redirect_uri: 'https://ghost-trades.site/',               // Always use production URI — registered in Deriv App Manager
     scope: 'read,trade,payments,trading_information,admin',
     brand: 'deriv',
     language: 'EN',
