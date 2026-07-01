@@ -7,7 +7,7 @@ import threading
 from stable_baselines3 import PPO
 
 # Configurations
-APP_ID = '33GkIWwvie8mQnHL1kOgO'
+APP_ID = '1089'
 # LOCAL_WEB_URL = "http://localhost:3000/api/ai-update" # Pointing to your local Node server for testing
 RENDER_URL = "https://ghost-trades.site/api/ai-update" # Production URL
 

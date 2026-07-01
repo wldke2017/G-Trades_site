@@ -9,7 +9,7 @@ const { calculateStats } = require('./stats');
 require('dotenv').config();
 
 // Configuration
-const DERIV_WS_URL = 'wss://ws.binaryws.com/websockets/v3?app_id=33GkIWwvie8mQnHL1kOgO'; // New App ID
+const DERIV_WS_URL = 'wss://ws.binaryws.com/websockets/v3?app_id=1089'; // Public App ID
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 // Active Markets to Record (Synced with frontend trading.js)

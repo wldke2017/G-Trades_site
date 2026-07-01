@@ -3,7 +3,7 @@
 // ===================================
 
 // --- Core Constants ---
-const APP_ID = '33GkIWwvie8mQnHL1kOgO'; // New Deriv OAuth App ID (alphanumeric)
+const APP_ID = 1089; // Public Deriv testing App ID (numeric, required for WebSocket v3)
 const WS_URL = `wss://ws.binaryws.com/websockets/v3?app_id=${APP_ID}`;
 const RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_ATTEMPTS = 10;
@@ -15,11 +15,11 @@ const ACCOUNT_TYPES = {
 };
 
 // --- Deriv OAuth Configuration ---
-// IMPORTANT: app_id here MUST be the numeric/alphanumeric App ID from https://developers.deriv.com
+// IMPORTANT: app_id here MUST be the registered OAuth App ID from https://developers.deriv.com
 // The redirect_uri MUST exactly match the URL registered in the Deriv App Manager (case-sensitive).
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
-    app_id: APP_ID, 
+    app_id: '33GkIWwvie8mQnHL1kOgO', // Correct alphanumeric OAuth App ID
     authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
     token_url: 'https://oauth.deriv.com/oauth2/token',
     redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site') 
