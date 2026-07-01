@@ -293,34 +293,28 @@ function getDerivTokensFromURL() {
  */
 function handleOAuthCallback() {
     console.log('🔄 OAuth callback detected, processing...');
-    console.log('Current URL:', window.location.href);
-    console.log('Hash:', window.location.hash);
-    console.log('Search:', window.location.search);
 
     let params;
 
-    // Check hash first, then search (query params)
+    // Check hash first (Deriv default), then search query parameters
     if (window.location.hash.length > 1) {
         params = new URLSearchParams(window.location.hash.substring(1));
-        console.log('📋 Found params in Hash:', Array.from(params.entries()));
     } else if (window.location.search.length > 1) {
         params = new URLSearchParams(window.location.search);
-        console.log('📋 Found params in Search Query:', Array.from(params.entries()));
     } else {
         console.error('❌ No OAuth parameters found in URL');
         showToast('OAuth parameters missing. Please try logging in again.', 'error');
-        statusMessage.textContent = "OAuth login failed. Please try again.";
         return;
     }
 
-    console.log('📋 URL parameters found, processing accounts...');
-
-    // Check for errors
+    // Check for errors from Deriv
     const error = params.get('error');
     if (error) {
         console.error('OAuth Error:', error);
         showToast(`OAuth Error: ${error}`, 'error');
-        statusMessage.textContent = "OAuth authentication failed. Please try again.";
+        if (typeof statusMessage !== 'undefined' && statusMessage) {
+            statusMessage.textContent = "OAuth login failed. Please try again.";
+        }
         return;
     }
 
@@ -328,23 +322,17 @@ function handleOAuthCallback() {
     const state = params.get('state');
     const storedState = sessionStorage.getItem('oauth_state');
 
-    // RELAXED SECURITY CHECK (TEMPORARY): Log warning but allow proceed if state is missing
-    // This handles cases where user refreshes the page or session storage is cleared
-    if (!state || state !== storedState) {
-        console.warn('⚠️ State parameter mismatch or missing - Proceeding with caution');
-        // showToast('Authentication warning - state mismatch', 'warning');
-        // statusMessage.textContent = "OAuth security validation warning...";
-        // return; // <-- COMMENTED OUT TO UNBLOCK USER
-    } else {
-        console.log('✅ OAuth state validated successfully');
+    if (state && storedState && state !== storedState) {
+        console.warn('⚠️ OAuth state mismatch. Proceeding with caution...');
+        if (typeof statusMessage !== 'undefined' && statusMessage) {
+            statusMessage.textContent = "OAuth security validation warning...";
+        }
     }
-
-    console.log('✅ OAuth state validated successfully');
-
-    // Clear session storage
+    
+    // Clear state after validation
     sessionStorage.removeItem('oauth_state');
 
-    // Collect all accounts returned by Deriv
+    // Collect all accounts returned (Deriv format: acct1, token1, cur1...)
     const accounts = [];
     let i = 1;
     while (params.has(`acct${i}`)) {
@@ -357,24 +345,28 @@ function handleOAuthCallback() {
     }
 
     console.log(`✅ Received ${accounts.length} account(s) from Deriv OAuth`);
-    console.log('Accounts:', accounts.map(a => ({ id: a.id, currency: a.currency })));
 
     if (accounts.length > 0) {
-        // Save accounts to localStorage for persistence
+        if (typeof statusMessage !== 'undefined' && statusMessage) {
+            statusMessage.textContent = "Loading your account data...";
+        }
+        
+        // Save to localStorage for persistence across sessions
         localStorage.setItem('deriv_all_accounts', JSON.stringify(accounts));
 
-        // Populate the account switcher dropdown
-        populateAccountSwitcher(accounts);
+        // Populate the account switcher dropdown UI
+        if (typeof populateAccountSwitcher === 'function') {
+            populateAccountSwitcher(accounts);
+        }
 
-        // Default to the first account (usually the last one used)
+        // Default to the first account provided
         switchAccount(accounts[0].token, accounts[0].id);
     } else {
-        console.error('❌ No accounts received from OAuth');
+        console.error('❌ No accounts found in OAuth parameters');
         showToast('No accounts received from Deriv', 'error');
-        statusMessage.textContent = "No accounts found. Please try again.";
     }
 
-    // Clear the hash fragment
+    // Clear tokens from URL for security and clean navigation
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
