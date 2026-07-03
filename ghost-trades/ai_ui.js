@@ -313,12 +313,13 @@ async function handleGenerateCode() {
     }
 
     try {
-        const token = localStorage.getItem('deriv_token');
+        const token = localStorage.getItem('deriv_access_token');
         const response = await fetch(AI_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Deriv-App-ID': typeof APP_ID !== 'undefined' ? APP_ID : '1089'
             },
             body: JSON.stringify({ prompt, mode: 'generate' })
         });

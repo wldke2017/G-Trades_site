@@ -95,7 +95,7 @@ async function startGhostAiBot() {
     if (isBotRunning) return;
 
     // --- AUTHENTICATION CHECK ---
-    const token = localStorage.getItem('deriv_token');
+    const token = localStorage.getItem('deriv_access_token');
     if (!token) {
         addBotLog("❌ Cannot start bot: Not logged in. Please login to your Deriv account first.", 'error');
         showToast('Authentication required. Please login first.', 'error');

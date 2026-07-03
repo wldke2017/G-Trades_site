@@ -508,7 +508,7 @@ function handleLogin() {
     console.log('✅ API token validated, length:', apiToken.length);
 
     // Save the API token for session persistence
-    localStorage.setItem('deriv_token', apiToken);
+    localStorage.setItem('deriv_access_token', apiToken);
     localStorage.setItem('deriv_account_type', 'demo'); // Assume demo for manual login
     console.log('✅ Token saved to localStorage');
 

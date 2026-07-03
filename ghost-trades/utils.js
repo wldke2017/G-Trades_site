@@ -14,21 +14,23 @@ const ACCOUNT_TYPES = {
     REAL: 'real'
 };
 
-// --- Deriv OAuth Configuration ---
-// IMPORTANT: app_id here MUST be the registered OAuth App ID from https://developers.deriv.com
+// --- Deriv OAuth 2.0 Configuration (Authorization Code Flow + PKCE) ---
+// IMPORTANT: client_id here MUST be the registered OAuth App ID from https://developers.deriv.com
 // The redirect_uri MUST exactly match the URL registered in the Deriv App Manager (case-sensitive).
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
-    app_id: '33GkIWwvie8mQnHL1kOgO', // Correct alphanumeric OAuth App ID
-    authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
-    token_url: 'https://oauth.deriv.com/oauth2/token',
+    client_id: '33GkIWwvie8mQnHL1kOgO', // Alphanumeric OAuth Client ID
+    app_id: 1089,                         // Legacy numeric App ID (fallback for WS)
+    authorization_url: 'https://auth.deriv.com/oauth2/auth',
+    token_url: 'https://auth.deriv.com/oauth2/token',
     redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site') 
         ? 'https://Ghost-trades.site' 
         : (window.location.origin + window.location.pathname),
-    scope: 'read,trade,payments,trading_information,admin',
+    scope: 'read trade payments trading_information admin',
     brand: 'deriv',
     language: 'EN',
-    response_type: 'token'
+    response_type: 'code',
+    code_challenge_method: 'S256'
 };
 
 // --- GLOBAL STATE OBJECTS ---
@@ -479,10 +481,17 @@ function logout() {
     console.log('🚪 Logging out...');
 
     // Clear localStorage
-    localStorage.removeItem('deriv_token');
+    localStorage.removeItem('deriv_access_token');
+    localStorage.removeItem('deriv_token'); // Clear legacy as well
     localStorage.removeItem('deriv_account_type');
     localStorage.removeItem('deriv_account_id');
     localStorage.removeItem('deriv_login_id');
+    localStorage.removeItem('deriv_all_accounts');
+
+    // Clear sessionStorage PKCE helper keys
+    sessionStorage.removeItem('deriv_code_verifier');
+    sessionStorage.removeItem('deriv_auth_state');
+    sessionStorage.removeItem('oauth_state');
 
     // Clear OAuth state
     oauthState.access_token = null;

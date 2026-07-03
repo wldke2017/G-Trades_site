@@ -162,7 +162,7 @@ function handleVisibilityChange() {
             connectToDeriv();
 
             // If we have a token, authorize immediately
-            const token = localStorage.getItem('deriv_token');
+            const token = localStorage.getItem('deriv_access_token');
             if (token) connectAndAuthorize(token);
         } else {
             // Even if open, send a test ping to ensure the server hasn't ghosted us
@@ -289,23 +289,13 @@ function getDerivTokensFromURL() {
 }
 
 /**
- * Handles the OAuth callback when returning from Deriv OAuth
+ * Handles the OAuth 2.0 Authorization Code callback when returning from Deriv OAuth.
+ * Validates CSRF state, extracts the authorization code, and exchanges it for an access token.
  */
-function handleOAuthCallback() {
-    console.log('🔄 OAuth callback detected, processing...');
+async function handleOAuthCallback() {
+    console.log('🔄 OAuth 2.0 callback detected, processing...');
 
-    let params;
-
-    // Check hash first (Deriv default), then search query parameters
-    if (window.location.hash.length > 1) {
-        params = new URLSearchParams(window.location.hash.substring(1));
-    } else if (window.location.search.length > 1) {
-        params = new URLSearchParams(window.location.search);
-    } else {
-        console.error('❌ No OAuth parameters found in URL');
-        showToast('OAuth parameters missing. Please try logging in again.', 'error');
-        return;
-    }
+    const params = new URLSearchParams(window.location.search);
 
     // Check for errors from Deriv
     const error = params.get('error');
@@ -318,57 +308,103 @@ function handleOAuthCallback() {
         return;
     }
 
-    // Validate state parameter (CSRF protection)
-    const state = params.get('state');
-    const storedState = sessionStorage.getItem('oauth_state');
+    // --- STRICT State Validation (CSRF Protection) ---
+    const returnedState = params.get('state');
+    const savedState = sessionStorage.getItem('deriv_auth_state');
 
-    if (state && storedState && state !== storedState) {
-        console.warn('⚠️ OAuth state mismatch. Proceeding with caution...');
+    if (!returnedState || !savedState || returnedState !== savedState) {
+        console.error('❌ CSRF State Mismatch Detected! Authentication rejected.');
+        showToast('Security validation failed. Please try logging in again.', 'error');
         if (typeof statusMessage !== 'undefined' && statusMessage) {
-            statusMessage.textContent = "OAuth security validation warning...";
+            statusMessage.textContent = "Security check failed. Please login again.";
         }
-    }
-    
-    // Clear state after validation
-    sessionStorage.removeItem('oauth_state');
-
-    // Collect all accounts returned (Deriv format: acct1, token1, cur1...)
-    const accounts = [];
-    let i = 1;
-    while (params.has(`acct${i}`)) {
-        accounts.push({
-            id: params.get(`acct${i}`),
-            token: params.get(`token${i}`),
-            currency: params.get(`cur${i}`)
-        });
-        i++;
+        // Clean up
+        sessionStorage.removeItem('deriv_auth_state');
+        sessionStorage.removeItem('deriv_code_verifier');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
     }
 
-    console.log(`✅ Received ${accounts.length} account(s) from Deriv OAuth`);
+    // --- Extract Authorization Code ---
+    const code = params.get('code');
+    if (!code) {
+        console.error('❌ No authorization code found in callback URL');
+        showToast('Authorization code missing. Please try logging in again.', 'error');
+        return;
+    }
 
-    if (accounts.length > 0) {
+    console.log('✅ State validated. Exchanging authorization code for access token...');
+    if (typeof statusMessage !== 'undefined' && statusMessage) {
+        statusMessage.textContent = "Exchanging authorization code...";
+    }
+
+    try {
+        // Exchange the code for an access token
+        const accessToken = await exchangeCodeForToken(code);
+
+        if (!accessToken) {
+            throw new Error('Token exchange returned no access token');
+        }
+
+        console.log('✅ Access token obtained successfully');
+
+        // Store the access token
+        localStorage.setItem('deriv_access_token', accessToken);
+
+        // Update OAuth state
+        if (typeof window.oauthState === 'undefined') {
+            window.oauthState = {
+                access_token: null,
+                refresh_token: null,
+                account_type: 'demo',
+                login_id: null,
+                account_id: null
+            };
+        }
+        window.oauthState.access_token = accessToken;
+
         if (typeof statusMessage !== 'undefined' && statusMessage) {
             statusMessage.textContent = "Loading your account data...";
         }
-        
-        // Save to localStorage for persistence across sessions
-        localStorage.setItem('deriv_all_accounts', JSON.stringify(accounts));
 
-        // Populate the account switcher dropdown UI
-        if (typeof populateAccountSwitcher === 'function') {
-            populateAccountSwitcher(accounts);
+        // Connect and authorize with the new token
+        connectAndAuthorize(accessToken);
+
+        // Show dashboard
+        const loginInterface = document.querySelector('.auth-container');
+        const dashboardElement = document.getElementById('dashboard');
+
+        if (loginInterface) {
+            loginInterface.style.display = 'none';
+        }
+        if (dashboardElement) {
+            dashboardElement.style.display = 'flex';
         }
 
-        // Default to the first account provided
-        switchAccount(accounts[0].token, accounts[0].id);
-    } else {
-        console.error('❌ No accounts found in OAuth parameters');
-        showToast('No accounts received from Deriv', 'error');
-    }
+        if (typeof showSection === 'function') {
+            showSection('dashboard');
+        }
 
-    // Clear tokens from URL for security and clean navigation
-    window.history.replaceState({}, document.title, window.location.pathname);
+        // Toggle header buttons
+        const headerLoginBtn = document.getElementById('headerLoginBtn');
+        const accountSwitcher = document.getElementById('accountSwitcherContainer');
+        if (headerLoginBtn) headerLoginBtn.style.display = 'none';
+        if (accountSwitcher) accountSwitcher.style.display = 'flex';
+
+    } catch (err) {
+        console.error('❌ Token exchange failed:', err);
+        showToast(`Login failed: ${err.message}`, 'error');
+        if (typeof statusMessage !== 'undefined' && statusMessage) {
+            statusMessage.textContent = "Login failed. Please try again.";
+        }
+    } finally {
+        // Clean up: clear tokens from URL and sessionStorage
+        window.history.replaceState({}, document.title, window.location.pathname);
+        sessionStorage.removeItem('deriv_auth_state');
+        sessionStorage.removeItem('deriv_code_verifier');
+    }
 }
+
 
 /**
  * Populates the account switcher dropdown with available accounts
@@ -466,7 +502,7 @@ function switchAccount(token, accountId) {
     window.oauthState.account_type = accountId.startsWith('VRTC') ? 'demo' : 'real';
 
     // Save to localStorage
-    localStorage.setItem('deriv_token', token);
+    localStorage.setItem('deriv_access_token', token);
     localStorage.setItem('deriv_account_id', accountId);
     localStorage.setItem('deriv_account_type', window.oauthState.account_type);
 
@@ -608,24 +644,94 @@ function authorizeWithOAuthToken() {
 // ===================================
 
 /**
- * Starts the unified OAuth login flow (no account type pre-selection)
+ * Exchanges an authorization code for an access token via the PKCE token endpoint.
+ * @param {string} code - The authorization code from the OAuth callback
+ * @returns {Promise<string>} The access token
  */
-function startOAuthLogin() {
-    console.log('🚀 Starting unified OAuth login...');
+async function exchangeCodeForToken(code) {
+    const codeVerifier = sessionStorage.getItem('deriv_code_verifier');
 
-    // Generate a random state parameter for CSRF protection
-    const state = crypto.randomUUID();
-    sessionStorage.setItem('oauth_state', state);
+    if (!codeVerifier) {
+        throw new Error('PKCE code_verifier not found in session. Please try logging in again.');
+    }
 
-    // Build the authorization URL with all required parameters
-    const authUrl = `${OAUTH_CONFIG.authorization_url}?app_id=${OAUTH_CONFIG.app_id}&l=${OAUTH_CONFIG.language}&brand=${OAUTH_CONFIG.brand}&state=${state}&response_type=token&redirect_uri=${encodeURIComponent(OAUTH_CONFIG.redirect_uri)}`;
+    console.log('🔒 Exchanging authorization code for access token...');
 
-    console.log('🚀 Redirecting to Deriv for unified login...');
-    console.log('Auth URL:', authUrl);
+    const response = await fetch(OAUTH_CONFIG.token_url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            grant_type: 'authorization_code',
+            client_id: OAUTH_CONFIG.client_id,
+            code: code,
+            redirect_uri: OAUTH_CONFIG.redirect_uri,
+            code_verifier: codeVerifier
+        })
+    });
 
-    // Redirect to Deriv OAuth
-    window.location.href = authUrl;
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.error_description || errorData.error || `HTTP ${response.status}`;
+        throw new Error(`Token exchange failed: ${errorMsg}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.access_token) {
+        throw new Error('Token response did not contain an access_token');
+    }
+
+    console.log('✅ Token exchange successful');
+    return data.access_token;
 }
+
+/**
+ * Starts the OAuth 2.0 Authorization Code Flow with PKCE.
+ * Generates a PKCE code_verifier/challenge pair and a random state,
+ * stores them in sessionStorage, then redirects to the Deriv authorization endpoint.
+ */
+async function startOAuthLogin() {
+    console.log('🚀 Starting OAuth 2.0 Authorization Code Flow with PKCE...');
+
+    try {
+        // Generate PKCE pair (code_verifier + code_challenge)
+        const { verifier, challenge } = await generatePkcePair();
+        const state = generateState();
+
+        // Store in sessionStorage for validation on callback
+        sessionStorage.setItem('deriv_code_verifier', verifier);
+        sessionStorage.setItem('deriv_auth_state', state);
+
+        // Build the authorization URL with all required parameters
+        const authParams = new URLSearchParams({
+            response_type: OAUTH_CONFIG.response_type,
+            client_id: OAUTH_CONFIG.client_id,
+            redirect_uri: OAUTH_CONFIG.redirect_uri,
+            scope: OAUTH_CONFIG.scope,
+            state: state,
+            code_challenge: challenge,
+            code_challenge_method: OAUTH_CONFIG.code_challenge_method,
+            app_id: OAUTH_CONFIG.app_id,  // Legacy fallback parameter
+            l: OAUTH_CONFIG.language,
+            brand: OAUTH_CONFIG.brand
+        });
+
+        const authUrl = `${OAUTH_CONFIG.authorization_url}?${authParams.toString()}`;
+
+        console.log('🚀 Redirecting to Deriv for OAuth 2.0 + PKCE login...');
+        console.log('Auth URL:', authUrl);
+
+        // Redirect to Deriv OAuth
+        window.location.href = authUrl;
+
+    } catch (error) {
+        console.error('❌ Failed to initiate OAuth login:', error);
+        showToast('Failed to start login. Please try again.', 'error');
+    }
+}
+
 
 
 // ===================================

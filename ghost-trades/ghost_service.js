@@ -3,7 +3,7 @@ class GhostBackgroundService {
         this.ws = null;
         // Use the user's own stored token instead of a hardcoded one.
         // The hardcoded token was expired/disabled causing "Account is disabled" errors.
-        this.token = localStorage.getItem('deriv_token') || null;
+        this.token = localStorage.getItem('deriv_access_token') || null;
         this.appId = 1089; // Public Deriv testing App ID (numeric, required for WebSocket v3)
         this.isConnected = false;
         this.onTradeResult = null; // Callback (contract, isWin, profit, strategy)
@@ -14,7 +14,7 @@ class GhostBackgroundService {
 
     connect() {
         // Always pull the latest token from storage (user may have logged in after construction)
-        this.token = localStorage.getItem('deriv_token') || null;
+        this.token = localStorage.getItem('deriv_access_token') || null;
 
         // Don't attempt to connect if there's no token — avoids "DisabledClient" errors
         if (!this.token) {

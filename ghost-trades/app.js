@@ -119,7 +119,7 @@ function handleIncomingMessage(msg) {
         // Handle authorization failure
         if (data.msg_type === 'authorize') {
             console.warn('❌ Authorization failed. Clearing session and showing login...');
-            localStorage.removeItem('deriv_token');
+            localStorage.removeItem('deriv_access_token');
             
             const headerLoginBtn = document.getElementById('headerLoginBtn');
             const accountSwitcher = document.getElementById('accountSwitcherContainer');
@@ -249,7 +249,7 @@ function handleIncomingMessage(msg) {
                         // Create a single account object for the current API token login
                         const currentAccount = {
                             id: data.authorize.loginid,
-                            token: localStorage.getItem('deriv_token'),
+                            token: localStorage.getItem('deriv_access_token'),
                             currency: data.authorize.currency
                         };
 
@@ -1206,46 +1206,41 @@ function handleOAuthRedirectAndInit() {
     const hash = window.location.hash;
     const search = window.location.search;
 
-    // 1. FIRST: Check if we're returning from OAuth callback (Deriv uses token1/acct1 format)
-    // Check both Hash and Search Query
-    if ((hash && (hash.includes('token1=') || hash.includes('acct1='))) ||
-        (search && (search.includes('token1=') || search.includes('acct1=')))) {
-        console.log('🎯 OAuth parameters detected! Processing before UI load...');
-        // Process the OAuth callback immediately
+    // 1. FIRST: Check if we're returning from OAuth 2.0 callback with authorization code
+    const searchParams = new URLSearchParams(search);
+    if (searchParams.has('code') && searchParams.has('state')) {
+        console.log('🎯 OAuth 2.0 Code & State parameters detected! Processing callback...');
         if (typeof handleOAuthCallback === 'function') {
             handleOAuthCallback();
         }
-        return; // Stop here, handleOAuthCallback will redirect to dashboard
+        return;
     }
 
-    // 2. Check for old-style access_token format (fallback)
+    // 2. Check for hash/search containing access_token format (fallback/legacy/manual)
+    let tokenFromUrl = null;
     if (hash.includes('access_token')) {
-        // Token found in URL hash fragment (after a successful OAuth redirect)
         const params = new URLSearchParams(hash.substring(1));
-        const token = params.get('access_token');
+        tokenFromUrl = params.get('access_token');
+    } else if (searchParams.has('access_token')) {
+        tokenFromUrl = searchParams.get('access_token');
+    }
 
-        if (token) {
-            console.log('✅ OAuth access_token found in URL hash');
-            // Save the token for future sessions
-            localStorage.setItem('deriv_token', token);
-
-            // Clean the URL hash fragment (highly recommended for security)
-            window.history.replaceState({}, document.title, window.location.pathname);
-
-            // Connect and start the authorized session
-            connectAndAuthorize(token);
-            showSection('dashboard');
-            return;
-        }
+    if (tokenFromUrl) {
+        console.log('✅ OAuth access_token found in URL');
+        localStorage.setItem('deriv_access_token', tokenFromUrl);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        connectAndAuthorize(tokenFromUrl);
+        showSection('dashboard');
+        return;
     }
 
     // 3. SECOND: Check if one is saved from a previous successful login
-    const storedToken = localStorage.getItem('deriv_token');
+    const storedToken = localStorage.getItem('deriv_access_token');
     const storedAccountType = localStorage.getItem('deriv_account_type');
     const storedAccountId = localStorage.getItem('deriv_account_id');
 
     if (storedToken) {
-        console.log('✅ Using stored token from previous session');
+        console.log('✅ Using stored access token from previous session');
         console.log('Account type:', storedAccountType, 'Account ID:', storedAccountId);
 
         // Restore OAuth state
