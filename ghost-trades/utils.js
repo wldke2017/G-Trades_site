@@ -20,7 +20,7 @@ const ACCOUNT_TYPES = {
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
     client_id: '33GkIWwvie8mQnHL1kOgO', // Alphanumeric OAuth Client ID
-    app_id: 1089,                         // Legacy numeric App ID (fallback for WS)
+    app_id: '33GkIWwvie8mQnHL1kOgO',     // Legacy alphanumeric App ID (fallback)
     authorization_url: 'https://auth.deriv.com/oauth2/auth',
     token_url: 'https://auth.deriv.com/oauth2/token',
     redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site') 
