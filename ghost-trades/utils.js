@@ -14,23 +14,21 @@ const ACCOUNT_TYPES = {
     REAL: 'real'
 };
 
-// --- Deriv OAuth 2.0 Configuration (Authorization Code Flow + PKCE) ---
-// IMPORTANT: client_id here MUST be the registered OAuth App ID from https://developers.deriv.com
-// The redirect_uri MUST exactly match the URL registered in the Deriv App Manager (case-sensitive).
+// --- Deriv OAuth Configuration ---
+// Using the Deriv standard OAuth implicit flow (response_type=token) on oauth.deriv.com
+// The app_id '33GkIWwvie8mQnHL1kOgO' is registered on this system.
+// To upgrade to PKCE/Authorization Code flow, register a new app at https://developers.deriv.com
+// and update authorization_url to 'https://auth.deriv.com/oauth2/auth' with response_type='code'.
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
-    client_id: '33GkIWwvie8mQnHL1kOgO', // Alphanumeric OAuth Client ID
-    app_id: '33GkIWwvie8mQnHL1kOgO',     // Legacy alphanumeric App ID (fallback)
-    authorization_url: 'https://auth.deriv.com/oauth2/auth',
-    token_url: 'https://auth.deriv.com/oauth2/token',
-    redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site') 
-        ? 'https://Ghost-trades.site' 
+    app_id: '33GkIWwvie8mQnHL1kOgO',     // Deriv App ID registered at oauth.deriv.com
+    authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
+    redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site')
+        ? 'https://ghost-trades.site'
         : (window.location.origin + window.location.pathname),
-    scope: 'read trade payments trading_information admin',
     brand: 'deriv',
     language: 'EN',
-    response_type: 'code',
-    code_challenge_method: 'S256'
+    response_type: 'token'
 };
 
 // --- GLOBAL STATE OBJECTS ---

@@ -1205,18 +1205,70 @@ function handleOAuthRedirectAndInit() {
     console.log('🔄 Checking for OAuth redirect...');
     const hash = window.location.hash;
     const search = window.location.search;
-
-    // 1. FIRST: Check if we're returning from OAuth 2.0 callback with authorization code
     const searchParams = new URLSearchParams(search);
+
+    // 1. Check for Deriv implicit flow callback: acct1=...&token1=... (oauth.deriv.com format)
+    const derivAccounts = typeof getDerivTokensFromURL === 'function' ? getDerivTokensFromURL() : null;
+    if (derivAccounts && derivAccounts.length > 0) {
+        console.log('🎯 Deriv OAuth implicit tokens detected!', derivAccounts.length, 'account(s)');
+
+        // Map to our account format
+        const formattedAccounts = derivAccounts.map(acc => ({
+            id: acc.account,
+            token: acc.token,
+            currency: acc.currency || 'USD'
+        }));
+
+        // Save all accounts to localStorage
+        localStorage.setItem('deriv_all_accounts', JSON.stringify(formattedAccounts));
+
+        // Use the first account's token as the primary
+        const primaryAccount = formattedAccounts[0];
+        const primaryToken = primaryAccount.token;
+        const accountType = primaryAccount.id && primaryAccount.id.startsWith('VRTC') ? 'demo' : 'real';
+
+        localStorage.setItem('deriv_access_token', primaryToken);
+        localStorage.setItem('deriv_account_type', accountType);
+        localStorage.setItem('deriv_account_id', primaryAccount.id);
+
+        // Restore OAuth state object
+        window.oauthState.access_token = primaryToken;
+        window.oauthState.account_type = accountType;
+        window.oauthState.account_id = primaryAccount.id;
+
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Populate account switcher UI
+        if (typeof populateAccountSwitcherUI === 'function') {
+            populateAccountSwitcherUI(formattedAccounts);
+        }
+
+        // Toggle header buttons
+        const headerLoginBtn = document.getElementById('headerLoginBtn');
+        const accountSwitcher = document.getElementById('accountSwitcherContainer');
+        if (headerLoginBtn) headerLoginBtn.style.display = 'none';
+        if (accountSwitcher) accountSwitcher.style.display = 'flex';
+
+        // Show status
+        if (statusMessage) statusMessage.textContent = 'Connecting to your account...';
+
+        // Connect and authorize
+        connectAndAuthorize(primaryToken);
+        showSection('dashboard');
+        return;
+    }
+
+    // 2. Check for OAuth 2.0 Authorization Code callback (for future PKCE upgrade)
     if (searchParams.has('code') && searchParams.has('state')) {
-        console.log('🎯 OAuth 2.0 Code & State parameters detected! Processing callback...');
+        console.log('🎯 OAuth 2.0 Authorization Code detected! Processing...');
         if (typeof handleOAuthCallback === 'function') {
             handleOAuthCallback();
         }
         return;
     }
 
-    // 2. Check for hash/search containing access_token format (fallback/legacy/manual)
+    // 3. Check for access_token in URL (hash or query — generic OAuth implicit)
     let tokenFromUrl = null;
     if (hash.includes('access_token')) {
         const params = new URLSearchParams(hash.substring(1));
@@ -1234,7 +1286,7 @@ function handleOAuthRedirectAndInit() {
         return;
     }
 
-    // 3. SECOND: Check if one is saved from a previous successful login
+    // 4. Check if a token is saved from a previous successful login
     const storedToken = localStorage.getItem('deriv_access_token');
     const storedAccountType = localStorage.getItem('deriv_account_type');
     const storedAccountId = localStorage.getItem('deriv_account_id');
@@ -1268,9 +1320,9 @@ function handleOAuthRedirectAndInit() {
         connectAndAuthorize(storedToken);
         showSection('dashboard');
     } else {
-        // 4. No token found. User needs to login.
+        // 5. No token found. User needs to login.
         console.log('ℹ️ No token found. User needs to initiate login via OAuth buttons.');
-        
+
         // Toggle header buttons
         const headerLoginBtn = document.getElementById('headerLoginBtn');
         const accountSwitcher = document.getElementById('accountSwitcherContainer');

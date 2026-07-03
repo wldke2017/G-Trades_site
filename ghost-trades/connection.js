@@ -688,42 +688,32 @@ async function exchangeCodeForToken(code) {
 }
 
 /**
- * Starts the OAuth 2.0 Authorization Code Flow with PKCE.
- * Generates a PKCE code_verifier/challenge pair and a random state,
- * stores them in sessionStorage, then redirects to the Deriv authorization endpoint.
+ * Starts the Deriv OAuth login flow.
+ * Redirects to oauth.deriv.com with the registered app_id.
+ * Deriv returns tokens directly in the redirect URL (implicit flow).
  */
-async function startOAuthLogin() {
-    console.log('🚀 Starting OAuth 2.0 Authorization Code Flow with PKCE...');
+function startOAuthLogin() {
+    console.log('🚀 Starting Deriv OAuth login...');
 
     try {
-        // Generate PKCE pair (code_verifier + code_challenge)
-        const { verifier, challenge } = await generatePkcePair();
-        const state = generateState();
-
-        // Store in sessionStorage for validation on callback
-        sessionStorage.setItem('deriv_code_verifier', verifier);
+        // Generate a random state for basic CSRF protection
+        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(b => b.toString(16).padStart(2, '0')).join('');
         sessionStorage.setItem('deriv_auth_state', state);
 
-        // Build the authorization URL with all required parameters
+        // Build the authorization URL
         const authParams = new URLSearchParams({
-            response_type: OAUTH_CONFIG.response_type,
-            client_id: OAUTH_CONFIG.client_id,
-            redirect_uri: OAUTH_CONFIG.redirect_uri,
-            scope: OAUTH_CONFIG.scope,
-            state: state,
-            code_challenge: challenge,
-            code_challenge_method: OAUTH_CONFIG.code_challenge_method,
-            app_id: OAUTH_CONFIG.app_id,  // Legacy fallback parameter
+            app_id: OAUTH_CONFIG.app_id,
             l: OAUTH_CONFIG.language,
-            brand: OAUTH_CONFIG.brand
+            brand: OAUTH_CONFIG.brand,
+            redirect_uri: OAUTH_CONFIG.redirect_uri
         });
 
         const authUrl = `${OAUTH_CONFIG.authorization_url}?${authParams.toString()}`;
 
-        console.log('🚀 Redirecting to Deriv for OAuth 2.0 + PKCE login...');
+        console.log('🚀 Redirecting to Deriv OAuth...');
         console.log('Auth URL:', authUrl);
 
-        // Redirect to Deriv OAuth
         window.location.href = authUrl;
 
     } catch (error) {

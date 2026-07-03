@@ -497,48 +497,27 @@ function handleLogin() {
         return;
     }
 
-    // Validate token format (basic check)
-    if (apiToken.length < 10) {
-        console.error('❌ API token too short:', apiToken.length, 'characters');
-        statusMessage.textContent = "⚠️ Invalid API Token format.";
-        showToast("API Token appears to be invalid", 'error');
+    // Accept both legacy (alphanumeric) and new pat_xxx format tokens
+    // Legacy: ~15 char alphanumeric  |  New: pat_ prefix followed by hex
+    const isValidPat = apiToken.startsWith('pat_') && apiToken.length > 20;
+    const isValidLegacy = !apiToken.startsWith('pat_') && apiToken.length >= 10;
+    if (!isValidPat && !isValidLegacy) {
+        console.error('❌ API token format invalid, length:', apiToken.length);
+        statusMessage.textContent = "⚠️ Invalid API Token format. Tokens should start with 'pat_' or be at least 10 characters.";
+        showToast("Invalid API Token format", 'error');
         return;
     }
 
-    console.log('✅ API token validated, length:', apiToken.length);
+    console.log('✅ API token validated (' + (isValidPat ? 'PAT format' : 'legacy format') + ')');
 
-    // Save the API token for session persistence
+    // Save the API token
     localStorage.setItem('deriv_access_token', apiToken);
-    localStorage.setItem('deriv_account_type', 'demo'); // Assume demo for manual login
-    console.log('✅ Token saved to localStorage');
 
     setButtonLoading(loginButton, true);
-    statusMessage.textContent = "Authorizing your account...";
+    statusMessage.textContent = "Connecting to Deriv...";
 
-    if (connection && connection.readyState === WebSocket.OPEN) {
-        console.log('✅ WebSocket already open, authorizing...');
-        authorizeAndProceed(apiToken);
-    } else {
-        console.log('🔄 WebSocket not open, connecting first...');
-        connectToDeriv();
-        let connectionCheckAttempts = 0;
-        const maxAttempts = 100; // 10 seconds (100 * 100ms)
-
-        const checkConnection = setInterval(() => {
-            connectionCheckAttempts++;
-            if (connection && connection.readyState === WebSocket.OPEN) {
-                console.log('✅ WebSocket connected after', connectionCheckAttempts * 100, 'ms');
-                clearInterval(checkConnection);
-                authorizeAndProceed(apiToken);
-            } else if (connectionCheckAttempts >= maxAttempts) {
-                console.error('❌ Connection timeout after', maxAttempts * 100, 'ms');
-                clearInterval(checkConnection);
-                setButtonLoading(loginButton, false);
-                showToast("Connection timeout. Please try again.", 'error');
-                statusMessage.textContent = "Connection failed. Please check your internet and try again.";
-            }
-        }, 100);
-    }
+    // Use connectAndAuthorize which handles WS setup + authorization in one call
+    connectAndAuthorize(apiToken);
 }
 
 // ----------------------------------------------------
