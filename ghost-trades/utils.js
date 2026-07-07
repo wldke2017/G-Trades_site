@@ -21,14 +21,15 @@ const ACCOUNT_TYPES = {
 // and update authorization_url to 'https://auth.deriv.com/oauth2/auth' with response_type='code'.
 const _isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const OAUTH_CONFIG = {
-    app_id: '33GkIWwvie8mQnHL1kOgO',     // Deriv App ID registered at oauth.deriv.com
-    authorization_url: 'https://oauth.deriv.com/oauth2/authorize',
+    client_id: '33GkIWwvie8mQnHL1kOgO',  // Deriv App ID registered at auth.deriv.com
+    authorization_url: 'https://auth.deriv.com/oauth2/auth', // PKCE authorization endpoint
+    token_url: 'https://auth.deriv.com/oauth2/token',       // PKCE token endpoint
     redirect_uri: window.location.hostname.toLowerCase().includes('ghost-trades.site')
         ? 'https://ghost-trades.site'
         : (window.location.origin + window.location.pathname),
     brand: 'deriv',
     language: 'EN',
-    response_type: 'token'
+    response_type: 'code' // Use Authorization Code flow with PKCE
 };
 
 // --- GLOBAL STATE OBJECTS ---

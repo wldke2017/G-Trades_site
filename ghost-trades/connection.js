@@ -339,19 +339,52 @@ async function handleOAuthCallback() {
     }
 
     try {
-        // Exchange the code for an access token
-        const accessToken = await exchangeCodeForToken(code);
+        // Exchange the code for an access token and account details
+        const tokenData = await exchangeCodeForToken(code);
+        const accessToken = tokenData.access_token;
+        const accountId = tokenData.account_id || tokenData.acct1;
 
-        if (!accessToken) {
-            throw new Error('Token exchange returned no access token');
+        console.log('✅ Access token obtained successfully for account:', accountId);
+
+        // Store primary credentials
+        localStorage.setItem('deriv_access_token', accessToken);
+        if (accountId) localStorage.setItem('deriv_account_id', accountId);
+        
+        const accountType = accountId && accountId.startsWith('VRTC') ? 'demo' : 'real';
+        localStorage.setItem('deriv_account_type', accountType);
+
+        // --- Robust Account Extraction ---
+        let allAccounts = [];
+        
+        // 1. Check for standard array format
+        if (Array.isArray(tokenData.accounts)) {
+            allAccounts = tokenData.accounts.map(acc => ({
+                id: acc.account || acc.loginid,
+                token: acc.token,
+                currency: acc.currency || 'USD'
+            }));
+        } 
+        // 2. Fallback to Deriv numbered format (acct1, token1...)
+        else {
+            let i = 1;
+            while (tokenData[`acct${i}`]) {
+                allAccounts.push({
+                    id: tokenData[`acct${i}`],
+                    token: tokenData[`token${i}`],
+                    currency: tokenData[`cur${i}`] || 'USD'
+                });
+                i++;
+            }
         }
 
-        console.log('✅ Access token obtained successfully');
+        if (allAccounts.length > 0) {
+            localStorage.setItem('deriv_all_accounts', JSON.stringify(allAccounts));
+            if (typeof populateAccountSwitcherUI === 'function') {
+                populateAccountSwitcherUI(allAccounts);
+            }
+        }
 
-        // Store the access token
-        localStorage.setItem('deriv_access_token', accessToken);
-
-        // Update OAuth state
+        // Update global OAuth state
         if (typeof window.oauthState === 'undefined') {
             window.oauthState = {
                 access_token: null,
@@ -362,6 +395,8 @@ async function handleOAuthCallback() {
             };
         }
         window.oauthState.access_token = accessToken;
+        window.oauthState.account_id = accountId;
+        window.oauthState.account_type = accountType;
 
         if (typeof statusMessage !== 'undefined' && statusMessage) {
             statusMessage.textContent = "Loading your account data...";
@@ -374,12 +409,8 @@ async function handleOAuthCallback() {
         const loginInterface = document.querySelector('.auth-container');
         const dashboardElement = document.getElementById('dashboard');
 
-        if (loginInterface) {
-            loginInterface.style.display = 'none';
-        }
-        if (dashboardElement) {
-            dashboardElement.style.display = 'flex';
-        }
+        if (loginInterface) loginInterface.style.display = 'none';
+        if (dashboardElement) dashboardElement.style.display = 'flex';
 
         if (typeof showSection === 'function') {
             showSection('dashboard');
@@ -657,18 +688,20 @@ async function exchangeCodeForToken(code) {
 
     console.log('🔒 Exchanging authorization code for access token...');
 
+    const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: OAUTH_CONFIG.client_id,
+        code: code,
+        redirect_uri: OAUTH_CONFIG.redirect_uri,
+        code_verifier: codeVerifier
+    });
+
     const response = await fetch(OAUTH_CONFIG.token_url, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify({
-            grant_type: 'authorization_code',
-            client_id: OAUTH_CONFIG.client_id,
-            code: code,
-            redirect_uri: OAUTH_CONFIG.redirect_uri,
-            code_verifier: codeVerifier
-        })
+        body: body.toString()
     });
 
     if (!response.ok) {
@@ -684,34 +717,42 @@ async function exchangeCodeForToken(code) {
     }
 
     console.log('✅ Token exchange successful');
-    return data.access_token;
+    return data;
 }
 
 /**
- * Starts the Deriv OAuth login flow.
- * Redirects to oauth.deriv.com with the registered app_id.
- * Deriv returns tokens directly in the redirect URL (implicit flow).
+ * Starts the Deriv OAuth login flow using Authorization Code flow with PKCE.
+ * Generates code_verifier, code_challenge, and state for security.
  */
-function startOAuthLogin() {
-    console.log('🚀 Starting Deriv OAuth login...');
+async function startOAuthLogin() {
+    console.log('🚀 Starting Deriv OAuth login with PKCE...');
 
     try {
-        // Generate a random state for basic CSRF protection
-        const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-            .map(b => b.toString(16).padStart(2, '0')).join('');
+        // Generate PKCE pair and state
+        const { verifier, challenge } = await generatePkcePair();
+        const state = generateState();
+
+        // Store verifier and state in sessionStorage for verification on callback
+        sessionStorage.setItem('deriv_code_verifier', verifier);
         sessionStorage.setItem('deriv_auth_state', state);
 
-        // Build the authorization URL
+        console.log('🔒 PKCE parameters generated and stored in sessionStorage');
+
+        // Build the authorization URL with PKCE parameters
         const authParams = new URLSearchParams({
-            app_id: OAUTH_CONFIG.app_id,
+            client_id: OAUTH_CONFIG.client_id,
+            redirect_uri: OAUTH_CONFIG.redirect_uri,
+            response_type: OAUTH_CONFIG.response_type,
+            state: state,
+            code_challenge: challenge,
+            code_challenge_method: 'S256',
             l: OAUTH_CONFIG.language,
-            brand: OAUTH_CONFIG.brand,
-            redirect_uri: OAUTH_CONFIG.redirect_uri
+            brand: OAUTH_CONFIG.brand
         });
 
         const authUrl = `${OAUTH_CONFIG.authorization_url}?${authParams.toString()}`;
 
-        console.log('🚀 Redirecting to Deriv OAuth...');
+        console.log('🚀 Redirecting to Deriv OAuth (PKCE)...');
         console.log('Auth URL:', authUrl);
 
         window.location.href = authUrl;
